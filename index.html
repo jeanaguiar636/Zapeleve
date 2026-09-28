@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve</title>
+    <title>Zap Leve - Catálogo e Chamadas com Foto</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -57,7 +57,6 @@
         .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
         .msg-menu-btn { position: absolute; top: 4px; right: 6px; background: none; border: none; font-size: 14px; cursor: pointer; color: #555; padding: 2px 6px; font-weight: bold; }
 
-        /* Menu Contextual Direto (Clica no nome, sem números) */
         .context-menu { position: absolute; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 100; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
         .context-menu button { background: none; border: none; padding: 10px 16px; text-align: left; cursor: pointer; color: #333; }
         .context-menu button:hover { background: #f0f2f5; }
@@ -69,7 +68,6 @@
         .btn-mic { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
         .btn-mic.gravando { background: #ea0938; animation: pulse 1.2s infinite; }
 
-        /* Menu do Clipe */
         .clip-popup { position: absolute; bottom: 55px; left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; width: 150px; z-index: 200; overflow: hidden; }
         .clip-popup button { background: none; border: none; padding: 10px 14px; text-align: left; font-size: 13px; cursor: pointer; color: #333; display: flex; align-items: center; gap: 8px; }
         .clip-popup button:hover { background: #f0f2f5; }
@@ -80,18 +78,34 @@
             100% { transform: scale(1); }
         }
 
-        .floating-cart { position: fixed; bottom: 80px; right: 20px; background: #25d366; color: white; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; }
+        .floating-cart { position: fixed; bottom: 80px; right: 20px; background: #25d366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; transition: transform 0.2s; }
+        .floating-cart:hover { transform: scale(1.08); }
 
-        /* MODAIS */
+        /* MODAIS E CATÁLOGO */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
-        .modal-card { background: white; width: 100%; max-width: 420px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
 
-        #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; text-align: center; color: white; }
-        .call-videos { display: flex; flex: 1; justify-content: center; align-items: center; position: relative; }
-        .remote-video { width: 100%; max-height: 75vh; object-fit: cover; border-radius: 12px; background: #222; }
-        .local-video { width: 110px; height: 150px; object-fit: cover; border-radius: 8px; position: absolute; bottom: 20px; right: 20px; border: 2px solid #fff; background: #333; }
-        .call-controls { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; }
-        .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; }
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 4px; }
+        .product-card { background: #f9f9f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+        .product-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; }
+        .product-card h4 { margin: 0; font-size: 13px; color: #075e54; }
+        .product-card p { margin: 0; font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-card-actions { display: flex; gap: 6px; margin-top: 4px; }
+        .btn-prod-buy { flex: 1; background: #25d366; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
+        .btn-prod-del { background: #ea0938; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+
+        /* TELA DE CHAMADA COM FOTO E NOME */
+        #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; text-align: center; color: white; }
+        .call-user-display { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 20px; }
+        .call-avatar { width: 100px; height: 100px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: white; overflow: hidden; border: 3px solid rgba(255,255,255,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .call-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .call-videos { display: flex; flex: 1; justify-content: center; align-items: center; position: relative; margin: 10px 0; }
+        .remote-video { width: 100%; max-height: 60vh; object-fit: cover; border-radius: 12px; background: #222; }
+        .local-video { width: 90px; height: 130px; object-fit: cover; border-radius: 8px; position: absolute; bottom: 15px; right: 15px; border: 2px solid #fff; background: #333; }
+        .call-controls { display: flex; justify-content: center; gap: 25px; padding-bottom: 20px; align-items: center; }
+        .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(234,9,56,0.4); }
+        .call-answer-btn { background: #25d366; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(37,211,102,0.4); animation: pulse 1.2s infinite; }
         
         .preview-box { background: #f0f2f5; padding: 10px; border-radius: 8px; text-align: center; }
         .preview-box audio, .preview-box img, .preview-box video { max-width: 100%; max-height: 180px; border-radius: 6px; margin-bottom: 8px; }
@@ -140,7 +154,34 @@
                 <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar</button>
             </div>
 
-            <button class="floating-cart" id="btn-floating-cart" title="Carrinho / Loja">🛒</button>
+            <!-- BOTÃO DO CARRINHO (CATÁLOGO) -->
+            <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
+        </div>
+
+        <!-- MODAL DO CATÁLOGO DE PRODUTOS -->
+        <div id="catalog-modal" class="modal-overlay hidden">
+            <div class="modal-card" style="max-width: 520px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <h3 style="margin: 0; color: #075e54;">🛍️ Catálogo de Produtos (Loja)</h3>
+                    <button id="btn-close-catalog" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
+                </div>
+
+                <!-- PAINEL ADMIN -->
+                <div id="admin-product-form" style="background: #f4f6f8; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Adicionar / Editar Produto (Admin)</h4>
+                    <input type="text" id="prod-nome" placeholder="Nome do Produto (ex: Vestido Elegante)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                    <textarea id="prod-desc" placeholder="Descrição do produto..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 40px; outline: none;"></textarea>
+                    <input type="text" id="prod-link" placeholder="Link do Produto (ex: https://shopee.com.br/...)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <label style="font-size: 11px; color: #555;">Foto do Produto:</label>
+                        <input type="file" id="prod-img-file" accept="image/*" style="font-size: 11px; flex: 1;">
+                    </div>
+                    <button id="btn-save-product" style="background: #00a884; color: white; border: none; padding: 7px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;">Salvar Produto no Catálogo</button>
+                </div>
+
+                <div style="font-weight: bold; font-size: 13px; color: #333; margin-top: 4px;">Produtos Disponíveis:</div>
+                <div id="product-grid-container" class="product-grid"></div>
+            </div>
         </div>
 
         <!-- MODAL DE PERFIL -->
@@ -205,7 +246,6 @@
 
             <div id="chat-messages" class="chat-messages" onclick="fecharMenusContextuais()"></div>
 
-            <!-- PRÉ-VISUALIZAÇÃO DE MÍDIA ANTES DE ENVIAR -->
             <div id="media-preview-container" class="preview-box hidden">
                 <div id="preview-content-box"></div>
                 <div class="preview-actions">
@@ -230,19 +270,24 @@
             </div>
         </div>
 
-        <!-- TELA DE CHAMADA -->
+        <!-- TELA DE CHAMADA COM NOME E FOTO DE PERFIL -->
         <div id="call-screen" class="hidden">
-            <div style="padding-top: 30px;">
-                <h2 id="call-status-title" style="font-size: 20px; font-weight: bold; margin: 0;">Chamada Entrando...</h2>
-                <p style="font-size: 13px; color: #a0aec0; margin-top: 5px;">Toque de telefone ativo</p>
+            <div class="call-user-display">
+                <div id="call-user-avatar" class="avatar-placeholder call-avatar">?</div>
+                <div>
+                    <h2 id="call-contact-name" style="font-size: 20px; font-weight: bold; margin: 0;">Nome do Contacto</h2>
+                    <p id="call-status-title" style="font-size: 13px; color: #a0aec0; margin-top: 4px;">A ligar...</p>
+                </div>
             </div>
-            <div class="call-videos">
+
+            <div class="call-videos" id="call-videos-container" style="display: none;">
                 <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
                 <video id="localVideo" class="local-video" autoplay playsinline muted></video>
             </div>
+
             <div class="call-controls">
-                <button id="btn-atender-chamada" class="btn-action-top video" style="width:65px; height:65px; border-radius:50%; font-size:24px;">📞</button>
-                <button id="btn-desligar" class="call-end-btn">❌</button>
+                <button id="btn-atender-chamada" class="call-answer-btn hidden" title="Atender">📞</button>
+                <button id="btn-desligar" class="call-end-btn" title="Desligar">❌</button>
             </div>
         </div>
 
@@ -275,6 +320,7 @@
         const chatScreen = document.getElementById('chat-screen');
         const callScreen = document.getElementById('call-screen');
         const profileModal = document.getElementById('profile-modal');
+        const catalogModal = document.getElementById('catalog-modal');
         const mediaPreviewContainer = document.getElementById('media-preview-container');
         const previewContentBox = document.getElementById('preview-content-box');
         const btnConfirmarEnvioMidia = document.getElementById('btn-confirmar-envio-midia');
@@ -319,13 +365,26 @@
         const btnDesligar = document.getElementById('btn-desligar');
         const btnAtenderChamada = document.getElementById('btn-atender-chamada');
         const callStatusTitle = document.getElementById('call-status-title');
+        const callContactName = document.getElementById('call-contact-name');
+        const callUserAvatar = document.getElementById('call-user-avatar');
+        const callVideosContainer = document.getElementById('call-videos-container');
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         
         const btnClipFile = document.getElementById('btn-clip-file');
         const clipPopupMenu = document.getElementById('clip-popup-menu');
         const fileUploadInput = document.getElementById('file-upload-input');
-        const btnFloatingCart = document.getElementById('btn-floating-cart');
+        
+        const btnOpenCatalog = document.getElementById('btn-open-catalog');
+        const btnCloseCatalog = document.getElementById('btn-close-catalog');
+        const adminProductForm = document.getElementById('admin-product-form');
+        const prodNomeInput = document.getElementById('prod-nome');
+        const prodDescInput = document.getElementById('prod-desc');
+        const prodLinkInput = document.getElementById('prod-link');
+        const prodImgFile = document.getElementById('prod-img-file');
+        const btnSaveProduct = document.getElementById('btn-save-product');
+        const productGridContainer = document.getElementById('product-grid-container');
+
         const btnInstall = document.getElementById('btn-install');
         const imageLightboxModal = document.getElementById('image-lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
@@ -367,6 +426,98 @@
 
         btnLogout.addEventListener('click', () => signOut(auth));
 
+        // --- CATÁLOGO ---
+        btnOpenCatalog.addEventListener('click', async () => {
+            if (auth.currentUser && auth.currentUser.email.includes("jeanaguiar")) {
+                adminProductForm.classList.remove('hidden');
+            } else {
+                adminProductForm.classList.add('hidden');
+            }
+            await carregarProdutosCatalogo();
+            catalogModal.classList.remove('hidden');
+        });
+
+        btnCloseCatalog.addEventListener('click', () => catalogModal.classList.add('hidden'));
+
+        btnSaveProduct.addEventListener('click', async () => {
+            const nome = prodNomeInput.value.trim();
+            const desc = prodDescInput.value.trim();
+            const link = prodLinkInput.value.trim();
+            const file = prodImgFile.files[0];
+
+            if (!nome) { alert('Insira pelo menos o nome do produto.'); return; }
+
+            const salvarNoFirestore = async (fotoBase64) => {
+                try {
+                    await addDoc(collection(db, "catalogo_produtos"), {
+                        nome,
+                        descricao: desc,
+                        link,
+                        foto: fotoBase64 || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop",
+                        criadoEm: serverTimestamp()
+                    });
+                    prodNomeInput.value = '';
+                    prodDescInput.value = '';
+                    prodLinkInput.value = '';
+                    prodImgFile.value = '';
+                    alert('Produto adicionado ao catálogo com sucesso!');
+                    carregarProdutosCatalogo();
+                } catch(e) { alert('Erro ao salvar produto: ' + e.message); }
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) { salvarNoFirestore(e.target.result); };
+                reader.readAsDataURL(file);
+            } else {
+                salvarNoFirestore("");
+            }
+        });
+
+        async function carregarProdutosCatalogo() {
+            productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Carregando produtos...</p>';
+            try {
+                const querySnapshot = await getDocs(collection(db, "catalogo_produtos"));
+                productGridContainer.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Nenhum produto cadastrado ainda.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const p = docSnap.data();
+                    const prodId = docSnap.id;
+                    const eAdmin = (auth.currentUser && auth.currentUser.email.includes("jeanaguiar"));
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <img src="${p.foto}" onclick="abrirLightbox('${p.foto}')">
+                        <h4>${p.nome}</h4>
+                        <p>${p.descricao || 'Sem descrição'}</p>
+                        <div class="product-card-actions">
+                            <a href="${p.link || '#'}" target="_blank" class="btn-prod-buy">Ver / Comprar</a>
+                            ${eAdmin ? `<button class="btn-prod-del" onclick="removerProduto('${prodId}')">🗑️</button>` : ''}
+                        </div>
+                    `;
+                    productGridContainer.appendChild(card);
+                });
+            } catch(e) {
+                productGridContainer.innerHTML = '<p style="font-size:12px; color:red; text-align:center; grid-column: span 2;">Erro ao carregar catálogo.</p>';
+            }
+        }
+
+        window.removerProduto = async function(prodId) {
+            if (confirm('Deseja excluir este produto do catálogo?')) {
+                try {
+                    await deleteDoc(doc(db, "catalogo_produtos", prodId));
+                    carregarProdutosCatalogo();
+                } catch(e) { alert('Erro ao excluir: ' + e.message); }
+            }
+        };
+
+        // --- PERFIL ---
         openProfileBtn.addEventListener('click', async () => {
             if (!auth.currentUser) return;
             await abrirModalPerfilUtilizador(auth.currentUser.email, auth.currentUser.uid);
@@ -402,7 +553,6 @@
             }
 
             const eProprioPerfil = (auth.currentUser && auth.currentUser.email === emailUser);
-            
             if (eProprioPerfil) {
                 profileEditSection.classList.remove('hidden');
                 profileEditDivider.classList.remove('hidden');
@@ -529,7 +679,8 @@
 
         window.escolherMidia = function(tipoAccept) {
             clipPopupMenu.classList.add('hidden');
-            fileUploadInput.accept = tipoAccept;
+            fileUploadInput.setAttribute('accept', tipoAccept);
+            fileUploadInput.value = '';
             fileUploadInput.click();
         };
 
@@ -657,7 +808,7 @@
             unsubscribeMensagens = () => { unsub1(); unsub2(); };
         }
 
-        // --- MENU CONTEXTUAL APAGAR (DIRETO AO CLICAR NO NOME) ---
+        // --- MENU CONTEXTUAL APAGAR ---
         window.fecharMenusContextuais = function() {
             document.querySelectorAll('.context-menu').forEach(m => m.remove());
         };
@@ -702,7 +853,6 @@
             } catch(e) { alert("Erro ao apagar para todos: " + e.message); }
         };
 
-        // --- CORREÇÃO DO BOTÃO LIMPAR CHAT ---
         btnLimparChat.addEventListener('click', async () => {
             if (confirm('Deseja limpar todo o histórico visível deste chat?')) {
                 try {
@@ -723,7 +873,7 @@
             }
         });
 
-        // --- CHAMADAS E RINGTONE ---
+        // --- CHAMADAS COM FOTO E NOME DE PERFIL ---
         let audioCtx = null;
         let ringInterval = null;
 
@@ -753,13 +903,35 @@
             if (ringInterval) { clearInterval(ringInterval); ringInterval = null; }
         }
 
+        async function configurarDadosChamada(nomeContato) {
+            callContactName.textContent = nomeContato;
+            callUserAvatar.textContent = nomeContato.charAt(0).toUpperCase();
+            
+            // Tenta buscar a foto de perfil do contato no Firestore
+            try {
+                const q = query(collection(db, "utilizadores"), where("email", ">=", nomeContato));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((docSnap) => {
+                    const dados = docSnap.data();
+                    if (dados.email && dados.email.startsWith(nomeContato) && dados.photo) {
+                        callUserAvatar.innerHTML = `<img src="${dados.photo}">`;
+                    }
+                });
+            } catch(e) { console.log(e); }
+        }
+
         async function iniciarChamada(tipo) {
             callScreen.classList.remove('hidden');
             callStatusTitle.innerText = tipo === 'video' ? 'A ligar (Vídeo)...' : 'A ligar (Áudio)...';
+            btnAtenderChamada.classList.add('hidden');
+            callVideosContainer.style.display = tipo === 'video' ? 'flex' : 'none';
+            
+            await configurarDadosChamada(currentChatUser);
             tocarSomCampainha();
+
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: tipo === 'video', audio: true });
-                localVideo.srcObject = localStream;
+                if (tipo === 'video') localVideo.srcObject = localStream;
             } catch (err) { alert('Erro câmara/microfone: ' + err.message); }
         }
 
@@ -768,22 +940,21 @@
 
         btnAtenderChamada.addEventListener('click', () => {
             pararSomCampainha();
+            btnAtenderChamada.classList.add('hidden');
             callStatusTitle.innerText = "Chamada em Andamento";
-            alert("Chamada atendida!");
         });
 
         btnDesligar.addEventListener('click', () => {
-            pararSomCampainhas: { pararSomCampainha(); }
+            pararSomCampainha();
             if (localStream) localStream.getTracks().forEach(t => t.stop());
             callScreen.classList.add('hidden');
+            callVideosContainer.style.display = 'none';
         });
 
         window.abrirLightbox = function(src) {
             lightboxImg.src = src;
             imageLightboxModal.classList.remove('hidden');
         };
-
-        btnFloatingCart.addEventListener('click', () => alert('Carrinho / Loja Zap Leve!'));
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -799,6 +970,7 @@
                 contactsScreen.classList.add('hidden');
                 chatScreen.classList.add('hidden');
                 profileModal.classList.add('hidden');
+                catalogModal.classList.add('hidden');
             }
         });
     </script>
