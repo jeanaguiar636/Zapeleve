@@ -35,15 +35,21 @@
         .btn-install { background: #128c7e; margin-top: 15px; font-size: 16px; padding: 14px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .btn-install:hover { background: #077265; }
 
-        /* Tela interna do app após o login (exemplo simples) */
-        #app-screen { display: flex; flex-direction: column; height: 100%; justify-content: center; align-items: center; }
+        .chat-box { flex: 1; border: none; overflow-y: auto; padding: 16px; margin-bottom: 8px; background: #efeae2; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 8px 12px; border-radius: 8px; max-width: 65%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+        .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
+        .msg-outra { background: #fff; }
+        
+        .chat-input-area { display: flex; flex-direction: column; background: #f0f2f5; padding: 10px 14px; border-top: 1px solid #d1d7db; }
+        .input-group { display: flex; gap: 8px; align-items: center; width: 100%; }
+        .input-group input { margin: 0; background: #fff; border-radius: 24px; padding: 12px 16px; }
+        .header-topo { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 14px 16px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="banner-topo"></div>
 
-        <!-- TELA DE LOGIN -->
         <div id="auth-screen" class="screen-content" style="justify-content: center;">
             <div class="logo-area">
                 <span>💬</span>
@@ -57,18 +63,26 @@
             <button id="btn-install-app" class="btn-install">📥 Instalar Aplicativo no Telemóvel</button>
         </div>
 
-        <!-- TELA PRINCIPAL (APÓS LOGAR) -->
-        <div id="app-screen" class="screen-content hidden">
-            <h2>Bem-vindo ao Zap Leve!</h2>
-            <p id="user-logged-email" style="color: #666;"></p>
-            <button id="btn-logout" class="btn-danger" style="max-width: 200px;">Sair da Conta</button>
+        <div id="app-screen" class="screen-content hidden" style="padding: 0;">
+            <div class="header-topo">
+                <span id="user-info-display" style="font-weight: 500;">Chat</span>
+                <button id="btn-logout" class="btn-danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 14px;">Sair</button>
+            </div>
+            <div id="chat-messages" class="chat-box">
+                </div>
+            <div class="chat-input-area">
+                <div class="input-group">
+                    <input type="text" id="mensagem-input" placeholder="Escreva uma mensagem...">
+                    <button id="btn-enviar-msg" style="width: 50px; border-radius: 50%;">➤</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Script de Configuração e Lógica do Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
@@ -79,9 +93,9 @@
             appId: "1:426242600158:web:c2427064b5702948fc264f"
         };
 
-        // Inicializa Firebase e Auth
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         const authScreen = document.getElementById('auth-screen');
         const appScreen = document.getElementById('app-screen');
@@ -89,57 +103,86 @@
         const senhaInput = document.getElementById('senha');
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
-        const userLoggedEmail = document.getElementById('user-logged-email');
+        const userInfoDisplay = document.getElementById('user-info-display');
+        const chatMessages = document.getElementById('chat-messages');
+        const mensagemInput = document.getElementById('mensagem-input');
+        const btnEnviarMsg = document.getElementById('btn-enviar-msg');
 
-        // Ação do Botão de Entrar / Criar Conta
+        let unsubscribeMensagens = null;
+
+        // Login / Criar Conta automático
         btnLogin.addEventListener('click', async () => {
             const email = emailInput.value.trim();
             const senha = senhaInput.value.trim();
 
             if (!email || !senha) {
-                alert('Por favor, preencha o e-mail e a senha.');
+                alert('Preencha o e-mail e a senha.');
                 return;
             }
 
             try {
-                // Tenta fazer login
                 await signInWithEmailAndPassword(auth, email, senha);
             } catch (error) {
-                // Se a conta não existir, tenta criar automaticamente
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email') {
-                    try {
-                        await createUserWithEmailAndPassword(auth, email, senha);
-                        alert('Conta criada e conectada com sucesso!');
-                    } catch (createError) {
-                        alert('Erro ao criar conta: ' + createError.message);
-                    }
-                } else {
-                    alert('Erro ao entrar: ' + error.message);
+                try {
+                    await createUserWithEmailAndPassword(auth, email, senha);
+                    alert('Conta criada com sucesso!');
+                } catch (createError) {
+                    alert('Erro ao autenticar: ' + createError.message);
                 }
             }
         });
 
-        // Botão Sair
         btnLogout.addEventListener('click', () => {
             signOut(auth);
         });
 
-        // Monitora se o usuário está logado ou não na sessão
+        // Enviar mensagem para o Firestore
+        btnEnviarMsg.addEventListener('click', async () => {
+            const texto = mensagemInput.value.trim();
+            if (!texto) return;
+
+            try {
+                await addDoc(collection(db, "mensagens_geral"), {
+                    texto: texto,
+                    remetente: auth.currentUser.email,
+                    criadoEm: serverTimestamp()
+                });
+                mensagemInput.value = '';
+            } catch (err) {
+                alert('Erro ao enviar mensagem: ' + err.message);
+            }
+        });
+
+        // Monitor de Sessão (Entrou ou Saiu)
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Usuário logado: esconde a tela de login e mostra o app
                 authScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
-                userLoggedEmail.textContent = `Logado como: ${user.email}`;
+                userInfoDisplay.textContent = `Logado como: ${user.email}`;
+
+                // Carregar mensagens em tempo real
+                if (unsubscribeMensagens) unsubscribeMensagens();
+                const q = query(collection(db, "mensagens_geral"), orderBy("criadoEm", "asc"));
+                unsubscribeMensagens = onSnapshot(q, (snapshot) => {
+                    chatMessages.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const div = document.createElement('div');
+                        const minhaMsg = data.remetente === user.email;
+                        div.className = minhaMsg ? 'msg msg-minha' : 'msg msg-outra';
+                        div.innerHTML = `<small style="display:block; font-size:10px; color:#555;">${data.remetente}</small>${data.texto}`;
+                        chatMessages.appendChild(div);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
             } else {
-                // Usuário deslogado: mostra a tela de login
                 authScreen.classList.remove('hidden');
                 appScreen.classList.add('hidden');
+                if (unsubscribeMensagens) unsubscribeMensagens();
             }
         });
     </script>
 
-    <!-- Script de suporte PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
