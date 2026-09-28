@@ -18,12 +18,15 @@
         .screen-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #ffffff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         
         .app-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 10px 14px; flex-shrink: 0; }
-        .app-title-area { display: flex; align-items: center; gap: 10px; }
-        .avatar-placeholder { width: 34px; height: 34px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px; }
+        .app-title-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px; overflow: hidden; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); }
+        .avatar-placeholder img { width: 100%; height: 100%; object-fit: cover; }
         
+        .header-actions-right { display: flex; gap: 8px; align-items: center; }
+        .btn-theme-toggle { background: #128c7e; border: none; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+
         .contacts-list { flex: 1; overflow-y: auto; background: #fff; }
         .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
-        .contact-avatar { width: 45px; height: 45px; border-radius: 50%; background: #075e54; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
         .btn-conversar { background: #00a884; color: white; border: none; padding: 6px 12px; border-radius: 16px; font-size: 13px; cursor: pointer; }
 
         .chat-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 8px 10px; gap: 4px; flex-shrink: 0; }
@@ -41,14 +44,26 @@
         .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
         .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
 
-        /* Barra de Mensagem Fixa na Base */
-        .chat-input-container { background: #f0f2f5; padding: 8px 10px; border-top: 1px solid #d1d7db; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .chat-input-container { background: #f0f2f5; padding: 8px 10px; border-top: 1px solid #d1d7db; display: flex; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
         .chat-input-container input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #d1d7db; border-radius: 24px; outline: none; font-size: 14px; background: #fff; }
         .btn-icon { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; color: #54656f; display: flex; align-items: center; justify-content: center; }
         .btn-send { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .btn-mic { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-mic { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+        .btn-mic.gravando { background: #ea0938; animation: pulse 1.2s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .recording-indicator { position: absolute; left: 60px; background: #ea0938; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: none; align-items: center; gap: 5px; }
 
         .floating-cart { position: fixed; bottom: 70px; right: 20px; background: #25d366; color: white; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; }
+
+        /* MODAL DE PERFIL */
+        #profile-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
+        .modal-card { background: white; width: 100%; max-width: 420px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
         #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
         .call-videos { display: flex; flex: 1; justify-content: center; align-items: center; position: relative; }
@@ -56,7 +71,7 @@
         .local-video { width: 110px; height: 150px; object-fit: cover; border-radius: 8px; position: absolute; bottom: 20px; right: 20px; border: 2px solid #fff; background: #333; }
         .call-controls { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; }
         .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; }
-        #file-upload-input { display: none; }
+        .hidden-file { display: none; }
     </style>
 </head>
 <body>
@@ -77,15 +92,60 @@
         <!-- TELA DE LISTA DE CONTACTOS -->
         <div id="contacts-screen" class="screen-content hidden">
             <div class="app-header">
-                <div class="app-title-area">
+                <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
                     <div id="user-avatar-initial" class="avatar-placeholder">J</div>
                     <span id="user-email-display" style="font-weight: 500; font-size: 14px;">Zap Leve ⚡</span>
                 </div>
-                <button id="btn-logout" class="btn-action-top limpar">Sair</button>
+                <div class="header-actions-right">
+                    <button id="btn-theme" class="btn-theme-toggle">🌙</button>
+                    <button id="btn-logout" class="btn-action-top limpar">Sair</button>
+                </div>
             </div>
             <div style="padding: 10px 16px; background: #f0f2f5; font-size: 12px; font-weight: bold; color: #54656f;">Conversas e Contactos:</div>
             <div class="contacts-list" id="list-contacts-container"></div>
             <button class="floating-cart" id="btn-floating-cart">🛒</button>
+        </div>
+
+        <!-- MODAL DE PERFIL -->
+        <div id="profile-modal" class="hidden">
+            <div class="modal-card">
+                <div style="text-align: center; position: relative;">
+                    <div id="modal-avatar-preview" class="avatar-placeholder" style="width: 80px; height: 80px; margin: 0 auto; font-size: 28px;">J</div>
+                </div>
+                <div style="text-align: center;">
+                    <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
+                    <span id="modal-user-email" style="font-size: 12px; color: #666;">email@gmail.com</span>
+                </div>
+
+                <div style="background: #f0f2f5; padding: 10px; border-radius: 6px; font-size: 12px;">
+                    <div style="font-weight: bold; color: #075e54; margin-bottom: 4px;">🌐 Bio / Descrição Atual:</div>
+                    <div id="display-bio-text" style="color: #333;">Nenhuma bio configurada.</div>
+                    <div style="font-weight: bold; color: #075e54; margin-top: 8px; margin-bottom: 4px;">🔗 Link Pessoal Atual:</div>
+                    <div id="display-link-text" style="color: #0066cc; word-break: break-all;">Nenhum link configurado.</div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 4px 0;">
+
+                <div style="font-weight: bold; font-size: 13px; color: #333;">Editar o Meu Perfil:</div>
+                
+                <div>
+                    <label style="font-size: 11px; color: #555; display: block; margin-bottom: 3px;">Alterar Foto de Perfil:</label>
+                    <input type="file" id="profile-img-file" accept="image/*" style="font-size: 12px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; color: #555; display: block; margin-bottom: 3px;">Sua Bio (Descrição / Negócio):</label>
+                    <textarea id="profile-bio-input" placeholder="Escreva algo sobre si ou seu negócio..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 60px; outline: none;"></textarea>
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; color: #555; display: block; margin-bottom: 3px;">Meu Link Pessoal (ex: catálogo, site, rede social):</label>
+                    <input type="text" id="profile-link-input" placeholder="https://seu-link-aqui.com" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
+                </div>
+
+                <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">💾 Salvar Perfil</button>
+                <button id="btn-close-profile" style="background: #ea0938; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Fechar</button>
+            </div>
         </div>
 
         <!-- TELA DE CHAT -->
@@ -109,13 +169,13 @@
 
             <div id="chat-messages" class="chat-messages"></div>
 
-            <!-- BARRA INFERIOR DE INPUT, CLIP E ÁUDIO -->
             <div class="chat-input-container">
                 <button id="btn-clip-file" class="btn-icon" title="Enviar Imagem / Ficheiro">📎</button>
-                <input type="file" id="file-upload-input" accept="image/*,video/*,audio/*">
+                <input type="file" id="file-upload-input" class="hidden-file" accept="image/*,video/*,audio/*">
                 <input type="text" id="mensagem-input" placeholder="Mensagem ou link...">
                 <button id="btn-enviar-msg" class="btn-send" title="Enviar Mensagem">➤</button>
-                <button id="btn-enviar-audio" class="btn-mic" title="Enviar Áudio">🎤</button>
+                <div id="recording-indicator" class="recording-indicator">🔴 A gravar...</div>
+                <button id="btn-enviar-audio" class="btn-mic" title="Toque para gravar áudio">🎤</button>
             </div>
         </div>
 
@@ -135,7 +195,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, deleteDoc, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
@@ -154,6 +214,7 @@
         const contactsScreen = document.getElementById('contacts-screen');
         const chatScreen = document.getElementById('chat-screen');
         const callScreen = document.getElementById('call-screen');
+        const profileModal = document.getElementById('profile-modal');
 
         const emailInput = document.getElementById('email');
         const senhaInput = document.getElementById('senha');
@@ -161,8 +222,20 @@
         const btnLogout = document.getElementById('btn-logout');
         const userEmailDisplay = document.getElementById('user-email-display');
         const userAvatarInitial = document.getElementById('user-avatar-initial');
-        const listContactsContainer = document.getElementById('list-contacts-container');
+        const openProfileBtn = document.getElementById('open-profile-btn');
+        const btnCloseProfile = document.getElementById('btn-close-profile');
+        const btnSaveProfile = document.getElementById('btn-save-profile');
+        
+        const modalAvatarPreview = document.getElementById('modal-avatar-preview');
+        const modalUserUsername = document.getElementById('modal-user-username');
+        const modalUserEmail = document.getElementById('modal-user-email');
+        const displayBioText = document.getElementById('display-bio-text');
+        const displayLinkText = document.getElementById('display-link-text');
+        const profileImgFile = document.getElementById('profile-img-file');
+        const profileBioInput = document.getElementById('profile-bio-input');
+        const profileLinkInput = document.getElementById('profile-link-input');
 
+        const listContactsContainer = document.getElementById('list-contacts-container');
         const btnVoltarLista = document.getElementById('btn-voltar-lista');
         const chatContactName = document.getElementById('chat-contact-name');
         const chatContactAvatar = document.getElementById('chat-contact-avatar');
@@ -171,6 +244,7 @@
         const productTagInput = document.getElementById('product-tag-input');
         const btnEnviarMsg = document.getElementById('btn-enviar-msg');
         const btnEnviarAudio = document.getElementById('btn-enviar-audio');
+        const recordingIndicator = document.getElementById('recording-indicator');
         
         const btnVideoCall = document.getElementById('btn-video-call');
         const btnAudioCall = document.getElementById('btn-audio-call');
@@ -185,6 +259,12 @@
         let currentChatUser = null;
         let unsubscribeMensagens = null;
         let localStream = null;
+        let currentUserData = { bio: "", link: "", photo: "" };
+
+        // Variáveis de Gravação de Áudio Real
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
 
         const contactosExemplo = [
             { nome: "julio" }, { nome: "seu-email-admin" }, { nome: "rian200905" },
@@ -209,143 +289,8 @@
 
         btnLogout.addEventListener('click', () => signOut(auth));
 
-        function carregarContactos() {
-            listContactsContainer.innerHTML = '';
-            contactosExemplo.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'contact-item';
-                div.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="contact-avatar">${c.nome.charAt(0).toUpperCase()}</div>
-                        <span style="font-weight:500; color:#111;">${c.nome}</span>
-                    </div>
-                    <button class="btn-conversar">Conversar</button>
-                `;
-                div.addEventListener('click', () => abrirChat(c.nome));
-                listContactsContainer.appendChild(div);
-            });
-        }
-
-        function abrirChat(nomeContato) {
-            currentChatUser = nomeContato;
-            contactsScreen.classList.add('hidden');
-            chatScreen.classList.remove('hidden');
-            chatContactName.textContent = nomeContato;
-            chatContactAvatar.textContent = nomeContato.charAt(0).toUpperCase();
-            escutarMensagens();
-        }
-
-        btnVoltarLista.addEventListener('click', () => {
-            chatScreen.classList.add('hidden');
-            contactsScreen.classList.remove('hidden');
-            if (unsubscribeMensagens) unsubscribeMensagens();
-        });
-
-        async function enviar(conteudo, tipo = 'texto') {
-            if (!conteudo || !conteudo.trim()) return;
-            const produtoTag = productTagInput.value.trim();
-            const textoFinal = produtoTag ? `[${produtoTag}] ${conteudo}` : conteudo;
-            try {
-                await addDoc(collection(db, "mensagens_chat"), {
-                    remetente: auth.currentUser.email,
-                    destinatario: currentChatUser,
-                    texto: textoFinal,
-                    tipo: tipo,
-                    criadoEm: serverTimestamp()
-                });
-                mensagemInput.value = '';
-            } catch (err) {
-                alert('Erro ao enviar: ' + err.message);
-            }
-        }
-
-        btnEnviarMsg.addEventListener('click', () => enviar(mensagemInput.value));
-        mensagemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviar(mensagemInput.value); });
-
-        // Envio de Áudio Rápido
-        btnEnviarAudio.addEventListener('click', () => {
-            enviar('🎤 [Mensagem de Áudio enviada]', 'audio');
-        });
-
-        // Upload de Imagens / Ficheiros via Clipe (📎)
-        btnClipFile.addEventListener('click', () => fileUploadInput.click());
-        fileUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    const base64Data = uploadEvent.target.result;
-                    if (file.type.startsWith('image/')) {
-                        enviar(`<img src="${base64Data}" style="max-width:100%; border-radius:6px; margin-top:4px;" alt="Imagem">`, 'imagem');
-                    } else if (file.type.startsWith('video/')) {
-                        enviar(`<video src="${base64Data}" controls style="max-width:100%; border-radius:6px; margin-top:4px;"></video>`, 'video');
-                    } else {
-                        enviar(`📁 Ficheiro: ${file.name}`, 'ficheiro');
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        function escutarMensagens() {
-            if (unsubscribeMensagens) unsubscribeMensagens();
-            const q = query(collection(db, "mensagens_chat"), orderBy("criadoEm", "asc"));
-            unsubscribeMensagens = onSnapshot(q, (snapshot) => {
-                chatMessages.innerHTML = '';
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    if (data.destinatario === currentChatUser || data.remetente === currentChatUser) {
-                        const div = document.createElement('div');
-                        const minha = data.remetente === auth.currentUser.email;
-                        div.className = minha ? 'msg msg-minha' : 'msg msg-outra';
-                        div.innerHTML = `<span style="font-size:10px; color:#555; margin-bottom:2px;">${data.remetente}</span><div>${data.texto}</div>`;
-                        chatMessages.appendChild(div);
-                    }
-                });
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
-
-        btnLimparChat.addEventListener('click', async () => {
-            if (confirm('Deseja limpar as mensagens?')) {
-                const snapshot = await getDocs(collection(db, "mensagens_chat"));
-                snapshot.forEach(async (d) => { await deleteDoc(d.ref); });
-            }
-        });
-
-        async function iniciarChamada(tipo) {
-            callScreen.classList.remove('hidden');
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: tipo === 'video', audio: true });
-                localVideo.srcObject = localStream;
-            } catch (err) {
-                alert('Erro na câmara/microfone: ' + err.message);
-                callScreen.classList.add('hidden');
-            }
-        }
-
-        btnVideoCall.addEventListener('click', () => iniciarChamada('video'));
-        btnAudioCall.addEventListener('click', () => iniciarChamada('audio'));
-        btnDesligar.addEventListener('click', () => {
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            callScreen.classList.add('hidden');
-        });
-
-        btnFloatingCart.addEventListener('click', () => alert('Loja / Carrinho do Zap Leve!'));
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                authScreen.classList.add('hidden');
-                contactsScreen.classList.remove('hidden');
-                userEmailDisplay.textContent = user.email.split('@')[0];
-                userAvatarInitial.textContent = user.email.charAt(0).toUpperCase();
-                carregarContactos();
-            } else {
-                authScreen.classList.remove('hidden');
-                contactsScreen.classList.add('hidden');
-                chatScreen.classList.add('hidden');
-            }
-        });
-    </script>
-</body>
-</html>
+        openProfileBtn.addEventListener('click', async () => {
+            if (!auth.currentUser) return;
+            const userRef = doc(db, "utilizadores", auth.currentUser.uid);
+            const userSnap = await getDoc(userRef);
+      
