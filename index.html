@@ -206,7 +206,7 @@
         </svg>
     </button>
 
-    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto, botão de instalação e edição do nome de utilizador) -->
+    <!-- Modal de Perfil / Bio (Com campo de edição explícito para o nome do usuário) -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
             
@@ -223,7 +223,7 @@
             <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
             <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
             
-            <!-- Botão Flutuante de Instalação no Perfil (se não instalado) -->
+            <!-- Botão Flutuante de Instalação no Perfil -->
             <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
                 📲 Baixar e Instalar Aplicativo
             </button>
@@ -233,20 +233,20 @@
                 <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
             </div>
 
-            <!-- Painel de Edição do Perfil (Nome, Foto e Link) -->
+            <!-- Painel de Edição do Perfil (Com o campo do Nome corrigido e evidente) -->
             <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
-                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
+                <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: bold; color: var(--header-bg);">✏️ Editar o Meu Perfil:</p>
                 
-                <label style="font-size: 11px; opacity: 0.8;">Meu Nome de Utilizador:</label>
-                <input type="text" id="input-meu-nome" placeholder="Digite seu nome" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+                <label style="font-size: 11px; opacity: 0.9; font-weight: bold;">Meu Nome de Utilizador:</label>
+                <input type="text" id="input-meu-nome" placeholder="Digite seu nome completo ou apelido" style="font-size: 13px; padding: 9px; margin-bottom: 8px; border: 2px solid #00a884;">
 
                 <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
-                <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 6px;">
+                <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 8px;">
                 
                 <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal / Afiliado / Vídeos:</label>
-                <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+                <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 8px;">
                 
-                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
+                <button class="btn-alt" style="padding: 10px; font-size: 13px; margin: 0; width: 100%; background: #00a884;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
             </div>
 
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
@@ -504,7 +504,7 @@
             if (isIOS) {
                 instrucoes.innerHTML = "Para instalar no seu iPhone/iPad:<br>1. Toque no botão de <b>Partilha</b> (quadrado com seta para cima) no Safari.<br>2. Role para baixo e escolha <b>'Adicionar ao Ecrã Principal'</b>.";
             } else {
-                instrucoes.innerHTML = "Para instalar no seu dispositivo:<br>1. Toque no menu do navegador (três pontos no canto superior direito).<br>2. Selecione <b>'Instalar aplicativo'</b> ou <b>'Adicionar à tela inicial'</b>.";
+                instrucoes.innerHTML = "Para instalar diretamente:<br>1. Toque nos <b>três pontinhos</b> no canto superior direito do navegador.<br>2. Selecione <b>'Instalar aplicativo'</b> ou <b>'Adicionar à tela inicial'</b>.";
             }
             document.getElementById('modal-instalar').style.display = 'flex';
         }
@@ -559,6 +559,8 @@
         const nomeDoUser = dados.nome || usuarioAtual.email.split('@')[0];
         document.getElementById('perfil-nome-exibicao').innerText = nomeDoUser;
         document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
+        
+        // Campo de input do nome agora totalmente presente e funcional
         document.getElementById('input-meu-nome').value = nomeDoUser;
         
         // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
@@ -664,7 +666,7 @@
         }
     };
 
-    // TOQUE DE TELEFONE ALTO E REALISTA
+    // TOQUE DE TELEFONE ALTO, CONTÍNUO E REALISTA
     function iniciarSomCampainha(tipo = 'tocar') {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -674,40 +676,41 @@
         const tocarToqueRealista = () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // Frequências duplas típicas de telefone analógico/celular (Ring standard)
+            // Frequências duplas agudas e fortes estilo campainha mecânica/telefone celular
             const freq1 = tipo === 'tocar' ? 950 : 440;
             const freq2 = tipo === 'tocar' ? 1400 : 480;
-            const volumeMaximo = 0.6; // Bem alto para garantir destaque
+            const volumeMaximo = 0.8; // Volume otimizado e alto
 
             const agora = audioCtx.currentTime;
 
             // Pulso 1
             const osc1 = audioCtx.createOscillator();
             const gain1 = audioCtx.createGain();
-            osc1.type = 'square'; // Som mais cortante/audível
+            osc1.type = 'square';
             osc1.frequency.setValueAtTime(freq1, agora);
             osc1.connect(gain1);
             gain1.connect(audioCtx.destination);
             gain1.gain.setValueAtTime(volumeMaximo, agora);
-            gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.18);
+            gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.25);
             osc1.start(agora);
-            osc1.stop(agora + 0.18);
+            osc1.stop(agora + 0.25);
 
             // Pulso 2
             const osc2 = audioCtx.createOscillator();
             const gain2 = audioCtx.createGain();
             osc2.type = 'square';
-            osc2.frequency.setValueAtTime(freq2, agora + 0.2);
+            osc2.frequency.setValueAtTime(freq2, agora + 0.28);
             osc2.connect(gain2);
             gain2.connect(audioCtx.destination);
-            gain2.gain.setValueAtTime(volumeMaximo, agora + 0.2);
-            gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.38);
-            osc2.start(agora + 0.2);
-            osc2.stop(agora + 0.38);
+            gain2.gain.setValueAtTime(volumeMaximo, agora + 0.28);
+            gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.53);
+            osc2.start(agora + 0.28);
+            osc2.stop(agora + 0.53);
         };
 
         tocarToqueRealista();
-        ringInterval = setInterval(tocarToqueRealista, tipo === 'tocar' ? 2000 : 3000);
+        // Repetição contínua a cada 1.5 segundo para não parar de tocar
+        ringInterval = setInterval(tocarToqueRealista, 1500);
     }
 
     function pararSomCampainha() {
@@ -990,7 +993,7 @@
         if (!contatoSelecionado) return;
         
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("O seu navegador ou dispositivo não suporta chamadas de áudio/vídeo P2P (certifique-se de usar HTTPS).");
+            alert("O seu navegador não suporta chamadas de áudio/vídeo P2P (certifique-se de usar HTTPS).");
             return;
         }
 
@@ -1048,7 +1051,6 @@
         unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
             const data = snapshot.data();
             if (!data) {
-                // Se o documento da chamada sumiu (foi desligada pelo outro lado), fecha aqui também
                 fecharTelaChamadaUI();
                 return;
             }
@@ -1090,7 +1092,6 @@
                     }
                 }
             });
-            // Se a chamada pendente foi cancelada/desligada antes de atender
             if (!chamouAinda && window.chamadaEntranteDocId) {
                 document.getElementById('modal-incoming-call').style.display = 'none';
                 pararSomCampainha();
@@ -1111,8 +1112,6 @@
         if (!callSnap.exists()) return;
         const data = callSnap.data();
 
-        // Identificar o contato que ligou para sincronizar encerramento correto
-        // Buscamos o UID do remetente pelo e-mail ou criamos o chat sala
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
             document.getElementById('local-video').srcObject = localStream;
@@ -1142,7 +1141,6 @@
                 status: 'aceita'
             });
 
-            // Escutar se o chamador desligou
             unsubscribeCall = onSnapshot(callDoc, (snapshot) => {
                 if (!snapshot.exists()) {
                     fecharTelaChamadaUI();
@@ -1174,7 +1172,7 @@
         }
     };
 
-    // BOTÃO DESLIGAR (Sincronizado em ambas as pontas)
+    // BOTÃO DESLIGAR (Encerra simultaneamente para os dois lados apagando o documento de chamada)
     window.encerrarChamada = async () => {
         pararSomCampainha();
         if (contatoSelecionado && usuarioAtual) {
