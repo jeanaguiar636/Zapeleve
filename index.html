@@ -189,11 +189,74 @@
 
         #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+
+        /* Menu Lateral Estilo Gaveta (Nichos e Admin) */
+        #side-menu-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--bg-app); color: var(--text-app); z-index: 2500; box-shadow: 4px 0 15px rgba(0,0,0,0.3); transition: left 0.3s ease; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
+        #side-menu-drawer.open { left: 0; }
+        #menu-overlay-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2400; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Menu Lateral Retrátil de Nichos e Admin -->
+    <div id="menu-overlay-bg" onclick="fecharMenuLateral()"></div>
+    <div id="side-menu-drawer">
+        <div style="background: var(--header-bg); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin:0; color:white; font-size:16px;">📂 Canais & Nichos</h3>
+            <button onclick="fecharMenuLateral()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+        
+        <!-- Área exclusiva do Admin no Menu Lateral -->
+        <div id="admin-menu-section" class="hidden" style="padding: 10px; background: rgba(0,168,132,0.1); border-bottom: 1px solid var(--border-color);">
+            <button class="btn-alt" style="width:100%; padding:8px; font-size:12px; background:#d4a24c; margin:0;" onclick="abrirPainelAdminGeral()">⚙️ Painel de Controlo Admin</button>
+        </div>
+
+        <div style="padding: 12px; flex: 1; overflow-y: auto;">
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.7; margin-bottom: 8px;">SELECIONE UM NICHO:</p>
+            <div id="lista-nichos-lateral" style="display: flex; flex-direction: column; gap: 4px;">
+                <!-- Carregado via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Contatos por Nicho -->
+    <div id="modal-nicho-contatos" class="modal">
+        <div class="modal-content">
+            <h3 id="titulo-modal-nicho" style="margin-bottom:8px;">Contatos do Nicho</h3>
+            <div id="lista-contatos-nicho" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+                <p style="text-align:center; font-size:12px;">A carregar contatos...</p>
+            </div>
+            <div class="close-modal" onclick="fecharModalNicho()">Fechar</div>
+        </div>
+    </div>
+
+    <!-- Modal do Painel Admin Completo -->
+    <div id="modal-painel-admin" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <h3>👑 Painel Completo do Administrador</h3>
+            <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <button class="btn-alt" style="flex:1; padding:6px; font-size:11px; margin:0;" onclick="mudarAbaAdminMaster('usuarios')">👥 Utilizadores</button>
+                <button class="btn-alt" style="flex:1; padding:6px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdminMaster('nichos')">🏷️ Gerir Nichos</button>
+            </div>
+
+            <div id="admin-aba-usuarios">
+                <p style="font-size:12px; font-weight:bold; margin-bottom:6px;">Lista Geral de Utilizadores Cadastrados:</p>
+                <div id="tabela-usuarios-admin" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                    <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
+                </div>
+            </div>
+
+            <div id="admin-aba-nichos" class="hidden">
+                <p style="font-size:12px; font-weight:bold; margin-bottom:6px;">Adicionar Novo Canal/Nicho:</p>
+                <input type="text" id="novo-nicho-nome" placeholder="Nome do Nicho (ex: Criptomoedas)" style="font-size:12px; padding:8px; margin-bottom:6px;">
+                <button class="btn-alt" style="padding:8px; font-size:12px; margin:0;" onclick="criarNovoNicho()">➕ Criar Nicho</button>
+            </div>
+
+            <div class="close-modal" onclick="fecharPainelAdminGeral()">Fechar</div>
+        </div>
+    </div>
+
     <!-- Modal de Ampliação de Imagem -->
     <div id="modal-zoom-imagem" onclick="fecharZoomImagem()">
         <img id="imagem-zoom-src" src="">
@@ -206,13 +269,12 @@
         </svg>
     </button>
 
-    <!-- Modal de Perfil / Bio (Com campo de edição explícito para o nome do usuário) -->
+    <!-- Modal de Perfil / Bio (Com campo de nome e escolha de nicho) -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
             
-            <!-- Aviso Vermelho na Bio -->
             <div id="alerta-perfil-bio" class="hidden" style="background-color: #ea0038; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; width: 100%; text-align: center; margin-bottom: 4px;">
-                ⚠️ Complete o seu perfil (Nome, foto, descrição e links)
+                ⚠️ Complete o seu perfil (Nome, foto, descrição e nicho)
             </div>
 
             <div id="perfil-avatar-container" style="position: relative;">
@@ -223,7 +285,6 @@
             <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
             <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
             
-            <!-- Botão Flutuante de Instalação no Perfil -->
             <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
                 📲 Baixar e Instalar Aplicativo
             </button>
@@ -233,12 +294,24 @@
                 <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
             </div>
 
-            <!-- Painel de Edição do Perfil (Com o campo do Nome corrigido e evidente) -->
+            <!-- Painel de Edição do Perfil -->
             <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
                 <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: bold; color: var(--header-bg);">✏️ Editar o Meu Perfil:</p>
                 
                 <label style="font-size: 11px; opacity: 0.9; font-weight: bold;">Meu Nome de Utilizador:</label>
                 <input type="text" id="input-meu-nome" placeholder="Digite seu nome completo ou apelido" style="font-size: 13px; padding: 9px; margin-bottom: 8px; border: 2px solid #00a884;">
+
+                <label style="font-size: 11px; opacity: 0.9; font-weight: bold;">Escolher Canal / Nicho de Contato:</label>
+                <select id="select-meu-nicho" style="font-size: 13px; padding: 9px; margin-bottom: 8px;">
+                    <option value="Religião">✝️️ Religião</option>
+                    <option value="Negócios">💼 Negócios</option>
+                    <option value="Namoro">❤️ Namoro</option>
+                    <option value="Pet">🐾 Pet</option>
+                    <option value="Construção Civil">🏗️ Construção Civil</option>
+                    <option value="Engenheiros">👷 Engenheiros</option>
+                    <option value="Psicólogos">🧠 Psicólogos</option>
+                    <option value="Faxineiros">🧹 Faxineiros</option>
+                </select>
 
                 <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
                 <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 8px;">
@@ -293,34 +366,9 @@
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h3 style="margin:0;">🛍️ Vitrine de Produtos</h3>
-                <button id="btn-abrir-admin" class="btn-alt hidden" style="width:auto; padding:4px 8px; font-size:10px; margin:0; background:#d4a24c;" onclick="togglePainelAdmin()">⚙️ Painel Admin</button>
             </div>
-
-            <div id="painel-admin-geral" class="hidden" style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color);">
-                <div style="display:flex; gap:4px; margin-bottom:8px;">
-                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0;" onclick="mudarAbaAdmin('produtos')">📦 Produtos</button>
-                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdmin('utilizadores')">👥 Limites Usuários</button>
-                </div>
-
-                <div id="aba-admin-produtos">
-                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Adicionar Produto:</p>
-                    <input type="text" id="admin-prod-titulo" placeholder="Nome do Produto" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                    <input type="text" id="admin-prod-preco" placeholder="Preço (ex: 49.90)" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                    <input type="text" id="admin-prod-img" placeholder="URL da Imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                    <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
-                    <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
-                </div>
-
-                <div id="aba-admin-utilizadores" class="hidden">
-                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Definir Limite de Vitrine por Usuário:</p>
-                    <div id="lista-usuarios-admin" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
-                        <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
-                    </div>
-                </div>
-            </div>
-
             <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
-            <div id="lista-produtos-vitrine" style="max-height: 200px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+            <div id="lista-produtos-vitrine" style="max-height: 220px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
                 <p style="text-align:center; font-size:12px;">A carregar...</p>
             </div>
             <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
@@ -332,7 +380,7 @@
         <div class="logo-area" style="margin-bottom: 25px;">
             <span>⚡💬</span>
             <h1 style="margin: 5px 0 0 0;">Zap Leve</h1>
-            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e utilitários integrados</p>
+            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e canais de nicho</p>
         </div>
         
         <input type="email" id="email" placeholder="Seu e-mail">
@@ -374,14 +422,18 @@
     <!-- TELA DE CONTACTOS -->
     <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
         <div class="header-top">
-            <div class="user-info-area" onclick="abrirMeuPerfil()">
-                <div id="meu-avatar-topo-container" style="position:relative;">
-                    <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
-                    <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
-                </div>
-                <div>
-                    <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
-                    <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- Botão de Hambúrguer discreto no canto superior esquerdo para abrir o Menu de Nichos/Canais -->
+                <button onclick="abrirMenuLateral()" style="background:none; border:none; color:white; font-size:22px; cursor:pointer; padding:0 4px;" title="Abrir Canais e Nichos">☰</button>
+                <div class="user-info-area" onclick="abrirMeuPerfil()">
+                    <div id="meu-avatar-topo-container" style="position:relative;">
+                        <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                        <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
+                        <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
+                    </div>
                 </div>
             </div>
             <div style="display:flex; gap:6px; align-items: center;">
@@ -468,6 +520,144 @@
     
     const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
 
+    // Lista Padrão de Nichos / Canais
+    const nichosPadrao = [
+        "✝️ Religião",
+        "💼 Negócios",
+        "❤️ Namoro",
+        "🐾 Pet",
+        "🏗️ Construção Civil",
+        "👷 Engenheiros",
+        "🧠 Psicólogos",
+        "🧹 Faxineiros"
+    ];
+
+    window.abrirMenuLateral = () => {
+        document.getElementById('side-menu-drawer').classList.add('open');
+        document.getElementById('menu-overlay-bg').style.display = 'block';
+        carregarNichosNoMenu();
+    };
+
+    window.fecharMenuLateral = () => {
+        document.getElementById('side-menu-drawer').classList.remove('open');
+        document.getElementById('menu-overlay-bg').style.display = 'none';
+    };
+
+    function carregarNichosNoMenu() {
+        const div = document.getElementById('lista-nichos-lateral');
+        div.innerHTML = "";
+        nichosPadrao.forEach(nicho => {
+            div.innerHTML += `<button style="background:var(--input-bg); color:var(--text-app); border:1px solid var(--border-color); text-align:left; padding:10px; border-radius:6px; font-size:13px; cursor:pointer;" onclick="filtrarContatosPorNicho('${nicho}')">${nicho}</button>`;
+        });
+        
+        if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) {
+            document.getElementById('admin-menu-section').classList.remove('hidden');
+        } else {
+            document.getElementById('admin-menu-section').classList.add('hidden');
+        }
+    }
+
+    window.filtrarContatosPorNicho = async (nicho) => {
+        fecharMenuLateral();
+        document.getElementById('titulo-modal-nicho').innerText = `Contatos do Canal: ${nicho}`;
+        const listaContatosDiv = document.getElementById('lista-contatos-nicho');
+        listaContatosDiv.innerHTML = "<p style='text-align:center; font-size:12px;'>A procurar utilizadores...</p>";
+        document.getElementById('modal-nicho-contatos').style.display = 'flex';
+
+        try {
+            const snapshot = await getDocs(collection(db, "usuarios"));
+            listaContatosDiv.innerHTML = "";
+            let encontrados = 0;
+            snapshot.forEach(docItem => {
+                const u = docItem.data();
+                if (u.nicho === nicho && u.email !== usuarioAtual.email) {
+                    encontrados++;
+                    const nome = u.nome || u.email.split('@')[0];
+                    const foto = u.fotoUrl ? `<img src="${u.fotoUrl}" class="avatar" style="width:32px;height:32px;">` : `<div class="avatar" style="width:32px;height:32px;font-size:12px;">${nome.charAt(0)}</div>`;
+                    listaContatosDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px; border-radius:6px;">
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                ${foto}
+                                <span style="font-size:13px; font-weight:bold;">${nome}</span>
+                            </div>
+                            <button class="btn-alt" style="width:auto; padding:5px 10px; font-size:11px; margin:0;" onclick="fecharModalNicho(); abrirChat('${docItem.id}', '${nome}', '${u.fotoUrl || ''}')">Conversar 💬</button>
+                        </div>`;
+                }
+            });
+            if (encontrados === 0) {
+                listaContatosDiv.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum utilizador cadastrado neste nicho ainda.</p>";
+            }
+        } catch(e) {
+            listaContatosDiv.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar contatos do nicho.</p>";
+        }
+    };
+
+    window.fecharModalNicho = () => {
+        document.getElementById('modal-nicho-contatos').style.display = 'none';
+    };
+
+    window.abrirPainelAdminGeral = () => {
+        fecharMenuLateral();
+        document.getElementById('modal-painel-admin').style.display = 'flex';
+        carregarTabelaUsuariosAdmin();
+    };
+
+    window.fecharPainelAdminGeral = () => {
+        document.getElementById('modal-painel-admin').style.display = 'none';
+    };
+
+    window.mudarAbaAdminMaster = (aba) => {
+        if (aba === 'usuarios') {
+            document.getElementById('admin-aba-usuarios').classList.remove('hidden');
+            document.getElementById('admin-aba-nichos').classList.add('hidden');
+        } else {
+            document.getElementById('admin-aba-usuarios').classList.add('hidden');
+            document.getElementById('admin-aba-nichos').classList.remove('hidden');
+        }
+    };
+
+    async function carregarTabelaUsuariosAdmin() {
+        const div = document.getElementById('tabela-usuarios-admin');
+        div.innerHTML = "<p style='font-size:11px; text-align:center;'>A carregar...</p>";
+        try {
+            const snapshot = await getDocs(collection(db, "usuarios"));
+            div.innerHTML = "";
+            snapshot.forEach(docItem => {
+                const u = docItem.data();
+                div.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-app); padding:6px; border-radius:4px; font-size:11px; border:1px solid var(--border-color);">
+                        <div>
+                            <b>${u.nome || u.email}</b><br>
+                            <span style="opacity:0.7;">Canal: ${u.nicho || 'Não definido'}</span>
+                        </div>
+                        <button class="btn-danger" style="width:auto; padding:4px 8px; font-size:10px; margin:0;" onclick="apagarUsuarioAdmin('${docItem.id}')">Excluir</button>
+                    </div>`;
+            });
+        } catch(e) {
+            div.innerHTML = "<p style='font-size:11px; color:red;'>Erro ao carregar lista.</p>";
+        }
+    }
+
+    window.apagarUsuarioAdmin = async (uidUser) => {
+        if (!confirm("Deseja apagar este utilizador do sistema?")) return;
+        try {
+            await deleteDoc(doc(db, "usuarios", uidUser));
+            alert("Utilizador removido!");
+            carregarTabelaUsuariosAdmin();
+        } catch(e) {
+            alert("Erro ao excluir: " + e.message);
+        }
+    };
+
+    window.criarNovoNicho = () => {
+        const nomeNicho = document.getElementById('novo-nicho-nome').value.trim();
+        if (!nomeNicho) return alert("Digite o nome do novo nicho.");
+        nichosPadrao.push("📌 " + nomeNicho);
+        alert("Novo canal/nicho adicionado com sucesso!");
+        document.getElementById('novo-nicho-nome').value = '';
+        fecharPainelAdminGeral();
+    };
+
     // Instalação PWA
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -514,7 +704,6 @@
         document.getElementById('modal-instalar').style.display = 'none';
     };
 
-    // Zoom de Imagem
     window.ampliarImagem = (src) => {
         document.getElementById('imagem-zoom-src').src = src;
         document.getElementById('modal-zoom-imagem').style.display = 'flex';
@@ -560,12 +749,13 @@
         document.getElementById('perfil-nome-exibicao').innerText = nomeDoUser;
         document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
         
-        // Campo de input do nome agora totalmente presente e funcional
         document.getElementById('input-meu-nome').value = nomeDoUser;
+        if (dados.nicho) {
+            document.getElementById('select-meu-nicho').value = dados.nicho;
+        }
         
-        // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
         const alertaBio = document.getElementById('alerta-perfil-bio');
-        if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal) {
+        if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal || !dados.nicho) {
             alertaBio.classList.remove('hidden');
         } else {
             alertaBio.classList.add('hidden');
@@ -630,13 +820,14 @@
     window.salvarMeuPerfilCompleto = async () => {
         if (!usuarioAtual) return;
         const novoNome = document.getElementById('input-meu-nome').value.trim();
+        const novoNicho = document.getElementById('select-meu-nicho').value;
         const novoLink = document.getElementById('input-meu-link').value.trim();
         const fileInput = document.getElementById('input-foto-perfil');
         
         if (!novoNome) return alert("O nome de usuário não pode estar vazio.");
 
         try {
-            let dadosAtualizacao = { nome: novoNome, linkPessoal: novoLink };
+            let dadosAtualizacao = { nome: novoNome, nicho: novoNicho, linkPessoal: novoLink };
             meuNomeAtual = novoNome;
             document.getElementById('user-display-contacts').innerText = novoNome;
 
@@ -652,13 +843,13 @@
                     document.getElementById('meu-img-topo').classList.remove('hidden');
                     document.getElementById('meu-avatar-topo').classList.add('hidden');
 
-                    alert("Perfil atualizado com sucesso!");
+                    alert("Perfil e canal salvos com sucesso!");
                     fecharPerfilUsuario();
                 };
                 reader.readAsDataURL(file);
             } else {
                 await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
-                alert("Perfil atualizado com sucesso!");
+                alert("Perfil e canal salvos com sucesso!");
                 fecharPerfilUsuario();
             }
         } catch (e) {
@@ -666,7 +857,6 @@
         }
     };
 
-    // TOQUE DE TELEFONE ALTO, CONTÍNUO E REALISTA
     function iniciarSomCampainha(tipo = 'tocar') {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -675,15 +865,11 @@
 
         const tocarToqueRealista = () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            // Frequências duplas agudas e fortes estilo campainha mecânica/telefone celular
             const freq1 = tipo === 'tocar' ? 950 : 440;
             const freq2 = tipo === 'tocar' ? 1400 : 480;
-            const volumeMaximo = 0.8; // Volume otimizado e alto
-
+            const volumeMaximo = 0.8;
             const agora = audioCtx.currentTime;
 
-            // Pulso 1
             const osc1 = audioCtx.createOscillator();
             const gain1 = audioCtx.createGain();
             osc1.type = 'square';
@@ -695,7 +881,6 @@
             osc1.start(agora);
             osc1.stop(agora + 0.25);
 
-            // Pulso 2
             const osc2 = audioCtx.createOscillator();
             const gain2 = audioCtx.createGain();
             osc2.type = 'square';
@@ -709,7 +894,6 @@
         };
 
         tocarToqueRealista();
-        // Repetição contínua a cada 1.5 segundo para não parar de tocar
         ringInterval = setInterval(tocarToqueRealista, 1500);
     }
 
@@ -731,33 +915,11 @@
 
     window.abrirVitrineAfiliado = async () => {
         document.getElementById('modal-vitrine').style.display = 'flex';
-        if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) {
-            document.getElementById('btn-abrir-admin').classList.remove('hidden');
-        }
         await carregarVitrineSegregada();
     };
 
     window.fecharVitrineAfiliado = () => {
         document.getElementById('modal-vitrine').style.display = 'none';
-        document.getElementById('painel-admin-geral').classList.add('hidden');
-    };
-
-    window.togglePainelAdmin = () => {
-        const painel = document.getElementById('painel-admin-geral');
-        painel.classList.toggle('hidden');
-        if (!painel.classList.contains('hidden')) {
-            carregarListaUsuariosAdmin();
-        }
-    };
-
-    window.mudarAbaAdmin = (aba) => {
-        if (aba === 'produtos') {
-            document.getElementById('aba-admin-produtos').classList.remove('hidden');
-            document.getElementById('aba-admin-utilizadores').classList.add('hidden');
-        } else {
-            document.getElementById('aba-admin-produtos').classList.add('hidden');
-            document.getElementById('aba-admin-utilizadores').classList.remove('hidden');
-        }
     };
 
     async function carregarVitrineSegregada() {
@@ -783,73 +945,9 @@
         }
     }
 
-    window.salvarProdutoFirebase = async () => {
-        const titulo = document.getElementById('admin-prod-titulo').value.trim();
-        const preco = document.getElementById('admin-prod-preco').value.trim();
-        const imagem = document.getElementById('admin-prod-img').value.trim();
-        const link = document.getElementById('admin-prod-link').value.trim();
-        if (!titulo) return alert("Digite o nome do produto.");
-        try {
-            await addDoc(collection(db, "produtos"), { titulo, preco, imagem, link, criadoEm: serverTimestamp() });
-            alert("Produto cadastrado com sucesso!");
-            document.getElementById('admin-prod-titulo').value = '';
-            document.getElementById('admin-prod-preco').value = '';
-            document.getElementById('admin-prod-img').value = '';
-            document.getElementById('admin-prod-link').value = '';
-            carregarVitrineSegregada();
-        } catch (e) {
-            alert("Erro ao salvar: " + e.message);
-        }
-    };
-
-    window.apagarProdutoFirebase = async (idProduto) => {
-        if (!confirm("Deseja apagar este produto?")) return;
-        try {
-            await deleteDoc(doc(db, "produtos", idProduto));
-            carregarVitrineSegregada();
-        } catch (e) {
-            alert("Erro ao apagar: " + e.message);
-        }
-    };
-
-    async function carregarListaUsuariosAdmin() {
-        const div = document.getElementById('lista-usuarios-admin');
-        div.innerHTML = "<p style='font-size:11px; text-align:center;'>A carregar...</p>";
-        try {
-            const snapshot = await getDocs(collection(db, "usuarios"));
-            div.innerHTML = "";
-            snapshot.forEach((docItem) => {
-                const u = docItem.data();
-                const limiteAtual = u.limiteProdutos || 10;
-                div.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
-                        <span><b>${u.nome || u.email}</b></span>
-                        <select onchange="atualizarLimiteUsuario('${docItem.id}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
-                            <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
-                            <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
-                            <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
-                            <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
-                        </select>
-                    </div>`;
-            });
-        } catch (e) {
-            div.innerHTML = "<p style='font-size:11px; color:red;'>Erro ao carregar utilizadores.</p>";
-        }
-    }
-
-    window.atualizarLimiteUsuario = async (uidUser, novoLimite) => {
-        try {
-            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Number(novoLimite) });
-            alert("Limite atualizado com sucesso!");
-        } catch (e) {
-            alert("Erro ao atualizar limite: " + e.message);
-        }
-    };
-
     function renderizarProdutosVitrine(lista) {
         const container = document.getElementById('lista-produtos-vitrine');
         container.innerHTML = "";
-        const isAdmin = usuarioAtual && usuarioAtual.email === EMAIL_ADMIN;
         if (lista.length === 0) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
             return;
@@ -864,10 +962,7 @@
                             <span style="opacity:0.7;">R$ ${prod.preco || '0.00'}</span>
                         </div>
                     </div>
-                    <div style="display:flex; gap:4px;">
-                        <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoVitrine('${encodeURIComponent(prod.titulo || '')}', '${prod.imagem || ''}', '${prod.link || ''}')">Enviar 🛒</button>
-                        ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:5px 6px; font-size:10px; margin:0;" onclick="apagarProdutoFirebase('${prod.id}')">🗑️</button>` : ''}
-                    </div>
+                    <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoVitrine('${encodeURIComponent(prod.titulo || '')}', '${prod.imagem || ''}', '${prod.link || ''}')">Enviar 🛒</button>
                 </div>`;
         });
     }
@@ -991,9 +1086,8 @@
 
     window.iniciarChamada = async (comVideo) => {
         if (!contatoSelecionado) return;
-        
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("O seu navegador não suporta chamadas de áudio/vídeo P2P (certifique-se de usar HTTPS).");
+            alert("O seu navegador não suporta chamadas de áudio/vídeo P2P.");
             return;
         }
 
@@ -1042,7 +1136,7 @@
             escutarRespostaChamada(callDoc);
         } catch (err) {
             pararSomCampainha();
-            alert("Erro ao aceder à câmara/microfone. Verifique as permissões do navegador: " + err.message);
+            alert("Erro ao aceder à câmara/microfone: " + err.message);
             encerrarChamadaLocal();
         }
     };
@@ -1172,7 +1266,6 @@
         }
     };
 
-    // BOTÃO DESLIGAR (Encerra simultaneamente para os dois lados apagando o documento de chamada)
     window.encerrarChamada = async () => {
         pararSomCampainha();
         if (contatoSelecionado && usuarioAtual) {
@@ -1260,7 +1353,7 @@
         if (!email || !senha) return alert("Preencha e-mail e senha.");
         try {
             const cred = await createUserWithEmailAndPassword(auth, email, senha);
-            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: email.split('@')[0], bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "" });
+            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: email.split('@')[0], nicho: "Negócios", bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "" });
             alert("Conta criada!");
         } catch (e) { alert(e.message); }
     };
@@ -1289,7 +1382,10 @@
                         <div class="contact-item" onclick="abrirChat('${docItem.id}', '${dados.nome || dados.email.split('@')[0]}', '${dados.fotoUrl || ''}')">
                             <div class="contact-info">
                                 ${avatarHtml}
-                                <span class="contact-name">${dados.nome || dados.email.split('@')[0]}</span>
+                                <div>
+                                    <span class="contact-name">${dados.nome || dados.email.split('@')[0]}</span><br>
+                                    <span style="font-size:10px; opacity:0.6;">Canal: ${dados.nicho || 'Geral'}</span>
+                                </div>
                             </div>
                             <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
                         </div>`;
@@ -1329,7 +1425,7 @@
 
     window.limparConversaAtual = async () => {
         if (!contatoSelecionado || !usuarioAtual) return;
-        if (!confirm("Tem certeza que deseja apagar todas as mensagens, áudios, fotos e vídeos desta conversa?")) return;
+        if (!confirm("Tem certeza que deseja apagar todas as mensagens desta conversa?")) return;
         try {
             const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
             const mensagensRef = collection(db, "conversas", idSala, "mensagens");
@@ -1361,9 +1457,7 @@
         const padraoUrl = /((https?:\/\/[^\s]+)|(www\.[^\s]+))/g;
         let textoFormatado = texto.replace(padraoUrl, (url) => {
             let urlCompleta = url;
-            if (url.startsWith('www.')) {
-                urlCompleta = 'https://' + url;
-            }
+            if (url.startsWith('www.')) { urlCompleta = 'https://' + url; }
             return `<a href="${urlCompleta}" target="_blank" rel="noopener noreferrer">${url}</a>`;
         });
 
@@ -1437,9 +1531,7 @@
         const rect = bar.getBoundingClientRect();
         const clickX = event.clientX - rect.left;
         const width = bar.offsetWidth;
-        if (audio.duration) {
-            audio.currentTime = (clickX / width) * audio.duration;
-        }
+        if (audio.duration) { audio.currentTime = (clickX / width) * audio.duration; }
     };
 
     window.atualizarProgressoAudio = (id) => {
@@ -1479,11 +1571,7 @@
             const base64Data = e.target.result;
             const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
             await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                texto: "📷 Imagem", 
-                imagemBase64: base64Data, 
-                remetente: usuarioAtual.email, 
-                tipo: "imagem", 
-                criadoEm: serverTimestamp()
+                texto: "📷 Imagem", imagemBase64: base64Data, remetente: usuarioAtual.email, tipo: "imagem", criadoEm: serverTimestamp()
             });
         };
         reader.readAsDataURL(file);
@@ -1497,11 +1585,7 @@
             const base64Data = e.target.result;
             const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
             await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                texto: "📹 Vídeo", 
-                videoBase64: base64Data, 
-                remetente: usuarioAtual.email, 
-                tipo: "video", 
-                criadoEm: serverTimestamp()
+                texto: "📹 Vídeo", videoBase64: base64Data, remetente: usuarioAtual.email, tipo: "video", criadoEm: serverTimestamp()
             });
         };
         reader.readAsDataURL(file);
@@ -1513,16 +1597,10 @@
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert("O seu navegador não permite gravação de áudio (necessário HTTPS).");
+                    alert("O seu navegador não permite gravação de áudio.");
                     return;
                 }
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { 
-                        echoCancellation: true, 
-                        noiseSuppression: true, 
-                        autoGainControl: true 
-                    } 
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
@@ -1533,11 +1611,7 @@
                         const base64Audio = e.target.result;
                         const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
                         await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                            texto: "🎙️ Áudio", 
-                            audioBase64: base64Audio, 
-                            remetente: usuarioAtual.email, 
-                            tipo: "audio", 
-                            criadoEm: serverTimestamp()
+                            texto: "🎙️ Áudio", audioBase64: base64Audio, remetente: usuarioAtual.email, tipo: "audio", criadoEm: serverTimestamp()
                         });
                     };
                     reader.readAsDataURL(blob);
@@ -1546,13 +1620,11 @@
                 btnAudio.classList.add('gravando');
                 btnAudio.innerText = "⏹️";
             } catch (err) {
-                alert("Erro ao aceder ao microfone. Verifique as permissões do seu navegador: " + err.message);
+                alert("Erro ao aceder ao microfone: " + err.message);
             }
         } else {
             mediaRecorder.stop();
-            if(mediaRecorder.stream) {
-                mediaRecorder.stream.getTracks().forEach(t => t.stop());
-            }
+            if(mediaRecorder.stream) { mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
             btnAudio.classList.remove('gravando');
             btnAudio.innerText = "🎙️";
         }
