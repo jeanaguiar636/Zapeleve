@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Completo com Admin e App Nativo</title>
+    <title>Zap Leve - Comunidade e Loja</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -85,7 +85,7 @@
             100% { transform: scale(1); }
         }
 
-        /* Botão flutuante verde com o ícone do carrinho em branco */
+        /* Botão flutuante verde com o carrinho em branco */
         .floating-cart { 
             position: fixed; 
             bottom: 80px; 
@@ -137,7 +137,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- TELA DE LOGIN / REGISTO COM BOTÕES SEPARADOS E RECUPERAÇÃO DE SENHA -->
+        <!-- TELA DE LOGIN -->
         <div id="auth-screen" class="screen-content" style="justify-content: center; padding: 20px; position: relative;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <span style="font-size: 50px;">⚡</span>
@@ -157,7 +157,6 @@
                     </select>
                 </div>
 
-                <!-- Botões separados: Entrar (Amarelo/Azul profissional) e Criar Conta (Verde) -->
                 <div style="display: flex; gap: 8px; margin-top: 12px;">
                     <button id="btn-login-action" style="flex: 1; padding: 12px; background: #34b7f1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Entrar</button>
                     <button id="btn-register-action" style="flex: 1; padding: 12px; background: #25d366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Criar Conta</button>
@@ -169,7 +168,7 @@
             </div>
         </div>
 
-        <!-- TELA DE LISTA DE NICHOS / COMUNIDADE -->
+        <!-- TELA DE LISTA DE NICHOS -->
         <div id="contacts-screen" class="screen-content hidden">
             <div class="app-header">
                 <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
@@ -192,14 +191,12 @@
                 <button id="btn-open-privacy-page" style="background: none; border: none; color: #0066cc; font-size: 11px; cursor: pointer; text-decoration: underline;">📄 Privacidade / Termos</button>
             </div>
 
-            <!-- GRELHA DE NICHOS -->
             <div class="niches-container" id="niches-grid-container"></div>
 
             <div class="contacts-footer">
                 <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar para o Zap Leve</button>
             </div>
 
-            <!-- Botão flutuante verde com carrinho branco -->
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
         </div>
 
@@ -216,7 +213,7 @@
             <div class="contacts-list" id="nicho-users-list-container"></div>
         </div>
 
-        <!-- PAINEL ADMINISTRATIVO COMPLETO DO ADMIN -->
+        <!-- PAINEL ADMINISTRATIVO -->
         <div id="admin-panel-modal" class="modal-overlay hidden">
             <div class="modal-card" style="max-width: 540px; max-height: 85vh;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
@@ -225,7 +222,6 @@
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px;">
-                    <!-- Seção 1: Criar Nicho -->
                     <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Criar Novo Nicho / Grupo</h4>
                         <input type="text" id="new-niche-name" placeholder="Nome do Nicho (ex: Esportes)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
@@ -233,15 +229,13 @@
                         <button id="btn-save-new-niche" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Adicionar Nicho</button>
                     </div>
 
-                    <!-- Seção 2: Gerir Páginas (Privacidade/Termos) -->
                     <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">📄 Criar / Editar Página de Privacidade e Termos</h4>
-                        <input type="text" id="admin-page-title" placeholder="Título da Página (ex: Política de Privacidade)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
-                        <textarea id="admin-page-content" placeholder="Escreva o conteúdo da página aqui..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 70px; outline: none; margin-bottom: 8px;"></textarea>
+                        <input type="text" id="admin-page-title" placeholder="Título da Página" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
+                        <textarea id="admin-page-content" placeholder="Escreva o conteúdo..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 70px; outline: none; margin-bottom: 8px;"></textarea>
                         <button id="btn-save-admin-page" style="background: #0066cc; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Salvar e Publicar Página</button>
                     </div>
 
-                    <!-- Seção 3: Gestão e Exclusão de Utilizadores -->
                     <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">👥 Gerir Utilizadores (Excluir Contas)</h4>
                         <div id="admin-users-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
@@ -250,7 +244,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE EXIBIÇÃO DA PÁGINA DE PRIVACIDADE -->
+        <!-- MODAL DA PÁGINA DE PRIVACIDADE -->
         <div id="privacy-page-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
@@ -258,7 +252,7 @@
                     <button id="btn-close-privacy" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
                 </div>
                 <div id="privacy-modal-content" style="font-size: 13px; color: #333; line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
-                    Carregando termos...
+                    Nenhum conteúdo publicado ainda.
                 </div>
             </div>
         </div>
@@ -272,14 +266,10 @@
                 </div>
 
                 <div id="admin-product-form" style="background: #f4f6f8; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Adicionar / Editar Produto (Admin)</h4>
+                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Adicionar / Editar Produto</h4>
                     <input type="text" id="prod-nome" placeholder="Nome do Produto..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
                     <textarea id="prod-desc" placeholder="Descrição..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 40px; outline: none;"></textarea>
                     <input type="text" id="prod-link" placeholder="Link (ex: https://...)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <label style="font-size: 11px; color: #555;">Foto:</label>
-                        <input type="file" id="prod-img-file" accept="image/*" style="font-size: 11px; flex: 1;">
-                    </div>
                     <button id="btn-save-product" style="background: #00a884; color: white; border: none; padding: 7px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;">Salvar Produto</button>
                 </div>
 
@@ -288,7 +278,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE PERFIL -->
+        <!-- MODAL DE PERFIL (COM EDIÇÃO DE NOME, BIO E NICHO) -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="text-align: center; position: relative;">
@@ -313,15 +303,17 @@
                 <div id="profile-edit-section">
                     <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar Meu Perfil:</div>
                     <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555;">Alterar Nome de Utilizador:</label>
+                        <label style="font-size: 11px; color: #555;">Nome de Utilizador:</label>
                         <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
                     </div>
                     <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555;">Alterar Nicho:</label>
-                        <select id="profile-nicho-select" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; background:#fff;"></select>
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                        <input type="file" id="profile-img-file" accept="image/*" style="font-size: 12px; width: 100%;">
+                        <label style="font-size: 11px; color: #555;">Nicho:</label>
+                        <select id="profile-nicho-select" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; background:#fff;">
+                            <option value="Negócio">💼 Negócio</option>
+                            <option value="Namoro">❤️ Namoro</option>
+                            <option value="Religião">⛪ Religião</option>
+                            <option value="Pets">🐾 Pets</option>
+                        </select>
                     </div>
                     <div style="margin-bottom: 6px;">
                         <textarea id="profile-bio-input" placeholder="Sua biografia..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 45px; outline: none;"></textarea>
@@ -364,57 +356,15 @@
 
             <div class="chat-messages" id="chat-messages-container"></div>
 
-            <div id="media-preview-container" class="preview-box hidden">
-                <div id="media-preview-element-wrapper"></div>
-                <div class="preview-actions">
-                    <button id="btn-send-media-preview" class="btn-enviar-pre">Enviar Mídia</button>
-                    <button id="btn-cancel-media-preview" class="btn-excluir-pre">Cancelar</button>
-                </div>
-            </div>
-
             <div class="chat-input-container">
-                <div style="position: relative;">
-                    <button class="btn-icon" id="btn-clip" title="Anexar Mídia">📎</button>
-                    <div id="clip-popup-menu" class="clip-popup hidden">
-                        <button id="btn-attach-image">📷 Imagem</button>
-                        <button id="btn-attach-video">🎥 Vídeo</button>
-                        <button id="btn-attach-audio">🎵 Áudio</button>
-                    </div>
-                </div>
                 <input type="text" id="chat-message-input" placeholder="Mensagem ou link...">
                 <button class="btn-send" id="btn-send-message">➤</button>
-                <button class="btn-mic" id="btn-mic" title="Gravar Áudio">🎤</button>
-            </div>
-        </div>
-
-        <input type="file" id="hidden-image-input" accept="image/*" class="hidden-file">
-        <input type="file" id="hidden-video-input" accept="video/*" class="hidden-file">
-        <input type="file" id="hidden-audio-input" accept="audio/*" class="hidden-file">
-
-        <!-- TELA DE CHAMADA -->
-        <div id="call-screen" class="hidden">
-            <div style="font-size: 16px; font-weight: bold; margin-top: 10px;" id="call-status-text">A chamar...</div>
-            <div class="call-user-display" id="call-ringing-ui">
-                <div class="call-avatar" id="call-screen-avatar">C</div>
-                <div>
-                    <h2 id="call-screen-name" style="margin: 0; font-size: 22px;">Contacto</h2>
-                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #aaa;" id="call-type-subtitle">Chamada Zap Leve</p>
-                </div>
-            </div>
-            <div class="call-videos hidden" id="call-video-containers">
-                <video id="remote-video" class="remote-video" autoplay playsinline></video>
-                <video id="local-video" class="local-video" autoplay playsinline muted></video>
-            </div>
-            <div class="call-controls">
-                <button class="call-end-btn" id="btn-hangup" title="Desligar">📞</button>
-                <button class="call-answer-btn hidden" id="btn-answer" title="Atender">📞</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA E AUTENTICAÇÃO COMPLETA -->
+    <!-- SCRIPT COMPLETO DE FUNCIONALIDADES -->
     <script>
-        // Lógica de Login, Registo e Recuperação de Senha
         document.addEventListener('DOMContentLoaded', () => {
             const loggedUser = localStorage.getItem('zap_logged_user');
             if (loggedUser) {
@@ -423,55 +373,33 @@
                 carregarAmbientePrincipal();
             }
 
-            // Botão Entrar
+            // Entrar
             document.getElementById('btn-login-action').addEventListener('click', () => {
                 const email = document.getElementById('email').value.trim();
                 const senha = document.getElementById('senha').value.trim();
-                if(!email || !senha) {
-                    alert('Insira o e-mail e a senha para entrar.');
-                    return;
-                }
+                if(!email || !senha) return alert('Insira o e-mail e a senha.');
                 let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
                 let user = users.find(u => u.email === email);
-                if(!user) {
-                    alert('E-mail não encontrado. Clique em "Criar Conta" para se registar.');
-                    return;
-                }
-                if(user.senha !== senha) {
-                    alert('Senha incorreta! Use a opção de redefinir senha caso tenha esquecido.');
-                    return;
-                }
+                if(!user) return alert('E-mail não encontrado. Clique em Criar Conta.');
+                if(user.senha !== senha) return alert('Senha incorreta!');
                 localStorage.setItem('zap_logged_user', email);
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('contacts-screen').classList.remove('hidden');
                 carregarAmbientePrincipal();
             });
 
-            // Botão Criar Conta
+            // Criar Conta
             document.getElementById('btn-register-action').addEventListener('click', () => {
                 const email = document.getElementById('email').value.trim();
                 const senha = document.getElementById('senha').value.trim();
                 const nicho = document.getElementById('auth-nicho').value;
-                if(!email || !senha) {
-                    alert('Preencha o e-mail e a senha para criar a conta.');
-                    return;
-                }
+                if(!email || !senha) return alert('Preencha e-mail e senha.');
                 let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let user = users.find(u => u.email === email);
-                if(user) {
-                    alert('Este e-mail já está registado. Clique em "Entrar".');
-                    return;
-                }
-                let novoUtilizador = {
-                    email: email,
-                    senha: senha,
-                    nome: email.split('@')[0],
-                    nicho: nicho,
-                    bio: 'Olá! Estou a usar o Zap Leve.',
-                    link: '',
-                    avatar: ''
-                };
-                users.push(novoUtilizador);
+                if(users.find(u => u.email === email)) return alert('E-mail já registado. Clique em Entrar.');
+                users.push({
+                    email: email, senha: senha, nome: email.split('@')[0],
+                    nicho: nicho, bio: 'Olá! Estou a usar o Zap Leve.', link: ''
+                });
                 localStorage.setItem('zap_users', JSON.stringify(users));
                 localStorage.setItem('zap_logged_user', email);
                 document.getElementById('auth-screen').classList.add('hidden');
@@ -479,54 +407,107 @@
                 carregarAmbientePrincipal();
             });
 
-            // Recuperar / Redefinir Senha
+            // Redefinir Senha
             document.getElementById('link-forgot-password').addEventListener('click', (e) => {
                 e.preventDefault();
                 const email = document.getElementById('email').value.trim();
-                if(!email) {
-                    alert('Digite o seu e-mail no campo acima primeiro para poder redefinir a senha.');
-                    return;
-                }
+                if(!email) return alert('Digite o e-mail no campo acima primeiro.');
                 let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
                 let user = users.find(u => u.email === email);
-                if(!user) {
-                    alert('E-mail não encontrado na base de dados.');
-                    return;
-                }
-                const novaSenha = prompt('Conta encontrada! Digite a sua NOVA senha:');
-                if(novaSenha && novaSenha.trim() !== '') {
+                if(!user) return alert('E-mail não encontrado.');
+                const novaSenha = prompt('Nova senha:');
+                if(novaSenha) {
                     user.senha = novaSenha.trim();
                     localStorage.setItem('zap_users', JSON.stringify(users));
-                    alert('Senha redefinida com sucesso! Agora já pode entrar.');
+                    alert('Senha redefinida com sucesso!');
                 }
             });
 
-            // Botão Sair
+            // Logout
             document.getElementById('btn-logout').addEventListener('click', () => {
                 localStorage.removeItem('zap_logged_user');
                 location.reload();
             });
 
-            // Gerir PWA
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                const btnInstall = document.getElementById('btn-install');
-                if (btnInstall) btnInstall.classList.remove('hidden');
+            // Abrir Modal de Perfil do Próprio Utilizador
+            document.getElementById('open-profile-btn').addEventListener('click', () => {
+                const emailAtivo = localStorage.getItem('zap_logged_user');
+                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
+                let u = users.find(x => x.email === emailAtivo);
+                if(u) {
+                    document.getElementById('modal-user-username').textContent = u.nome;
+                    document.getElementById('modal-avatar-preview').textContent = u.nome.charAt(0).toUpperCase();
+                    document.getElementById('display-bio-text').textContent = u.bio || 'Nenhuma bio configurada.';
+                    document.getElementById('display-nicho-text').textContent = u.nicho || 'Negócio';
+                    document.getElementById('display-link-text').textContent = u.link || 'Nenhum link configurado.';
+                    
+                    document.getElementById('profile-name-input').value = u.nome;
+                    document.getElementById('profile-bio-input').value = u.bio || '';
+                    document.getElementById('profile-link-input').value = u.link || '';
+                    document.getElementById('profile-nicho-select').value = u.nicho || 'Negócio';
+                }
+                document.getElementById('profile-modal').classList.remove('hidden');
             });
 
-            document.getElementById('btn-install').addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        document.getElementById('btn-install').classList.add('hidden');
-                    }
-                    deferredPrompt = null;
-                } else {
-                    alert('A instalação direta já está disponível.');
+            document.getElementById('btn-close-profile').addEventListener('click', () => {
+                document.getElementById('profile-modal').classList.add('hidden');
+            });
+
+            // Salvar Perfil
+            document.getElementById('btn-save-profile').addEventListener('click', () => {
+                const emailAtivo = localStorage.getItem('zap_logged_user');
+                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
+                let u = users.find(x => x.email === emailAtivo);
+                if(u) {
+                    u.nome = document.getElementById('profile-name-input').value.trim() || u.nome;
+                    u.bio = document.getElementById('profile-bio-input').value.trim();
+                    u.link = document.getElementById('profile-link-input').value.trim();
+                    u.nicho = document.getElementById('profile-nicho-select').value;
+                    localStorage.setItem('zap_users', JSON.stringify(users));
+                    alert('Perfil guardado com sucesso!');
+                    document.getElementById('profile-modal').classList.add('hidden');
+                    carregarAmbientePrincipal();
                 }
+            });
+
+            // Painel Admin
+            document.getElementById('btn-open-admin-panel').addEventListener('click', () => {
+                carregarListaAdminUtilizadores();
+                document.getElementById('admin-panel-modal').classList.remove('hidden');
+            });
+            document.getElementById('btn-close-admin-panel').addEventListener('click', () => {
+                document.getElementById('admin-panel-modal').classList.add('hidden');
+            });
+
+            // Exibir Página Privacidade
+            document.getElementById('btn-open-privacy-page').addEventListener('click', () => {
+                const savedPage = localStorage.getItem('zap_custom_privacy_page');
+                if(savedPage) {
+                    const data = JSON.parse(savedPage);
+                    document.getElementById('privacy-modal-title').textContent = data.title;
+                    document.getElementById('privacy-modal-content').textContent = data.content;
+                }
+                document.getElementById('privacy-page-modal').classList.remove('hidden');
+            });
+            document.getElementById('btn-close-privacy').addEventListener('click', () => {
+                document.getElementById('privacy-page-modal').classList.add('hidden');
+            });
+
+            // Admin salvar página
+            document.getElementById('btn-save-admin-page').addEventListener('click', () => {
+                const title = document.getElementById('admin-page-title').value.trim();
+                const content = document.getElementById('admin-page-content').value.trim();
+                if(!title || !content) return alert('Preencha o título e o conteúdo.');
+                localStorage.setItem('zap_custom_privacy_page', JSON.stringify({ title, content }));
+                alert('Página publicada com sucesso!');
+            });
+
+            // Catálogo
+            document.getElementById('btn-open-catalog').addEventListener('click', () => {
+                document.getElementById('catalog-modal').classList.remove('hidden');
+            });
+            document.getElementById('btn-close-catalog').addEventListener('click', () => {
+                document.getElementById('catalog-modal').classList.add('hidden');
             });
         });
 
@@ -537,37 +518,34 @@
             if (currentUser) {
                 document.getElementById('user-email-display').textContent = currentUser.nome || emailAtivo.split('@')[0];
                 document.getElementById('user-avatar-initial').textContent = (currentUser.nome || emailAtivo).charAt(0).toUpperCase();
-                // Se for admin principal
-                if(emailAtivo === 'admin@zapleve.com' || currentUser.email.includes('admin')) {
-                    const btnAdmin = document.getElementById('btn-open-admin-panel');
-                    if(btnAdmin) btnAdmin.classList.remove('hidden');
+                
+                if(emailAtivo.includes('admin') || emailAtivo === 'admin@zapleve.com') {
+                    document.getElementById('btn-open-admin-panel').classList.remove('hidden');
                 }
             }
             renderizarNichos();
         }
 
         function renderizarNichos() {
-            const nichosContainer = document.getElementById('niches-grid-container');
-            if(!nichosContainer) return;
-            const listaNichos = [
-                { nome: 'Negócio', icone: '💼', count: 'Loja e Parcerias' },
-                { nome: 'Namoro', icone: '❤️', count: 'Conexões' },
-                { nome: 'Religião', icone: '⛪', count: 'Fé e Comunhão' },
-                { nome: 'Pets', icone: '🐾', count: 'Amigos de 4 patas' }
+            const container = document.getElementById('niches-grid-container');
+            if(!container) return;
+            const lista = [
+                { nome: 'Negócio', icone: '💼', desc: 'Loja e Parcerias' },
+                { nome: 'Namoro', icone: '❤️', desc: 'Conexões' },
+                { nome: 'Religião', icone: '⛪', desc: 'Fé e Comunhão' },
+                { nome: 'Pets', icone: '🐾', desc: 'Amigos de 4 patas' }
             ];
-            nichosContainer.innerHTML = '';
-            listaNichos.forEach(n => {
+            container.innerHTML = '';
+            lista.forEach(n => {
                 const card = document.createElement('div');
                 card.className = 'niche-card';
                 card.innerHTML = `
                     <div class="niche-icon">${n.icone}</div>
                     <div class="niche-title">${n.nome}</div>
-                    <div class="niche-count">${n.count}</div>
+                    <div class="niche-count">${n.desc}</div>
                 `;
-                card.addEventListener('click', () => {
-                    abrirNicho(n.nome);
-                });
-                nichosContainer.appendChild(card);
+                card.addEventListener('click', () => abrirNicho(n.nome));
+                container.appendChild(card);
             });
         }
 
@@ -583,7 +561,7 @@
             let filtrados = users.filter(u => u.nicho === nomeNicho);
             
             if(filtrados.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">Nenhum outro utilizador neste nicho ainda.</div>';
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">Nenhum utilizador neste nicho ainda.</div>';
                 return;
             }
 
@@ -598,10 +576,10 @@
                             <div style="font-size: 11px; color: #666;">${u.bio || 'Disponível'}</div>
                         </div>
                     </div>
-                    <button class="btn-conversar">Conversar 💬</button>
+                    <button class="btn-conversar">Ver Bio 👤</button>
                 `;
                 item.addEventListener('click', () => {
-                    alert('Abrindo chat privado com ' + u.nome);
+                    alert('Utilizador: ' + u.nome + '\nBio: ' + (u.bio || 'Sem bio') + '\nLink: ' + (u.link || 'Nenhum'));
                 });
                 container.appendChild(item);
             });
@@ -617,13 +595,27 @@
             location.reload();
         });
 
-        // Catálogo e Carrinho
-        document.getElementById('btn-open-catalog').addEventListener('click', () => {
-            document.getElementById('catalog-modal').classList.remove('hidden');
-        });
-        document.getElementById('btn-close-catalog').addEventListener('click', () => {
-            document.getElementById('catalog-modal').classList.add('hidden');
-        });
+        function carregarListaAdminUtilizadores() {
+            const listDiv = document.getElementById('admin-users-list');
+            listDiv.innerHTML = '';
+            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
+            users.forEach(u => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;';
+                row.innerHTML = `
+                    <span><b>${u.nome}</b> (${u.email})</span>
+                    <button style="background: #ea0938; color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">Excluir</button>
+                `;
+                row.querySelector('button').addEventListener('click', () => {
+                    if(confirm('Tem certeza que deseja excluir o utilizador ' + u.nome + '?')) {
+                        let atualizados = users.filter(x => x.email !== u.email);
+                        localStorage.setItem('zap_users', JSON.stringify(atualizados));
+                        carregarListaAdminUtilizadores();
+                    }
+                });
+                listDiv.appendChild(row);
+            });
+        }
     </script>
 </body>
 </html>
