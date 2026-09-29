@@ -110,7 +110,7 @@
         input, textarea, button, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; outline: none; background: var(--input-bg); color: var(--text-app); }
         input:focus { border-color: #00a884; }
         button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        button:hover { background: #008f72; }
+        button:hover { opacity: 0.9; }
         .btn-alt { background: #075e54; }
         .btn-danger { background: #ea0038; }
         .btn-install { background: #005c4b; margin-top: 8px; }
@@ -315,20 +315,25 @@
         </div>
     </div>
 
-    <!-- TELA DE ENTRADA / LOGIN (LAYOUT SOLICITADO) -->
-    <div id="auth-screen" class="screen-content" style="justify-content: center;">
-        <div class="logo-area">
+    <!-- TELA DE ENTRADA / LOGIN REESTRUTURADA E LIMPA -->
+    <div id="auth-screen" class="screen-content" style="justify-content: center; max-width: 380px; margin: 0 auto;">
+        <div class="logo-area" style="margin-bottom: 25px;">
             <span>⚡💬</span>
-            <h1>Zap Leve</h1>
-            <p style="font-size: 14px; margin: 6px 0 0 0; opacity: 0.8;">O chat ultraleve e inteligente</p>
+            <h1 style="margin: 5px 0 0 0;">Zap Leve</h1>
+            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e utilitários integrados</p>
         </div>
+        
         <input type="email" id="email" placeholder="Seu e-mail">
         <input type="password" id="password" placeholder="Sua senha">
         
-        <button class="btn-alt" onclick="entrar()">Entrar</button>
-        <button onclick="cadastrar()">Criar Nova Conta</button>
-        <button class="btn-install" onclick="abrirInstalacao()">📲 Baixar App no Aparelho</button>
-        <button class="btn-alt" style="background: #333; margin-top: 15px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
+        <!-- Botões Entrar e Abrir Conta lado a lado -->
+        <div style="display: flex; gap: 8px; margin: 6px 0;">
+            <button class="btn-alt" style="flex: 1; margin: 0; background: #0275d8;" onclick="entrar()">Entrar</button>
+            <button style="flex: 1; margin: 0; background: #28a745;" onclick="cadastrar()">Abrir Conta</button>
+        </div>
+
+        <button class="btn-install" style="margin-top: 12px;" onclick="abrirInstalacao()">📲 Baixar App no Aparelho</button>
+        <button class="btn-alt" style="background: #333; margin-top: 6px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
     </div>
 
     <div id="modal-instalar" class="modal">
