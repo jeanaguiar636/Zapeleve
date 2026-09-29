@@ -17,22 +17,17 @@
         
         .app-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 10px 14px; flex-shrink: 0; }
         .app-title-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .avatar-placeholder { width: 38px; height: 38px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 15px; overflow: hidden; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); }
+        .avatar-placeholder { width: 38px; height: 38px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 15px; overflow: hidden; border: 1px solid rgba(255,255,255,0.4); }
         
         .header-actions-right { display: flex; gap: 6px; align-items: center; }
-        .btn-action-top { background: #128c7e; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
+        .btn-action-top { background: #128c7e; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
         .btn-action-top.limpar { background: #ea0938; }
-
-        .niches-container { flex: 1; overflow-y: auto; background: #f0f2f5; padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: start; }
-        .niche-card { background: white; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; border: 1px solid #e2e8f0; }
-        .niche-icon { font-size: 28px; }
-        .niche-title { font-weight: bold; font-size: 14px; color: #075e54; margin: 0; }
-        .niche-count { font-size: 11px; color: #666; }
 
         .contacts-list { flex: 1; overflow-y: auto; background: #fff; }
         .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
+        .contact-item:hover { background: #f9f9f9; }
 
-        /* Área de Chat Estilo WhatsApp */
+        /* Área de Chat */
         .chat-messages { flex: 1; overflow-y: auto; padding: 12px; background: #e5ded8; display: flex; flex-direction: column; gap: 8px; }
         .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 13px; position: relative; word-break: break-word; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
         .message-incoming { background: #ffffff; align-self: flex-start; }
@@ -41,37 +36,30 @@
         .chat-input-area { display: flex; align-items: center; padding: 8px 10px; background: #f0f0f0; gap: 6px; flex-shrink: 0; }
         .chat-input-area input[type="text"] { flex: 1; padding: 10px 14px; border: none; border-radius: 20px; outline: none; font-size: 13px; background: #ffffff; }
         
-        .whatsapp-icon-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; }
-        .whatsapp-icon-btn.mic { background: #128c7e; }
-
-        /* Botões de Chamada Super Aparentes e Estilizados no Header do Chat */
-        .call-buttons-container {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+        /* Botões de Chamada no Header refinados com textos e ícones */
+        .call-buttons-container { display: flex; gap: 6px; align-items: center; }
         .btn-call-styled {
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: #25d366;
             color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            gap: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.2s;
         }
-        .btn-call-styled:hover {
-            background: rgba(255, 255, 255, 0.35);
-            transform: scale(1.05);
-        }
-        .btn-call-styled:active {
-            transform: scale(0.95);
-        }
+        .btn-call-styled.video { background: #34b7f1; }
+        .btn-call-styled:hover { opacity: 0.9; }
+
+        /* Botões de Ação na Barra Inferior */
+        .whatsapp-icon-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+        .whatsapp-icon-btn.mic { background: #128c7e; }
+        .whatsapp-icon-btn.send { background: #00a884; font-size: 14px; }
 
         .floating-cart { 
             position: fixed; bottom: 80px; right: 20px; 
@@ -82,7 +70,10 @@
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
         .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 4px; }
+        
+        /* Tela de Chamada Ativa (Modal de Voz / Vídeo) */
+        .call-screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 2000; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 20px; color: white; text-align: center; }
+        .call-avatar-lg { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #25d366; object-fit: cover; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px auto; }
     </style>
 </head>
 <body>
@@ -96,16 +87,6 @@
             <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                 <input type="email" id="email" placeholder="Seu e-mail" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
                 <input type="password" id="senha" placeholder="Sua senha" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
-                
-                <div style="margin: 8px 0;">
-                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Escolha o seu Nicho:</label>
-                    <select id="auth-nicho" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px;">
-                        <option value="Negócio">💼 Negócio</option>
-                        <option value="Namoro">❤️ Namoro</option>
-                        <option value="Religião">⛪ Religião</option>
-                        <option value="Pets">🐾 Pets</option>
-                    </select>
-                </div>
 
                 <div style="display: flex; gap: 8px; margin-top: 12px;">
                     <button id="btn-login-action" style="flex: 1; padding: 12px; background: #34b7f1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Entrar</button>
@@ -118,72 +99,107 @@
             </div>
         </div>
 
-        <!-- TELA PRINCIPAL DE NICHOS -->
+        <!-- TELA PRINCIPAL DE CONVERSAS E CONTACTOS -->
         <div id="contacts-screen" class="screen-content hidden">
             <div class="app-header">
                 <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
-                    <div id="user-avatar-initial" class="avatar-placeholder">J</div>
+                    <div id="user-avatar-initial" class="avatar-placeholder">Z</div>
                     <div>
                         <span id="user-email-display" style="font-weight: bold; font-size: 14px; display: block;">Zap Leve ⚡</span>
-                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">Sincronizado na Nuvem</span>
+                        <span style="font-size: 11px; color: #d1fae5;">ZAPLeve</span>
                     </div>
                 </div>
                 <div class="header-actions-right">
-                    <button id="btn-open-admin-panel" class="hidden" style="background: #ea0938; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">🛡️ Admin</button>
+                    <button id="btn-theme-toggle" class="btn-action-top">🌓</button>
                     <button id="btn-logout" class="btn-action-top limpar">Sair</button>
                 </div>
             </div>
 
-            <div class="niches-container" id="niches-grid-container"></div>
+            <div style="padding: 10px 16px; font-size: 13px; color: #666; font-weight: bold; background: #f8f9fa; border-bottom: 1px solid #eee;">
+                Conversas e Contactos:
+            </div>
+
+            <div class="contacts-list" id="contacts-list-container">
+                <div style="padding: 20px; text-align: center; color: #666;">A carregar contactos...</div>
+            </div>
             
-            <div class="contacts-footer" style="padding: 10px 14px; background: #fff;">
-                <button class="btn-convidar" onclick="alert('Link copiado!')" style="background: #075e54; color: white; border: none; width: 100%; padding: 12px; border-radius: 24px; font-weight: bold; cursor: pointer;">📢 Convidar para o Zap Leve</button>
+            <div class="contacts-footer" style="padding: 10px 14px; background: #fff; border-top: 1px solid #eee;">
+                <button class="btn-convidar" onclick="alert('Link do Zap Leve copiado para a área de transferência!')" style="background: #075e54; color: white; border: none; width: 100%; padding: 12px; border-radius: 24px; font-weight: bold; cursor: pointer;">📢 Convidar para o Zap Leve</button>
             </div>
 
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
         </div>
 
-        <!-- UTILIZADORES DO NICHO -->
-        <div id="nicho-users-screen" class="screen-content hidden">
-            <div class="app-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btn-back-to-niches" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
-                    <h3 id="nicho-screen-title" style="margin: 0; font-size: 16px;">Nicho</h3>
-                </div>
-            </div>
-            <div class="contacts-list" id="nicho-users-list-container"></div>
-        </div>
-
-        <!-- TELA DE CHAT COM BOTÕES DE CHAMADA BEM APARENTES E ESTILIZADOS NO CABEÇALHO -->
+        <!-- TELA DE CHAT COM BOTÕES DE CHAMADA REFINADOS NO TOPO -->
         <div id="chat-screen" class="screen-content hidden">
             <div class="app-header">
-                <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
-                    <button id="btn-back-to-nicho-users" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0;">⬅️</button>
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                    <button id="btn-back-to-contacts" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0;">⬅️</button>
                     <div id="chat-user-avatar" class="avatar-placeholder" style="width: 34px; height: 34px; flex-shrink: 0;">U</div>
-                    <span id="chat-user-name" style="font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Utilizador</span>
+                    <span id="chat-user-name" style="font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Utilizador</span>
                 </div>
                 
-                <!-- Botões de chamada bem visíveis no cabeçalho -->
+                <!-- Botões de chamada com rótulos visíveis e elegantes -->
                 <div class="call-buttons-container">
-                    <button id="btn-video-call" class="btn-call-styled" title="Chamada de Vídeo">📹</button>
-                    <button id="btn-audio-call" class="btn-call-styled" title="Chamada de Áudio">📞</button>
+                    <button id="btn-video-call" class="btn-call-styled video" title="Chamada de Vídeo">📹 Vídeo</button>
+                    <button id="btn-audio-call" class="btn-call-styled" title="Chamada de Voz">📞 Ligar</button>
                 </div>
             </div>
             
             <div class="chat-messages" id="chat-messages-container"></div>
 
+            <!-- Área Inferior do Chat (Input, Clipe para Mídia Real, e Botão de Áudio com Preview) -->
             <div class="chat-input-area">
-                <button id="btn-attach-media" style="background:none; border:none; font-size:20px; cursor:pointer;" title="Anexar Imagem">📎</button>
+                <input type="file" id="media-file-input" accept="image/*,video/*" style="display: none;">
+                <button id="btn-attach-media" class="whatsapp-icon-btn" style="background: none; color: #555; font-size: 20px;" title="Enviar Imagem ou Vídeo">📎</button>
                 <input type="text" id="chat-input-text" placeholder="Mensagem">
-                <!-- Botão dinâmico estilo WhatsApp: vira microfone se vazio, vira seta de envio se tiver texto -->
                 <button id="whatsapp-main-btn" class="whatsapp-icon-btn mic" title="Gravar Áudio">🎤</button>
+            </div>
+        </div>
+
+        <!-- MODAL DE PRÉ-VISUALIZAÇÃO DE ÁUDIO GRAVADO -->
+        <div id="audio-preview-modal" class="modal-overlay hidden">
+            <div class="modal-card" style="text-align: center;">
+                <h3 style="color: #075e54; margin: 0;">Mensagem de Voz Gravada</h3>
+                <p style="font-size: 12px; color: #666;">Ouça o seu áudio antes de enviar:</p>
+                <audio id="audio-preview-element" controls style="width: 100%; margin: 10px 0;"></audio>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="btn-send-audio" style="flex: 1; background: #25d366; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar Áudio</button>
+                    <button id="btn-discard-audio" style="flex: 1; background: #ea0938; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Excluir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE PRÉ-VISUALIZAÇÃO DE MÍDIA (IMAGEM/VÍDEO) -->
+        <div id="media-preview-modal" class="modal-overlay hidden">
+            <div class="modal-card" style="text-align: center;">
+                <h3 style="color: #075e54; margin: 0;">Enviar Mídia</h3>
+                <div id="media-preview-container" style="max-height: 250px; overflow: hidden; margin: 10px 0; display: flex; justify-content: center;"></div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="btn-send-media" style="flex: 1; background: #25d366; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
+                    <button id="btn-discard-media" style="flex: 1; background: #ccc; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA DE CHAMADA ATIVA (COM TOQUE E IDENTIDADE DO CONTACTO) -->
+        <div id="active-call-screen" class="call-screen-overlay hidden">
+            <div style="margin-top: 20px;">
+                <span style="font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #25d366;" id="call-status-text">A chamar...</span>
+                <h2 id="call-contact-name" style="margin: 5px 0; font-size: 22px;">Nome do Contacto</h2>
+            </div>
+            <div>
+                <div id="call-contact-avatar" class="call-avatar-lg">U</div>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <button id="btn-end-call" style="background: #ea0938; color: white; border: none; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" title="Encerrar Chamada">📞</button>
             </div>
         </div>
 
         <!-- PERFIL MODAL -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
-                <h3 style="margin: 0; color: #075e54;">Meu Perfil & Afiliado</h3>
+                <h3 style="margin: 0; color: #075e54;">Meu Perfil & Bio</h3>
                 <div style="text-align: center;">
                     <img id="profile-preview-img" src="" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #075e54; display: none; margin: 0 auto 8px auto;">
                 </div>
@@ -193,7 +209,7 @@
                 <label style="font-size: 11px; color: #666;">Seu Nome:</label>
                 <input type="text" id="profile-name-input" placeholder="Seu nome..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                 
-                <label style="font-size: 11px; color: #666;">Biografia / Descrição:</label>
+                <label style="font-size: 11px; color: #666;">Biografia / Descrição (Bio):</label>
                 <textarea id="profile-bio-input" placeholder="Sua bio..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 50px;"></textarea>
                 
                 <label style="font-size: 11px; color: #666;">Link de Afiliado / Loja:</label>
@@ -213,7 +229,7 @@
                     <h3 style="margin: 0; color: #075e54;">🛍️ Catálogo de Produtos</h3>
                     <button id="btn-close-catalog" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
                 </div>
-                <div id="product-grid-container" class="product-grid">
+                <div id="product-grid-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 4px;">
                     <div style="padding: 10px; border: 1px solid #eee; border-radius: 6px; text-align: center;">
                         <p style="margin: 4px 0; font-weight: bold; font-size: 13px;">Produto Exemplo</p>
                         <p style="margin: 4px 0; color: #075e54; font-size: 12px;">R$ 99,90</p>
@@ -224,7 +240,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE FIREBASE E LIGAÇÕES -->
+    <!-- SCRIPT DE FIREBASE E FUNCIONALIDADES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -246,6 +262,7 @@
         let currentUserData = null;
         let activeChatUser = null;
         let unsubscribeChat = null;
+        let selectedFileBase64 = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -255,12 +272,10 @@
                 const userDocRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userDocRef);
                 if (!userSnap.exists()) {
-                    const nichoSelecionado = document.getElementById('auth-nicho').value || 'Negócio';
                     currentUserData = {
                         uid: user.uid,
                         email: user.email,
                         nome: user.email.split('@')[0],
-                        nicho: nichoSelecionado,
                         bio: 'Olá! Estou no Zap Leve.',
                         link: '',
                         foto: ''
@@ -270,6 +285,7 @@
                     currentUserData = userSnap.data();
                 }
                 carregarDadosUsuario(user, currentUserData);
+                carregarTodosContactos();
             }
         });
 
@@ -277,51 +293,28 @@
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value.trim();
             if(!email || !senha) return alert('Insira e-mail e senha.');
-            try {
-                await signInWithEmailAndPassword(auth, email, senha);
-            } catch (e) {
-                alert('Erro ao entrar: ' + e.message);
-            }
+            try { await signInWithEmailAndPassword(auth, email, senha); } catch (e) { alert('Erro ao entrar: ' + e.message); }
         });
 
         document.getElementById('btn-register-action').addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value.trim();
-            const nicho = document.getElementById('auth-nicho').value;
             if(!email || !senha) return alert('Insira e-mail e senha.');
             try {
                 const res = await createUserWithEmailAndPassword(auth, email, senha);
-                currentUserData = {
-                    uid: res.user.uid,
-                    email: email,
-                    nome: email.split('@')[0],
-                    nicho: nicho,
-                    bio: 'Olá! Estou no Zap Leve.',
-                    link: '',
-                    foto: ''
-                };
+                currentUserData = { uid: res.user.uid, email: email, nome: email.split('@')[0], bio: 'Olá! Estou no Zap Leve.', link: '', foto: '' };
                 await setDoc(doc(db, "users", res.user.uid), currentUserData);
-            } catch (e) {
-                alert('Erro ao registar: ' + e.message);
-            }
+            } catch (e) { alert('Erro ao registar: ' + e.message); }
         });
 
         document.getElementById('link-forgot-password').addEventListener('click', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
             if(!email) return alert('Digite o seu e-mail no campo acima.');
-            try {
-                await sendPasswordResetEmail(auth, email);
-                alert('E-mail de recuperação enviado!');
-            } catch(err) {
-                alert('Erro: ' + err.message);
-            }
+            try { await sendPasswordResetEmail(auth, email); alert('E-mail de recuperação enviado!'); } catch(err) { alert('Erro: ' + err.message); }
         });
 
-        document.getElementById('btn-logout').addEventListener('click', async () => {
-            await signOut(auth);
-            location.reload();
-        });
+        document.getElementById('btn-logout').addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
         document.getElementById('open-profile-btn').addEventListener('click', () => {
             if(currentUserData) {
@@ -337,42 +330,28 @@
             }
             document.getElementById('profile-modal').classList.remove('hidden');
         });
-        document.getElementById('btn-close-profile').addEventListener('click', () => {
-            document.getElementById('profile-modal').classList.add('hidden');
-        });
+        document.getElementById('btn-close-profile').addEventListener('click', () => { document.getElementById('profile-modal').classList.add('hidden'); });
 
         document.getElementById('btn-save-profile').addEventListener('click', async () => {
             const nome = document.getElementById('profile-name-input').value.trim();
             const bio = document.getElementById('profile-bio-input').value.trim();
             const link = document.getElementById('profile-link-input').value.trim();
             const foto = document.getElementById('profile-photo-input').value.trim();
-
             if(!auth.currentUser) return;
             try {
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 await updateDoc(userRef, { nome, bio, link, foto });
-                currentUserData.nome = nome;
-                currentUserData.bio = bio;
-                currentUserData.link = link;
-                currentUserData.foto = foto;
-                
+                currentUserData.nome = nome; currentUserData.bio = bio; currentUserData.link = link; currentUserData.foto = foto;
                 document.getElementById('user-email-display').textContent = nome || auth.currentUser.email;
                 if(foto) {
-                    const avatar = document.getElementById('user-avatar-initial');
-                    avatar.innerHTML = `<img src="${foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                    document.getElementById('user-avatar-initial').innerHTML = `<img src="${foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
                 }
                 document.getElementById('profile-modal').classList.add('hidden');
-            } catch(e) {
-                alert('Erro ao atualizar perfil: ' + e.message);
-            }
+            } catch(e) { alert('Erro ao atualizar perfil: ' + e.message); }
         });
 
-        document.getElementById('btn-open-catalog').addEventListener('click', () => {
-            document.getElementById('catalog-modal').classList.remove('hidden');
-        });
-        document.getElementById('btn-close-catalog').addEventListener('click', () => {
-            document.getElementById('catalog-modal').classList.add('hidden');
-        });
+        document.getElementById('btn-open-catalog').addEventListener('click', () => { document.getElementById('catalog-modal').classList.remove('hidden'); });
+        document.getElementById('btn-close-catalog').addEventListener('click', () => { document.getElementById('catalog-modal').classList.add('hidden'); });
 
         function carregarDadosUsuario(user, data) {
             document.getElementById('user-email-display').textContent = data.nome || user.email;
@@ -381,100 +360,65 @@
             } else {
                 document.getElementById('user-avatar-initial').textContent = (data.nome || user.email).charAt(0).toUpperCase();
             }
-            if(user.email.includes('admin') || user.email === 'admin@zapleve.com') {
-                document.getElementById('btn-open-admin-panel')?.classList.remove('hidden');
-            }
-            renderizarNichosCloud();
         }
 
-        function renderizarNichosCloud() {
-            const container = document.getElementById('niches-grid-container');
-            container.innerHTML = '';
-            const lista = [
-                { nome: 'Negócio', icone: '💼', desc: 'Loja e Parcerias' },
-                { nome: 'Namoro', icone: '❤️', desc: 'Conexões' },
-                { nome: 'Religião', icone: '⛪', desc: 'Fé e Comunhão' },
-                { nome: 'Pets', icone: '🐾', desc: 'Amigos de 4 patas' }
-            ];
-            lista.forEach(n => {
-                const card = document.createElement('div');
-                card.className = 'niche-card';
-                card.innerHTML = `<div class="niche-icon">${n.icone}</div><div class="niche-title">${n.nome}</div><div class="niche-count">${n.desc}</div>`;
-                card.addEventListener('click', () => abrirNichoCloud(n.nome));
-                container.appendChild(card);
-            });
-        }
-
-        async function abrirNichoCloud(nomeNicho) {
-            document.getElementById('contacts-screen').classList.add('hidden');
-            document.getElementById('nicho-users-screen').classList.remove('hidden');
-            document.getElementById('nicho-screen-title').textContent = 'Nicho: ' + nomeNicho;
-            
-            const container = document.getElementById('nicho-users-list-container');
-            container.innerHTML = '<div style="padding:20px; text-align:center;">A carregar utilizadores...</div>';
-            
+        async function carregarTodosContactos() {
+            const container = document.getElementById('contacts-list-container');
+            container.innerHTML = '<div style="padding:20px; text-align:center;">A carregar contactos...</div>';
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
                 container.innerHTML = '';
                 let encontrou = false;
                 querySnapshot.forEach((docSnap) => {
                     const u = docSnap.data();
-                    if(u.nicho === nomeNicho && u.uid !== auth.currentUser.uid) {
+                    if(u.uid !== auth.currentUser.uid) {
                         encontrou = true;
                         const item = document.createElement('div');
                         item.className = 'contact-item';
-                        let avatarHtml = `<div class="avatar-placeholder" style="width: 38px; height: 38px;">${(u.nome || 'U').charAt(0).toUpperCase()}</div>`;
+                        let avatarHtml = `<div class="avatar-placeholder" style="width: 42px; height: 42px;">${(u.nome || 'U').charAt(0).toUpperCase()}</div>`;
                         if(u.foto) {
-                            avatarHtml = `<div class="avatar-placeholder" style="width: 38px; height: 38px;"><img src="${u.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;"></div>`;
+                            avatarHtml = `<div class="avatar-placeholder" style="width: 42px; height: 42px;"><img src="${u.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;"></div>`;
                         }
-
                         item.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
                                 ${avatarHtml}
                                 <div>
-                                    <div style="font-weight: bold; font-size: 14px;">${u.nome || 'Utilizador'}</div>
-                                    <div style="font-size: 11px; color: #666;">${u.bio || 'Disponível'}</div>
-                                    ${u.link ? `<a href="${u.link}" target="_blank" style="font-size: 10px; color: #0066cc; text-decoration: underline;">🔗 Ver Link / Afiliado</a>` : ''}
+                                    <div style="font-weight: bold; font-size: 15px; color: #111;">${u.nome || 'Utilizador'}</div>
+                                    <div style="font-size: 12px; color: #666;">${u.bio || 'Disponível'}</div>
                                 </div>
                             </div>
-                            <span style="font-size: 12px; color: #075e54; font-weight: bold;">💬 Conversar</span>
+                            <button style="background: none; border: none; color: #075e54; font-size: 12px; font-weight: bold; cursor: pointer;">Conversar 💬</button>
                         `;
                         item.addEventListener('click', () => abrirChatPrivado(u));
                         container.appendChild(item);
                     }
                 });
-                if(!encontrou) {
-                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Nenhum outro utilizador neste nicho ainda.</div>';
-                }
-            } catch(e) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Erro ao carregar utilizadores.</div>';
-            }
+                if(!encontrou) container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Nenhum outro contacto registado.</div>';
+            } catch(e) { container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Erro ao carregar contactos.</div>'; }
         }
 
         function abrirChatPrivado(userTarget) {
             activeChatUser = userTarget;
-            document.getElementById('nicho-users-screen').classList.add('hidden');
+            document.getElementById('contacts-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
             document.getElementById('chat-user-name').textContent = userTarget.nome || 'Utilizador';
-            
             const avatarChat = document.getElementById('chat-user-avatar');
             if(userTarget.foto) {
                 avatarChat.innerHTML = `<img src="${userTarget.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
             } else {
                 avatarChat.textContent = (userTarget.nome || 'U').charAt(0).toUpperCase();
             }
-
             escutarMensagensReais(userTarget.uid);
         }
 
-        // Lógica do Botão Estilo WhatsApp (Muda entre Microfone e Enviar)
+        // Comportamento do Botão Principal (Texto vs Enviar vs Microfone)
         const chatInput = document.getElementById('chat-input-text');
         const mainBtn = document.getElementById('whatsapp-main-btn');
 
         chatInput.addEventListener('input', () => {
             if(chatInput.value.trim().length > 0) {
                 mainBtn.textContent = '➤';
-                mainBtn.className = 'whatsapp-icon-btn';
+                mainBtn.className = 'whatsapp-icon-btn send';
                 mainBtn.title = 'Enviar mensagem';
             } else {
                 mainBtn.textContent = '🎤';
@@ -492,7 +436,7 @@
                 mainBtn.className = 'whatsapp-icon-btn mic';
                 mainBtn.title = 'Gravar Áudio';
             } else {
-                iniciarGravacaoAudioReal();
+                iniciarGravacaoAudioComPreview();
             }
         });
 
@@ -507,22 +451,19 @@
                     tipo: dados.tipo || 'texto',
                     timestamp: Date.now()
                 });
-            } catch(e) {
-                alert('Erro ao enviar mensagem: ' + e.message);
-            }
+            } catch(e) { alert('Erro ao enviar: ' + e.message); }
         }
 
         function escutarMensagensReais(outroUid) {
             const msgContainer = document.getElementById('chat-messages-container');
             const chatId = [auth.currentUser.uid, outroUid].sort().join('_');
             const q = query(collection(db, "chats", chatId, "mensagens"), orderBy("timestamp", "asc"));
-            
             if(unsubscribeChat) unsubscribeChat();
 
             unsubscribeChat = onSnapshot(q, (snapshot) => {
                 msgContainer.innerHTML = '';
                 if(snapshot.empty) {
-                    msgContainer.innerHTML = `<div style="text-align:center; font-size:11px; color:#666; margin:10px 0;">Sem mensagens ainda. Comece a conversar!</div>`;
+                    msgContainer.innerHTML = `<div style="text-align:center; font-size:11px; color:#666; margin:10px 0;">Sem mensagens ainda.</div>`;
                     return;
                 }
                 snapshot.forEach((docSnap) => {
@@ -532,7 +473,9 @@
                     bubble.className = `message-bubble ${meuEnvio ? 'message-outgoing' : 'message-incoming'}`;
                     
                     if(m.tipo === 'imagem') {
-                        bubble.innerHTML = `<img src="${m.texto}" style="max-width:100%; border-radius:6px; display:block; margin-bottom:4px;"><a href="${m.texto}" target="_blank" download style="font-size:11px; color:#0066cc;">📥 Baixar imagem</a>`;
+                        bubble.innerHTML = `<img src="${m.texto}" style="max-width:100%; border-radius:6px; display:block;">`;
+                    } else if(m.tipo === 'video') {
+                        bubble.innerHTML = `<video controls src="${m.texto}" style="max-width:100%; border-radius:6px; display:block;"></video>`;
                     } else if(m.tipo === 'audio') {
                         bubble.innerHTML = `<audio controls src="${m.texto}" style="max-width: 200px;"></audio>`;
                     } else {
@@ -544,35 +487,66 @@
             });
         }
 
-        document.getElementById('btn-attach-media').addEventListener('click', async () => {
-            const urlImg = prompt('Insira o link direto da imagem que quer enviar:');
-            if(urlImg) {
-                await enviarMensagemFirestore({ texto: urlImg, tipo: 'imagem' });
-            }
+        // Manipulação Real de Arquivos de Mídia (Imagens e Vídeos do Dispositivo)
+        const mediaInput = document.getElementById('media-file-input');
+        document.getElementById('btn-attach-media').addEventListener('click', () => { mediaInput.click(); });
+
+        mediaInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                selectedFileBase64 = event.target.result;
+                const container = document.getElementById('media-preview-container');
+                container.innerHTML = '';
+                if(file.type.startsWith('image/')) {
+                    container.innerHTML = `<img src="${selectedFileBase64}" style="max-width:100%; max-height:220px; border-radius:6px;">`;
+                } else if(file.type.startsWith('video/')) {
+                    container.innerHTML = `<video controls src="${selectedFileBase64}" style="max-width:100%; max-height:220px; border-radius:6px;"></video>`;
+                }
+                document.getElementById('media-preview-modal').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
         });
 
+        document.getElementById('btn-discard-media').addEventListener('click', () => {
+            document.getElementById('media-preview-modal').classList.add('hidden');
+            selectedFileBase64 = null;
+            mediaInput.value = '';
+        });
+
+        document.getElementById('btn-send-media').addEventListener('click', async () => {
+            if(!selectedFileBase64) return;
+            const isVideo = selectedFileBase64.startsWith('data:video');
+            await enviarMensagemFirestore({ texto: selectedFileBase64, tipo: isVideo ? 'video' : 'imagem' });
+            document.getElementById('media-preview-modal').classList.add('hidden');
+            selectedFileBase64 = null;
+            mediaInput.value = '';
+        });
+
+        // Gravação de Áudio com Preview antes do Envio
         let mediaRecorder;
         let audioChunks = [];
-        async function iniciarGravacaoAudioReal() {
+        let recordedAudioUrl = null;
+
+        async function iniciarGravacaoAudioComPreview() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    await enviarMensagemFirestore({ texto: audioUrl, tipo: 'audio' });
+                    recordedAudioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audio-preview-element').src = recordedAudioUrl;
+                    document.getElementById('audio-preview-modal').classList.remove('hidden');
                 };
 
                 mediaRecorder.start();
                 mainBtn.style.background = '#ea0938';
-                mainBtn.textContent = '⏹️';
-                alert('A gravar áudio... Clique OK e depois clique no botão vermelho para parar e enviar.');
+                mainBtn.textContent = '⏹️️';
+                alert('A gravar áudio... Clique OK e depois clique no botão vermelho para parar e rever.');
                 
                 mainBtn.onclick = () => {
                     mediaRecorder.stop();
@@ -580,35 +554,62 @@
                     mainBtn.textContent = '🎤';
                     mainBtn.onclick = null;
                 };
-            } catch(e) {
-                alert('Não foi possível aceder ao microfone: ' + e.message);
-            }
+            } catch(e) { alert('Erro ao aceder ao microfone: ' + e.message); }
         }
 
-        document.getElementById('btn-video-call').addEventListener('click', () => {
-            if(activeChatUser) {
-                if(confirm('Deseja iniciar chamada de vídeo com ' + activeChatUser.nome + '?')) {
-                    window.open('https://wa.me/?text=' + encodeURIComponent('Olá, vamos iniciar uma chamada de vídeo no Zap Leve?'), '_blank');
-                }
-            }
+        document.getElementById('btn-discard-audio').addEventListener('click', () => {
+            document.getElementById('audio-preview-modal').classList.add('hidden');
+            recordedAudioUrl = null;
         });
 
-        document.getElementById('btn-audio-call').addEventListener('click', () => {
-            if(activeChatUser) {
-                if(confirm('Deseja iniciar chamada de áudio com ' + activeChatUser.nome + '?')) {
-                    window.open('https://wa.me/?text=' + encodeURIComponent('Olá, a ligar por áudio pelo Zap Leve.'), '_blank');
-                }
-            }
+        document.getElementById('btn-send-audio').addEventListener('click', async () => {
+            if(!recordedAudioUrl) return;
+            await enviarMensagemFirestore({ texto: recordedAudioUrl, tipo: 'audio' });
+            document.getElementById('audio-preview-modal').classList.add('hidden');
+            recordedAudioUrl = null;
         });
 
-        document.getElementById('btn-back-to-niches').addEventListener('click', () => {
-            document.getElementById('nicho-users-screen').classList.add('hidden');
-            document.getElementById('contacts-screen').classList.remove('hidden');
+        // Simulação de Chamadas com Toque Sonoro Alto e Identidade do Contacto
+        function tocarAlarmeChamada() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                setTimeout(() => { osc.stop(); audioCtx.close(); }, 1200);
+            } catch(e) { console.log(e); }
+        }
+
+        function iniciarChamada(tipo) {
+            if(!activeChatUser) return;
+            document.getElementById('call-contact-name').textContent = activeChatUser.nome || 'Utilizador';
+            const avatarCall = document.getElementById('call-contact-avatar');
+            if(activeChatUser.foto) {
+                avatarCall.innerHTML = `<img src="${activeChatUser.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+            } else {
+                avatarCall.textContent = (activeChatUser.nome || 'U').charAt(0).toUpperCase();
+            }
+            document.getElementById('call-status-text').textContent = `A chamar (${tipo === 'video' ? 'Vídeo' : 'Voz'})...`;
+            document.getElementById('active-call-screen').classList.remove('hidden');
+            tocarAlarmeChamada();
+        }
+
+        document.getElementById('btn-video-call').addEventListener('click', () => iniciarChamada('video'));
+        document.getElementById('btn-audio-call').addEventListener('click', () => iniciarChamada('voz'));
+
+        document.getElementById('btn-end-call').addEventListener('click', () => {
+            document.getElementById('active-call-screen').classList.add('hidden');
         });
-        document.getElementById('btn-back-to-nicho-users').addEventListener('click', () => {
+
+        document.getElementById('btn-back-to-contacts').addEventListener('click', () => {
             if(unsubscribeChat) unsubscribeChat();
             document.getElementById('chat-screen').classList.add('hidden');
-            document.getElementById('nicho-users-screen').classList.remove('hidden');
+            document.getElementById('contacts-screen').classList.remove('hidden');
         });
     </script>
 </body>
