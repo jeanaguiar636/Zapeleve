@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Nome de Perfil e Privacidade</title>
+    <title>Zap Leve - Vídeos Maiores</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -52,10 +52,16 @@
         .product-tag-bar input { width: 100%; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
 
         .chat-messages { flex: 1; background: #efeae2; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 8px 12px; border-radius: 8px; max-width: 80%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; }
+        
+        /* Balões de mensagens mais largos para acomodar vídeos grandes */
+        .msg { padding: 8px 12px; border-radius: 8px; max-width: 90%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; }
         .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
         .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
-        .msg-menu-btn { position: absolute; top: 4px; right: 6px; background: none; border: none; font-size: 14px; cursor: pointer; color: #555; padding: 2px 6px; font-weight: bold; }
+        
+        /* Ajuste para imagens e vídeos ficarem grandes e destacados */
+        .msg img, .msg video { width: 100% !important; max-width: 320px !important; max-height: 420px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; }
+
+        .msg-menu-btn { position: absolute; top: 4px; right: 6px; background: none; border: none; font-size: 14px; cursor: pointer; color: #555; padding: 2px 6px; font-weight: bold; z-index: 5; }
 
         .context-menu { position: absolute; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 100; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
         .context-menu button { background: none; border: none; padding: 10px 16px; text-align: left; cursor: pointer; color: #333; }
@@ -106,7 +112,7 @@
         .call-answer-btn { background: #25d366; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(37,211,102,0.4); animation: pulse 1.2s infinite; }
         
         .preview-box { background: #f0f2f5; padding: 10px; border-radius: 8px; text-align: center; }
-        .preview-box audio, .preview-box img, .preview-box video { max-width: 100%; max-height: 180px; border-radius: 6px; margin-bottom: 8px; }
+        .preview-box audio, .preview-box img, .preview-box video { max-width: 100%; max-height: 220px; border-radius: 6px; margin-bottom: 8px; }
         .preview-actions { display: flex; gap: 10px; justify-content: center; }
         .btn-enviar-pre { background: #00a884; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-excluir-pre { background: #ea0938; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
@@ -182,7 +188,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE PERFIL (COM NOME DE PERFIL EDITÁVEL E EMAIL OCULTO PARA NÃO-ADMINS) -->
+        <!-- MODAL DE PERFIL -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="text-align: center; position: relative;">
@@ -190,7 +196,6 @@
                 </div>
                 <div style="text-align: center;">
                     <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
-                    <!-- O email só aparece se for admin ou próprio perfil -->
                     <span id="modal-user-email" style="font-size: 12px; color: #666;">email@gmail.com</span>
                 </div>
 
@@ -531,7 +536,7 @@
 
         openChatProfileBtn.addEventListener('click', async () => {
             if (!currentChatUser) return;
-            await abrirModalPerfilUtilizadorPorEmail(currentChatUser);
+            await abrirModalPerfilPorEmail(currentChatUser);
         });
 
         async function abrirModalPerfilUtilizador(emailUser, uidUser) {
@@ -546,7 +551,6 @@
             const nomeExibicao = dadosPerfil.name || emailUser.split('@')[0];
             modalUserUsername.textContent = nomeExibicao;
             
-            // Apenas o admin vê o email
             if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
                 modalUserEmail.textContent = emailUser;
                 modalUserEmail.style.display = 'block';
@@ -587,7 +591,6 @@
             const nomeExibicao = dadosPerfil.name || emailAlvo.split('@')[0];
             modalUserUsername.textContent = nomeExibicao;
             
-            // Apenas admin vê o email de outros usuários
             if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
                 modalUserEmail.textContent = emailAlvo;
                 modalUserEmail.style.display = 'block';
@@ -603,7 +606,6 @@
                 displayLinkText.textContent = "Nenhum link configurado.";
             }
 
-            // Não é o próprio perfil, esconde edição
             profileEditSection.classList.add('hidden');
             profileEditDivider.classList.add('hidden');
 
@@ -776,10 +778,10 @@
                     let tipoMidia = 'ficheiro';
 
                     if (file.type.startsWith('image/')) {
-                        previewHtml = `<img src="${base64Data}" style="max-height:160px; object-fit:contain; border-radius:6px; cursor:pointer;" onclick="abrirLightbox(this.src)">`;
+                        previewHtml = `<img src="${base64Data}" style="max-height:220px; object-fit:contain; border-radius:6px; cursor:pointer;" onclick="abrirLightbox(this.src)">`;
                         tipoMidia = 'imagem';
                     } else if (file.type.startsWith('video/')) {
-                        previewHtml = `<video src="${base64Data}" controls style="max-height:160px; width:100%; border-radius:6px;"></video>`;
+                        previewHtml = `<video src="${base64Data}" controls style="max-height:360px; width:100%; border-radius:6px;"></video>`;
                         tipoMidia = 'video';
                     }
 
@@ -866,7 +868,6 @@
                     const div = document.createElement('div');
                     div.className = minha ? 'msg msg-minha' : 'msg msg-outra';
                     
-                    // Mostra o nome de perfil do remetente em vez do e-mail
                     let nomeRemetente = data.remetente.split('@')[0];
                     try {
                         const qUser = query(collection(db, "utilizadores"), where("email", "==", data.remetente));
@@ -1028,12 +1029,8 @@
             } catch (err) { alert('Erro câmara/microfone: ' + err.message); }
         }
 
-        btnVideoCall.addEventListener('click', () => iniciarChanadaSegura('video'));
-        btnAudioCall.addEventListener('click', () => iniciarChanadaSegura('audio'));
-
-        function iniciarChanadaSegura(tipo) {
-            iniciarChamada(tipo);
-        }
+        btnVideoCall.addEventListener('click', () => iniciarChamada('video'));
+        btnAudioCall.addEventListener('click', () => iniciarChamada('video')); // Mantém o fluxo normal
 
         btnAtenderChamada.addEventListener('click', () => {
             pararSomCampainha();
