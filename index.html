@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Nichos e Comunidade</title>
+    <title>Zap Leve - Completo com Admin e App Nativo</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -85,7 +85,25 @@
             100% { transform: scale(1); }
         }
 
-        .floating-cart { position: fixed; bottom: 80px; right: 20px; background: #25d366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; }
+        /* Botão flutuante verde com o ícone do carrinho em branco */
+        .floating-cart { 
+            position: fixed; 
+            bottom: 80px; 
+            right: 20px; 
+            background: #25d366; 
+            color: #ffffff; 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 24px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            cursor: pointer; 
+            z-index: 100; 
+            border: none; 
+        }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
         .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
@@ -154,15 +172,16 @@
                     </div>
                 </div>
                 <div class="header-actions-right">
+                    <button id="btn-open-admin-panel" class="hidden" style="background: #ea0938; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">🛡️ Admin</button>
                     <button id="btn-theme-toggle" class="btn-theme">🌓</button>
-                    <button id="btn-install" class="btn-install-app hidden">📲 Baixar</button>
+                    <button id="btn-install" class="btn-install-app hidden">📲 Baixar App</button>
                     <button id="btn-logout" class="btn-action-top limpar">Sair</button>
                 </div>
             </div>
 
             <div style="padding: 10px 16px; background: #f0f2f5; font-size: 13px; font-weight: bold; color: #54656f; display: flex; justify-content: space-between; align-items: center;">
                 <span>Escolha um Nicho:</span>
-                <button id="btn-open-admin-niches" class="hidden" style="background: #075e54; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">➕ Criar Nicho (Admin)</button>
+                <button id="btn-open-privacy-page" style="background: none; border: none; color: #0066cc; font-size: 11px; cursor: pointer; text-decoration: underline;">📄 Privacidade / Termos</button>
             </div>
 
             <!-- GRELHA DE NICHOS -->
@@ -172,6 +191,7 @@
                 <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar para o Zap Leve</button>
             </div>
 
+            <!-- Botão flutuante com carrinho em cor branca -->
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
         </div>
 
@@ -188,19 +208,49 @@
             <div class="contacts-list" id="nicho-users-list-container"></div>
         </div>
 
-        <!-- MODAL DE ADMIN PARA CRIAR NOVO NICHO -->
-        <div id="admin-niche-modal" class="modal-overlay hidden">
+        <!-- PAINEL ADMINISTRATIVO COMPLETO DO ADMIN -->
+        <div id="admin-panel-modal" class="modal-overlay hidden">
+            <div class="modal-card" style="max-width: 540px; max-height: 85vh;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <h3 style="margin: 0; color: #075e54;">🛡️ Painel Administrativo Completo</h3>
+                    <button id="btn-close-admin-panel" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px;">
+                    <!-- Seção 1: Criar Nicho -->
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Criar Novo Nicho / Grupo</h4>
+                        <input type="text" id="new-niche-name" placeholder="Nome do Nicho (ex: Esportes)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
+                        <input type="text" id="new-niche-icon" placeholder="Emoji (ex: ⚽)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
+                        <button id="btn-save-new-niche" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Adicionar Nicho</button>
+                    </div>
+
+                    <!-- Seção 2: Gerir Páginas (Privacidade/Termos) -->
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">📄 Criar / Editar Página de Privacidade e Termos</h4>
+                        <input type="text" id="admin-page-title" placeholder="Título da Página (ex: Política de Privacidade)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
+                        <textarea id="admin-page-content" placeholder="Escreva o conteúdo da página aqui..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 70px; outline: none; margin-bottom: 8px;"></textarea>
+                        <button id="btn-save-admin-page" style="background: #0066cc; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Salvar e Publicar Página</button>
+                    </div>
+
+                    <!-- Seção 3: Gestão e Exclusão de Utilizadores -->
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">👥 Gerir Utilizadores (Excluir Contas)</h4>
+                        <div id="admin-users-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE EXIBIÇÃO DA PÁGINA DE PRIVACIDADE -->
+        <div id="privacy-page-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 style="margin: 0; color: #075e54;">⚙️ Painel Admin: Criar Nicho</h3>
-                    <button id="btn-close-admin-niche" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
+                    <h3 id="privacy-modal-title" style="margin: 0; color: #075e54;">Política de Privacidade</h3>
+                    <button id="btn-close-privacy" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
                 </div>
-                <div>
-                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Nome do Novo Nicho:</label>
-                    <input type="text" id="new-niche-name" placeholder="Ex: Esportes, Tecnologia..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; margin-bottom: 8px;">
-                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Emoji / Ícone:</label>
-                    <input type="text" id="new-niche-icon" placeholder="Ex: ⚽, 💻..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
-                    <button id="btn-save-new-niche" style="background: #00a884; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px;">Adicionar Nicho</button>
+                <div id="privacy-modal-content" style="font-size: 13px; color: #333; line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
+                    Carregando termos...
                 </div>
             </div>
         </div>
@@ -230,7 +280,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE PERFIL (COM ESCOLHA DE NICHO) -->
+        <!-- MODAL DE PERFIL (COM ALTERAÇÃO DE NOME E NICHO) -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="text-align: center; position: relative;">
@@ -238,7 +288,6 @@
                 </div>
                 <div style="text-align: center;">
                     <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
-                    <!-- E-mail ocultado ou discreto apenas para o próprio dono -->
                     <span id="modal-user-email" style="font-size: 11px; color: #888;">(E-mail privado)</span>
                 </div>
 
@@ -256,6 +305,7 @@
                 <div id="profile-edit-section">
                     <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar Meu Perfil:</div>
                     <div style="margin-bottom: 6px;">
+                        <label style="font-size: 11px; color: #555;">Alterar Nome de Utilizador:</label>
                         <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
                     </div>
                     <div style="margin-bottom: 6px;">
@@ -353,5 +403,29 @@
             </div>
         </div>
     </div>
+
+    <!-- SCRIPT DE SUPORTE AO PWA E LÓGICA DO APP -->
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btnInstall = document.getElementById('btn-install');
+            if (btnInstall) btnInstall.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-install').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('btn-install').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            } else {
+                alert('A instalação direta já está disponível ou o navegador já instalou a aplicação.');
+            }
+        });
+    </script>
 </body>
 </html>
