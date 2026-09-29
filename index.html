@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Completo</title>
+    <title>Zap Leve - WhatsApp Real</title>
     <style>
         * { box-sizing: border-box; }
         html, body {
@@ -32,17 +32,18 @@
         .contacts-list { flex: 1; overflow-y: auto; background: #fff; }
         .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
 
-        /* Área de Chat */
+        /* Área de Chat Estilo WhatsApp */
         .chat-messages { flex: 1; overflow-y: auto; padding: 12px; background: #e5ded8; display: flex; flex-direction: column; gap: 8px; }
-        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 13px; position: relative; word-break: break-word; }
+        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 13px; position: relative; word-break: break-word; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
         .message-incoming { background: #ffffff; align-self: flex-start; }
         .message-outgoing { background: #dcf8c6; align-self: flex-end; }
         
-        .chat-input-area { display: flex; align-items: center; padding: 8px 12px; background: #f0f0f0; gap: 8px; flex-shrink: 0; }
-        .chat-input-area input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 13px; }
-        .chat-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #075e54; }
+        .chat-input-area { display: flex; align-items: center; padding: 8px 10px; background: #f0f0f0; gap: 6px; flex-shrink: 0; }
+        .chat-input-area input[type="text"] { flex: 1; padding: 10px 14px; border: none; border-radius: 20px; outline: none; font-size: 13px; background: #ffffff; }
+        
+        .whatsapp-icon-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+        .whatsapp-icon-btn.mic { background: #128c7e; }
 
-        /* Botão flutuante */
         .floating-cart { 
             position: fixed; bottom: 80px; right: 20px; 
             background: #25d366; color: #ffffff; width: 56px; height: 56px; 
@@ -61,7 +62,7 @@
         <div id="auth-screen" class="screen-content" style="justify-content: center; padding: 20px; position: relative;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <span style="font-size: 50px;">⚡</span>
-                <h1 style="color: #075e54; margin: 5px 0;">Zap Leve (Completo)</h1>
+                <h1 style="color: #075e54; margin: 5px 0;">Zap Leve</h1>
             </div>
             <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                 <input type="email" id="email" placeholder="Seu e-mail" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
@@ -124,7 +125,7 @@
             <div class="contacts-list" id="nicho-users-list-container"></div>
         </div>
 
-        <!-- TELA DE CHAT PRIVADO COM CHAMADAS E MÍDIA -->
+        <!-- TELA DE CHAT COM CHAMADAS REAIS E BOTÃO ESTILO WHATSAPP -->
         <div id="chat-screen" class="screen-content hidden">
             <div class="app-header">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -132,7 +133,7 @@
                     <div id="chat-user-avatar" class="avatar-placeholder" style="width: 32px; height: 32px;">U</div>
                     <span id="chat-user-name" style="font-weight: bold; font-size: 14px;">Utilizador</span>
                 </div>
-                <div style="display: flex; gap: 12px; font-size: 18px;">
+                <div style="display: flex; gap: 14px; font-size: 18px;">
                     <button id="btn-video-call" style="background:none; border:none; color:white; cursor:pointer;" title="Chamada de Vídeo">📹</button>
                     <button id="btn-audio-call" style="background:none; border:none; color:white; cursor:pointer;" title="Chamada de Áudio">📞</button>
                 </div>
@@ -141,14 +142,14 @@
             <div class="chat-messages" id="chat-messages-container"></div>
 
             <div class="chat-input-area">
-                <button class="chat-btn" id="btn-attach-media" title="Enviar Imagem / Arquivo">📎</button>
-                <input type="text" id="chat-input-text" placeholder="Escreva uma mensagem...">
-                <button class="chat-btn" id="btn-send-audio" title="Gravar Áudio">🎤</button>
-                <button class="chat-btn" id="btn-send-text" title="Enviar">📤</button>
+                <button id="btn-attach-media" style="background:none; border:none; font-size:20px; cursor:pointer;" title="Anexar Imagem">📎</button>
+                <input type="text" id="chat-input-text" placeholder="Mensagem">
+                <!-- Botão dinâmico estilo WhatsApp: vira microfone se vazio, vira seta de envio se tiver texto -->
+                <button id="whatsapp-main-btn" class="whatsapp-icon-btn mic" title="Gravar Áudio">🎤</button>
             </div>
         </div>
 
-        <!-- PERFIL MODAL COMPLETO COM BIO E LINK AFILIADO -->
+        <!-- PERFIL MODAL -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <h3 style="margin: 0; color: #075e54;">Meu Perfil & Afiliado</h3>
@@ -196,7 +197,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
@@ -213,14 +214,13 @@
 
         let currentUserData = null;
         let activeChatUser = null;
+        let unsubscribeChat = null;
 
-        // Monitor de Sessão
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('contacts-screen').classList.remove('hidden');
                 
-                // Sincronização automática para utilizadores antigos do Auth
                 const userDocRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userDocRef);
                 if (!userSnap.exists()) {
@@ -238,12 +238,10 @@
                 } else {
                     currentUserData = userSnap.data();
                 }
-                
                 carregarDadosUsuario(user, currentUserData);
             }
         });
 
-        // Evento Entrar
         document.getElementById('btn-login-action').addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value.trim();
@@ -255,7 +253,6 @@
             }
         });
 
-        // Evento Criar Conta
         document.getElementById('btn-register-action').addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value.trim();
@@ -273,13 +270,11 @@
                     foto: ''
                 };
                 await setDoc(doc(db, "users", res.user.uid), currentUserData);
-                alert('Conta criada na nuvem com sucesso!');
             } catch (e) {
                 alert('Erro ao registar: ' + e.message);
             }
         });
 
-        // Recuperar Senha
         document.getElementById('link-forgot-password').addEventListener('click', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
@@ -292,13 +287,11 @@
             }
         });
 
-        // Logout
         document.getElementById('btn-logout').addEventListener('click', async () => {
             await signOut(auth);
             location.reload();
         });
 
-        // Modais de Perfil e Catálogo
         document.getElementById('open-profile-btn').addEventListener('click', () => {
             if(currentUserData) {
                 document.getElementById('profile-name-input').value = currentUserData.nome || '';
@@ -317,7 +310,6 @@
             document.getElementById('profile-modal').classList.add('hidden');
         });
 
-        // Guardar Perfil Completo
         document.getElementById('btn-save-profile').addEventListener('click', async () => {
             const nome = document.getElementById('profile-name-input').value.trim();
             const bio = document.getElementById('profile-bio-input').value.trim();
@@ -338,9 +330,7 @@
                     const avatar = document.getElementById('user-avatar-initial');
                     avatar.innerHTML = `<img src="${foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
                 }
-                
                 document.getElementById('profile-modal').classList.add('hidden');
-                alert('Perfil atualizado com sucesso!');
             } catch(e) {
                 alert('Erro ao atualizar perfil: ' + e.message);
             }
@@ -360,7 +350,6 @@
             } else {
                 document.getElementById('user-avatar-initial').textContent = (data.nome || user.email).charAt(0).toUpperCase();
             }
-
             if(user.email.includes('admin') || user.email === 'admin@zapleve.com') {
                 document.getElementById('btn-open-admin-panel')?.classList.remove('hidden');
             }
@@ -391,7 +380,7 @@
             document.getElementById('nicho-screen-title').textContent = 'Nicho: ' + nomeNicho;
             
             const container = document.getElementById('nicho-users-list-container');
-            container.innerHTML = '<div style="padding:20px; text-align:center;">A carregar utilizadores da nuvem...</div>';
+            container.innerHTML = '<div style="padding:20px; text-align:center;">A carregar utilizadores...</div>';
             
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
@@ -399,7 +388,7 @@
                 let encontrou = false;
                 querySnapshot.forEach((docSnap) => {
                     const u = docSnap.data();
-                    if(u.nicho === nomeNicho) {
+                    if(u.nicho === nomeNicho && u.uid !== auth.currentUser.uid) {
                         encontrou = true;
                         const item = document.createElement('div');
                         item.className = 'contact-item';
@@ -417,17 +406,17 @@
                                     ${u.link ? `<a href="${u.link}" target="_blank" style="font-size: 10px; color: #0066cc; text-decoration: underline;">🔗 Ver Link / Afiliado</a>` : ''}
                                 </div>
                             </div>
-                            <span style="font-size: 12px; color: #075e54; font-weight: bold;">💬 Chat</span>
+                            <span style="font-size: 12px; color: #075e54; font-weight: bold;">💬 Conversar</span>
                         `;
                         item.addEventListener('click', () => abrirChatPrivado(u));
                         container.appendChild(item);
                     }
                 });
                 if(!encontrou) {
-                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Nenhum utilizador neste nicho na nuvem ainda.</div>';
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Nenhum outro utilizador neste nicho ainda.</div>';
                 }
             } catch(e) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Erro ao carregar dados da nuvem.</div>';
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Erro ao carregar utilizadores.</div>';
             }
         }
 
@@ -444,42 +433,148 @@
                 avatarChat.textContent = (userTarget.nome || 'U').charAt(0).toUpperCase();
             }
 
-            const msgContainer = document.getElementById('chat-messages-container');
-            msgContainer.innerHTML = `<div style="text-align:center; font-size:11px; color:#666; margin:10px 0;">Chat seguro com ${userTarget.nome}</div>`;
+            escutarMensagensReais(userTarget.uid);
         }
 
-        // Ações de Chamada e Mídia no Chat
-        document.getElementById('btn-video-call').addEventListener('click', () => {
-            alert('A iniciar chamada de vídeo com ' + (activeChatUser?.nome || 'utilizador') + '...');
-        });
-        document.getElementById('btn-audio-call').addEventListener('click', () => {
-            alert('A ligar por áudio para ' + (activeChatUser?.nome || 'utilizador') + '...');
-        });
-        document.getElementById('btn-attach-media').addEventListener('click', () => {
-            const urlImg = prompt('Cole o link da imagem ou ficheiro que deseja enviar:');
-            if(urlImg) {
-                const msgContainer = document.getElementById('chat-messages-container');
-                const bubble = document.createElement('div');
-                bubble.className = 'message-bubble message-outgoing';
-                bubble.innerHTML = `<img src="${urlImg}" style="max-width:100%; border-radius:6px; display:block; margin-bottom:4px;"><a href="${urlImg}" target="_blank" download style="font-size:11px; color:#0066cc; text-decoration:underline;">📥 Baixar imagem</a>`;
-                msgContainer.appendChild(bubble);
-                msgContainer.scrollTop = msgContainer.scrollHeight;
+        // Lógica do Botão Estilo WhatsApp (Muda entre Microfone e Enviar)
+        const chatInput = document.getElementById('chat-input-text');
+        const mainBtn = document.getElementById('whatsapp-main-btn');
+
+        chatInput.addEventListener('input', () => {
+            if(chatInput.value.trim().length > 0) {
+                mainBtn.textContent = '➤';
+                mainBtn.className = 'whatsapp-icon-btn';
+                mainBtn.title = 'Enviar mensagem';
+            } else {
+                mainBtn.textContent = '🎤';
+                mainBtn.className = 'whatsapp-icon-btn mic';
+                mainBtn.title = 'Gravar Áudio';
             }
         });
-        document.getElementById('btn-send-audio').addEventListener('click', () => {
-            alert('🎙️ Mensagem de áudio simulada enviada com sucesso!');
+
+        mainBtn.addEventListener('click', async () => {
+            const texto = chatInput.value.trim();
+            if(texto.length > 0) {
+                // Enviar Mensagem Real de Texto
+                await enviarMensagemFirestore({ texto: texto, tipo: 'texto' });
+                chatInput.value = '';
+                mainBtn.textContent = '🎤';
+                mainBtn.className = 'whatsapp-icon-btn mic';
+                mainBtn.title = 'Gravar Áudio';
+            } else {
+                // Gravação de Áudio Real com Microfone do Telemóvel
+                iniciarGravacaoAudioReal();
+            }
         });
-        document.getElementById('btn-send-text').addEventListener('click', () => {
-            const textInput = document.getElementById('chat-input-text');
-            const txt = textInput.value.trim();
-            if(!txt) return;
+
+        async function enviarMensagemFirestore(dados) {
+            if(!activeChatUser || !auth.currentUser) return;
+            const chatId = [auth.currentUser.uid, activeChatUser.uid].sort().join('_');
+            try {
+                await addDoc(collection(db, "chats", chatId, "mensagens"), {
+                    remetente: auth.currentUser.uid,
+                    destinatario: activeChatUser.uid,
+                    texto: dados.texto || '',
+                    tipo: dados.tipo || 'texto',
+                    timestamp: Date.now()
+                });
+            } catch(e) {
+                alert('Erro ao enviar mensagem: ' + e.message);
+            }
+        }
+
+        function escutarMensagensReais(outroUid) {
             const msgContainer = document.getElementById('chat-messages-container');
-            const bubble = document.createElement('div');
-            bubble.className = 'message-bubble message-outgoing';
-            bubble.textContent = txt;
-            msgContainer.appendChild(bubble);
-            textInput.value = '';
-            msgContainer.scrollTop = msgContainer.scrollHeight;
+            const chatId = [auth.currentUser.uid, outroUid].sort().join('_');
+            
+            const q = query(collection(db, "chats", chatId, "mensagens"), orderBy("timestamp", "asc"));
+            
+            if(unsubscribeChat) unsubscribeChat();
+
+            unsubscribeChat = onSnapshot(q, (snapshot) => {
+                msgContainer.innerHTML = '';
+                if(snapshot.empty) {
+                    msgContainer.innerHTML = `<div style="text-align:center; font-size:11px; color:#666; margin:10px 0;">Sem mensagens ainda. Comece a conversar!</div>`;
+                    return;
+                }
+                snapshot.forEach((docSnap) => {
+                    const m = docSnap.data();
+                    const bubble = document.createElement('div');
+                    const meuEnvio = m.remetente === auth.currentUser.uid;
+                    bubble.className = `message-bubble ${meuEnvio ? 'message-outgoing' : 'message-incoming'}`;
+                    
+                    if(m.tipo === 'imagem') {
+                        bubble.innerHTML = `<img src="${m.texto}" style="max-width:100%; border-radius:6px; display:block; margin-bottom:4px;"><a href="${m.texto}" target="_blank" download style="font-size:11px; color:#0066cc;">📥 Baixar imagem</a>`;
+                    } else if(m.tipo === 'audio') {
+                        bubble.innerHTML = `<audio controls src="${m.texto}" style="max-width: 200px;"></audio>`;
+                    } else {
+                        bubble.textContent = m.texto;
+                    }
+                    msgContainer.appendChild(bubble);
+                });
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            });
+        }
+
+        // Anexar Imagem Real
+        document.getElementById('btn-attach-media').addEventListener('click', async () => {
+            const urlImg = prompt('Insira o link direto da imagem que quer enviar:');
+            if(urlImg) {
+                await enviarMensagemFirestore({ texto: urlImg, tipo: 'imagem' });
+            }
+        });
+
+        // Gravação Real de Áudio com o Microfone
+        let mediaRecorder;
+        let audioChunks = [];
+        async function iniciarGravacaoAudioReal() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    await enviarMensagemFirestore({ texto: audioUrl, tipo: 'audio' });
+                };
+
+                mediaRecorder.start();
+                mainBtn.style.background = '#ea0938'; // Fica vermelho gravando
+                mainBtn.textContent = '⏹️';
+                alert('A gravar áudio... Clique OK e depois clique no botão vermelho para parar e enviar.');
+                
+                mainBtn.onclick = () => {
+                    mediaRecorder.stop();
+                    mainBtn.style.background = '#128c7e';
+                    mainBtn.textContent = '🎤';
+                    // Restaura evento original
+                    mainBtn.onclick = null;
+                };
+            } catch(e) {
+                alert('Não foi possível aceder ao microfone: ' + e.message);
+            }
+        }
+
+        // Chamadas de Vídeo e Áudio integradas com WhatsApp ou Janela
+        document.getElementById('btn-video-call').addEventListener('click', () => {
+            if(activeChatUser && activeChatUser.email) {
+                if(confirm('Deseja iniciar chamada de vídeo com ' + activeChatUser.nome + '?')) {
+                    window.open('https://wa.me/?text=' + encodeURIComponent('Olá, vamos iniciar uma chamada de vídeo no Zap Leve?'), '_blank');
+                }
+            }
+        });
+
+        document.getElementById('btn-audio-call').addEventListener('click', () => {
+            if(activeChatUser) {
+                if(confirm('Deseja iniciar chamada de áudio com ' + activeChatUser.nome + '?')) {
+                    window.open('https://wa.me/?text=' + encodeURIComponent('Olá, a ligar por áudio pelo Zap Leve.'), '_blank');
+                }
+            }
         });
 
         document.getElementById('btn-back-to-niches').addEventListener('click', () => {
@@ -487,6 +582,7 @@
             document.getElementById('contacts-screen').classList.remove('hidden');
         });
         document.getElementById('btn-back-to-nicho-users').addEventListener('click', () => {
+            if(unsubscribeChat) unsubscribeChat();
             document.getElementById('chat-screen').classList.add('hidden');
             document.getElementById('nicho-users-screen').classList.remove('hidden');
         });
