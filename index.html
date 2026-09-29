@@ -206,7 +206,7 @@
         </svg>
     </button>
 
-    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto e botão de instalação) -->
+    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto, botão de instalação e edição do nome de utilizador) -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
             
@@ -233,12 +233,19 @@
                 <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
             </div>
 
+            <!-- Painel de Edição do Perfil (Nome, Foto e Link) -->
             <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
                 <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
+                
+                <label style="font-size: 11px; opacity: 0.8;">Meu Nome de Utilizador:</label>
+                <input type="text" id="input-meu-nome" placeholder="Digite seu nome" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+
                 <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
                 <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 6px;">
+                
                 <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal / Afiliado / Vídeos:</label>
                 <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+                
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
             </div>
 
@@ -246,6 +253,7 @@
         </div>
     </div>
 
+    <!-- TELA DE CHAMADA -->
     <div id="call-screen" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3 id="call-status" style="margin: 0; color: white;">A ligar...</h3>
@@ -267,6 +275,7 @@
         </div>
     </div>
 
+    <!-- MODAL DE CHAMADA ENTRANTE -->
     <div id="modal-incoming-call" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 25px;">
             <div id="incoming-caller-avatar" class="avatar" style="width: 75px; height: 75px; font-size: 26px;">?</div>
@@ -279,6 +288,7 @@
         </div>
     </div>
 
+    <!-- MODAL VITRINE -->
     <div id="modal-vitrine" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -336,6 +346,7 @@
         <button class="btn-alt" style="background: #333; margin-top: 10px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
     </div>
 
+    <!-- MODAL INSTALAÇÃO -->
     <div id="modal-instalar" class="modal">
         <div class="modal-content">
             <h3>📲 Instalar o Zap Leve</h3>
@@ -344,6 +355,7 @@
         </div>
     </div>
 
+    <!-- MODAL RESPOSTAS RÁPIDAS -->
     <div id="modal-quick-config" class="modal">
         <div class="modal-content">
             <h3>⚡ Gerir Respostas Rápidas</h3>
@@ -359,6 +371,7 @@
         </div>
     </div>
 
+    <!-- TELA DE CONTACTOS -->
     <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
         <div class="header-top">
             <div class="user-info-area" onclick="abrirMeuPerfil()">
@@ -385,6 +398,7 @@
         </div>
     </div>
 
+    <!-- TELA DE CHAT -->
     <div id="chat-screen" class="hidden screen-content" style="padding: 0;">
         <div class="header-top">
             <div class="user-info-area">
@@ -542,8 +556,10 @@
             imgGrande.classList.add('hidden');
         }
 
-        document.getElementById('perfil-nome-exibicao').innerText = dados.nome || usuarioAtual.email.split('@')[0];
+        const nomeDoUser = dados.nome || usuarioAtual.email.split('@')[0];
+        document.getElementById('perfil-nome-exibicao').innerText = nomeDoUser;
         document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
+        document.getElementById('input-meu-nome').value = nomeDoUser;
         
         // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
         const alertaBio = document.getElementById('alerta-perfil-bio');
@@ -611,11 +627,16 @@
 
     window.salvarMeuPerfilCompleto = async () => {
         if (!usuarioAtual) return;
+        const novoNome = document.getElementById('input-meu-nome').value.trim();
         const novoLink = document.getElementById('input-meu-link').value.trim();
         const fileInput = document.getElementById('input-foto-perfil');
         
+        if (!novoNome) return alert("O nome de usuário não pode estar vazio.");
+
         try {
-            let dadosAtualizacao = { linkPessoal: novoLink };
+            let dadosAtualizacao = { nome: novoNome, linkPessoal: novoLink };
+            meuNomeAtual = novoNome;
+            document.getElementById('user-display-contacts').innerText = novoNome;
 
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
@@ -643,37 +664,50 @@
         }
     };
 
+    // TOQUE DE TELEFONE ALTO E REALISTA
     function iniciarSomCampainha(tipo = 'tocar') {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
         if (ringInterval) clearInterval(ringInterval);
 
-        const tocarBipe = () => {
+        const tocarToqueRealista = () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            
+            // Frequências duplas típicas de telefone analógico/celular (Ring standard)
+            const freq1 = tipo === 'tocar' ? 950 : 440;
+            const freq2 = tipo === 'tocar' ? 1400 : 480;
+            const volumeMaximo = 0.6; // Bem alto para garantir destaque
 
-            if (tipo === 'tocar') {
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(480, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
-            } else {
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
-            }
+            const agora = audioCtx.currentTime;
+
+            // Pulso 1
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'square'; // Som mais cortante/audível
+            osc1.frequency.setValueAtTime(freq1, agora);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            gain1.gain.setValueAtTime(volumeMaximo, agora);
+            gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.18);
+            osc1.start(agora);
+            osc1.stop(agora + 0.18);
+
+            // Pulso 2
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(freq2, agora + 0.2);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            gain2.gain.setValueAtTime(volumeMaximo, agora + 0.2);
+            gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.38);
+            osc2.start(agora + 0.2);
+            osc2.stop(agora + 0.38);
         };
 
-        tocarBipe();
-        ringInterval = setInterval(tocarBipe, tipo === 'tocar' ? 2500 : 3000);
+        tocarToqueRealista();
+        ringInterval = setInterval(tocarToqueRealista, tipo === 'tocar' ? 2000 : 3000);
     }
 
     function pararSomCampainha() {
@@ -1006,14 +1040,20 @@
         } catch (err) {
             pararSomCampainha();
             alert("Erro ao aceder à câmara/microfone. Verifique as permissões do navegador: " + err.message);
-            encerrarChamada();
+            encerrarChamadaLocal();
         }
     };
 
     function escutarRespostaChamada(callDoc) {
         unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
             const data = snapshot.data();
-            if (data && data.resposta && peerConnection && !peerConnection.currentRemoteDescription) {
+            if (!data) {
+                // Se o documento da chamada sumiu (foi desligada pelo outro lado), fecha aqui também
+                fecharTelaChamadaUI();
+                return;
+            }
+
+            if (data.resposta && peerConnection && !peerConnection.currentRemoteDescription) {
                 pararSomCampainha();
                 const answer = new RTCSessionDescription(data.resposta);
                 await peerConnection.setRemoteDescription(answer);
@@ -1035,11 +1075,13 @@
     function escutarChamadasEntrantes(uidUsuario) {
         const q = query(collection(db, "chamadas"));
         onSnapshot(q, (snapshot) => {
-            snapshot.docChanges().forEach(async (change) => {
-                if (change.type === 'added') {
-                    const data = change.doc.data();
-                    if (data.destinatario === uidUsuario && data.status === 'pendente') {
-                        window.chamadaEntranteDocId = change.doc.id;
+            let chamouAinda = false;
+            snapshot.forEach((docItem) => {
+                const data = docItem.data();
+                if (data.destinatario === uidUsuario && data.status === 'pendente') {
+                    chamouAinda = true;
+                    if (window.chamadaEntranteDocId !== docItem.id) {
+                        window.chamadaEntranteDocId = docItem.id;
                         const nomeChamada = data.remetenteNome || data.remetente.split('@')[0];
                         document.getElementById('incoming-caller-name').innerText = `📞 ${nomeChamada}`;
                         document.getElementById('incoming-caller-avatar').innerText = nomeChamada.charAt(0).toUpperCase();
@@ -1048,6 +1090,12 @@
                     }
                 }
             });
+            // Se a chamada pendente foi cancelada/desligada antes de atender
+            if (!chamouAinda && window.chamadaEntranteDocId) {
+                document.getElementById('modal-incoming-call').style.display = 'none';
+                pararSomCampainha();
+                window.chamadaEntranteDocId = null;
+            }
         });
     }
 
@@ -1060,8 +1108,11 @@
 
         const callDoc = doc(db, "chamadas", window.chamadaEntranteDocId);
         const callSnap = await getDoc(callDoc);
+        if (!callSnap.exists()) return;
         const data = callSnap.data();
 
+        // Identificar o contato que ligou para sincronizar encerramento correto
+        // Buscamos o UID do remetente pelo e-mail ou criamos o chat sala
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
             document.getElementById('local-video').srcObject = localStream;
@@ -1091,6 +1142,13 @@
                 status: 'aceita'
             });
 
+            // Escutar se o chamador desligou
+            unsubscribeCall = onSnapshot(callDoc, (snapshot) => {
+                if (!snapshot.exists()) {
+                    fecharTelaChamadaUI();
+                }
+            });
+
             onSnapshot(collection(callDoc, "offerCandidates"), (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added' && peerConnection) {
@@ -1111,23 +1169,35 @@
         pararSomCampainha();
         document.getElementById('modal-incoming-call').style.display = 'none';
         if (window.chamadaEntranteDocId) {
-            await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId));
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
         }
     };
 
+    // BOTÃO DESLIGAR (Sincronizado em ambas as pontas)
     window.encerrarChamada = async () => {
         pararSomCampainha();
-        if (localStream) { localStream.getTracks().forEach(track => track.stop()); }
-        if (peerConnection) { peerConnection.close(); peerConnection = null; }
-        if (unsubscribeCall) { unsubscribeCall(); }
-        document.getElementById('call-screen').classList.add('hidden');
-        document.getElementById('remote-video').srcObject = null;
-        document.getElementById('local-video').srcObject = null;
-        if (contatoSelecionado) {
+        if (contatoSelecionado && usuarioAtual) {
             const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
             try { await deleteDoc(doc(db, "chamadas", idChamada)); } catch(e){}
         }
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+        fecharTelaChamadaUI();
     };
+
+    function fecharTelaChamadaUI() {
+        pararSomCampainha();
+        if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+        if (peerConnection) { peerConnection.close(); peerConnection = null; }
+        if (unsubscribeCall) { unsubscribeCall(); unsubscribeCall = null; }
+        document.getElementById('call-screen').classList.add('hidden');
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('remote-video').srcObject = null;
+        document.getElementById('local-video').srcObject = null;
+    }
 
     window.alternarMicrofone = () => {
         if (localStream) {
@@ -1156,7 +1226,7 @@
             
             const userDocRef = doc(db, "usuarios", user.uid);
             const userSnap = await getDoc(userDocRef);
-            let nomeExibicao = user.email;
+            let nomeExibicao = user.email.split('@')[0];
             let fotoUrl = "";
             if (userSnap.exists()) {
                 if (userSnap.data().nome) nomeExibicao = userSnap.data().nome;
@@ -1215,13 +1285,13 @@
                 if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
                     const avatarHtml = dados.fotoUrl ? 
                         `<img src="${dados.fotoUrl}" class="avatar">` : 
-                        `<div class="avatar">${dados.nome.charAt(0).toUpperCase()}</div>`;
+                        `<div class="avatar">${(dados.nome || dados.email).charAt(0).toUpperCase()}</div>`;
 
                     listaDiv.innerHTML += `
-                        <div class="contact-item" onclick="abrirChat('${docItem.id}', '${dados.nome}', '${dados.fotoUrl || ''}')">
+                        <div class="contact-item" onclick="abrirChat('${docItem.id}', '${dados.nome || dados.email.split('@')[0]}', '${dados.fotoUrl || ''}')">
                             <div class="contact-info">
                                 ${avatarHtml}
-                                <span class="contact-name">${dados.nome}</span>
+                                <span class="contact-name">${dados.nome || dados.email.split('@')[0]}</span>
                             </div>
                             <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
                         </div>`;
