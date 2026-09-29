@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Correção de Mídia</title>
+    <title>Zap Leve - Nichos e Comunidade</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -33,6 +33,13 @@
         .btn-install-app { background: #25d366 !important; border: none; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .btn-theme { background: #128c7e; border: none; color: white; width: 32px; height: 32px; border-radius: 4px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
+        .niches-container { flex: 1; overflow-y: auto; background: #f0f2f5; padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: start; }
+        .niche-card { background: white; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; border: 1px solid #e2e8f0; transition: transform 0.1s; }
+        .niche-card:active { transform: scale(0.97); }
+        .niche-icon { font-size: 28px; }
+        .niche-title { font-weight: bold; font-size: 14px; color: #075e54; margin: 0; }
+        .niche-count { font-size: 11px; color: #666; }
+
         .contacts-list { flex: 1; overflow-y: auto; background: #fff; }
         .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
         .btn-conversar { background: none; border: none; color: #00a884; font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
@@ -50,9 +57,7 @@
 
         .product-tag-bar { padding: 6px 10px; background: #fff; border-bottom: 1px solid #ddd; flex-shrink: 0; display: flex; gap: 6px; align-items: center; }
         .product-tag-bar input { flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
-        .btn-search-lupa { background: #075e54; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-        .btn-search-lupa:hover { background: #128c7e; }
-
+        
         .chat-messages { flex: 1; background: #efeae2; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
         
         .msg { padding: 8px 12px; border-radius: 8px; max-width: 90%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; }
@@ -62,13 +67,6 @@
         .msg img, .msg video { width: 100% !important; max-width: 280px !important; max-height: 320px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; cursor: pointer; }
         
         .btn-download-media { background: #075e54; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; width: fit-content; }
-        .btn-download-media:hover { background: #128c7e; }
-
-        .msg-menu-btn { position: absolute; top: 4px; right: 6px; background: none; border: none; font-size: 14px; cursor: pointer; color: #555; padding: 2px 6px; font-weight: bold; z-index: 5; }
-
-        .context-menu { position: absolute; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 100; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
-        .context-menu button { background: none; border: none; padding: 10px 16px; text-align: left; cursor: pointer; color: #333; }
-        .context-menu button:hover { background: #f0f2f5; }
 
         .chat-input-container { background: #f0f2f5; padding: 8px 10px; border-top: 1px solid #d1d7db; display: flex; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
         .chat-input-container input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #d1d7db; border-radius: 24px; outline: none; font-size: 14px; background: #fff; }
@@ -87,8 +85,7 @@
             100% { transform: scale(1); }
         }
 
-        .floating-cart { position: fixed; bottom: 80px; right: 20px; background: #25d366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; transition: transform 0.2s; }
-        .floating-cart:hover { transform: scale(1.08); }
+        .floating-cart { position: fixed; bottom: 80px; right: 20px; background: #25d366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
         .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
@@ -98,31 +95,24 @@
         .product-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; }
         .product-card h4 { margin: 0; font-size: 13px; color: #075e54; }
         .product-card p { margin: 0; font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-card-actions { display: flex; gap: 6px; margin-top: 4px; }
-        .btn-prod-buy { flex: 1; background: #25d366; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
-        .btn-prod-del { background: #ea0938; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
-
+        
         #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; text-align: center; color: white; }
         .call-user-display { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 20px; }
-        .call-avatar { width: 100px; height: 100px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: white; overflow: hidden; border: 3px solid rgba(255,255,255,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .call-avatar { width: 100px; height: 100px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: white; overflow: hidden; border: 3px solid rgba(255,255,255,0.3); }
         .call-avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .call-videos { display: flex; flex: 1; justify-content: center; align-items: center; position: relative; margin: 10px 0; }
         .remote-video { width: 100%; max-height: 60vh; object-fit: cover; border-radius: 12px; background: #222; }
         .local-video { width: 90px; height: 130px; object-fit: cover; border-radius: 8px; position: absolute; bottom: 15px; right: 15px; border: 2px solid #fff; background: #333; }
         .call-controls { display: flex; justify-content: center; gap: 25px; padding-bottom: 20px; align-items: center; }
-        .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(234,9,56,0.4); }
-        .call-answer-btn { background: #25d366; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(37,211,102,0.4); animation: pulse 1.2s infinite; }
+        .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; }
+        .call-answer-btn { background: #25d366; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; animation: pulse 1.2s infinite; }
         
         .preview-box { background: #f0f2f5; padding: 10px; border-radius: 8px; text-align: center; flex-shrink: 0; }
         .preview-box video, .preview-box img { max-width: 100%; max-height: 180px; border-radius: 6px; margin-bottom: 8px; object-fit: cover; }
         .preview-actions { display: flex; gap: 10px; justify-content: center; }
         .btn-enviar-pre { background: #00a884; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-excluir-pre { background: #ea0938; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-        .lightbox-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .lightbox-content { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; }
-        .btn-sair-tela-cheia { position: absolute; top: 20px; right: 20px; background: #ea0938; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 100000; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
         .hidden-file { display: none; }
     </style>
@@ -138,18 +128,29 @@
             <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                 <input type="email" id="email" placeholder="Seu e-mail" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
                 <input type="password" id="senha" placeholder="Sua senha" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
+                
+                <div style="margin: 8px 0;">
+                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Escolha o seu Nicho Inicial:</label>
+                    <select id="auth-nicho" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px;">
+                        <option value="Negócio">💼 Negócio</option>
+                        <option value="Namoro">❤️ Namoro</option>
+                        <option value="Religião">⛪ Religião</option>
+                        <option value="Pets">🐾 Pets</option>
+                    </select>
+                </div>
+
                 <button id="btn-login" style="width:100%; padding:12px; background:#00a884; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:10px;">Entrar / Criar Conta</button>
             </div>
         </div>
 
-        <!-- TELA DE LISTA DE CONTACTOS -->
+        <!-- TELA DE LISTA DE NICHOS / COMUNIDADE -->
         <div id="contacts-screen" class="screen-content hidden">
             <div class="app-header">
                 <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
                     <div id="user-avatar-initial" class="avatar-placeholder">J</div>
                     <div>
                         <span id="user-email-display" style="font-weight: bold; font-size: 14px; display: block;">Zap Leve ⚡</span>
-                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">jeanaguiar636</span>
+                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">Comunidade</span>
                     </div>
                 </div>
                 <div class="header-actions-right">
@@ -158,14 +159,50 @@
                     <button id="btn-logout" class="btn-action-top limpar">Sair</button>
                 </div>
             </div>
-            <div style="padding: 10px 16px; background: #f0f2f5; font-size: 12px; font-weight: bold; color: #54656f;">Conversas e Contactos:</div>
-            <div class="contacts-list" id="list-contacts-container"></div>
-            
+
+            <div style="padding: 10px 16px; background: #f0f2f5; font-size: 13px; font-weight: bold; color: #54656f; display: flex; justify-content: space-between; align-items: center;">
+                <span>Escolha um Nicho:</span>
+                <button id="btn-open-admin-niches" class="hidden" style="background: #075e54; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">➕ Criar Nicho (Admin)</button>
+            </div>
+
+            <!-- GRELHA DE NICHOS -->
+            <div class="niches-container" id="niches-grid-container"></div>
+
             <div class="contacts-footer">
-                <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar</button>
+                <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar para o Zap Leve</button>
             </div>
 
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
+        </div>
+
+        <!-- TELA DE UTILIZADORES DENTRO DE UM NICHO -->
+        <div id="nicho-users-screen" class="screen-content hidden">
+            <div class="app-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="btn-back-to-niches" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
+                    <h3 id="nicho-screen-title" style="margin: 0; font-size: 16px;">Nicho</h3>
+                </div>
+                <button id="btn-logout-nicho" class="btn-action-top limpar">Sair</button>
+            </div>
+            <div style="padding: 8px 16px; background: #f0f2f5; font-size: 12px; color: #555;">Utilizadores registados neste nicho (e-mails ocultos por privacidade):</div>
+            <div class="contacts-list" id="nicho-users-list-container"></div>
+        </div>
+
+        <!-- MODAL DE ADMIN PARA CRIAR NOVO NICHO -->
+        <div id="admin-niche-modal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <h3 style="margin: 0; color: #075e54;">⚙️ Painel Admin: Criar Nicho</h3>
+                    <button id="btn-close-admin-niche" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Nome do Novo Nicho:</label>
+                    <input type="text" id="new-niche-name" placeholder="Ex: Esportes, Tecnologia..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; margin-bottom: 8px;">
+                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Emoji / Ícone:</label>
+                    <input type="text" id="new-niche-icon" placeholder="Ex: ⚽, 💻..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
+                    <button id="btn-save-new-niche" style="background: #00a884; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px;">Adicionar Nicho</button>
+                </div>
+            </div>
         </div>
 
         <!-- MODAL DO CATÁLOGO -->
@@ -193,7 +230,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE PERFIL -->
+        <!-- MODAL DE PERFIL (COM ESCOLHA DE NICHO) -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="text-align: center; position: relative;">
@@ -201,17 +238,20 @@
                 </div>
                 <div style="text-align: center;">
                     <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
-                    <span id="modal-user-email" style="font-size: 12px; color: #666;">email@gmail.com</span>
+                    <!-- E-mail ocultado ou discreto apenas para o próprio dono -->
+                    <span id="modal-user-email" style="font-size: 11px; color: #888;">(E-mail privado)</span>
                 </div>
 
                 <div style="background: #f0f2f5; padding: 10px; border-radius: 6px; font-size: 12px;">
                     <div style="font-weight: bold; color: #075e54; margin-bottom: 4px;">🌐 Bio:</div>
                     <div id="display-bio-text" style="color: #333;">Nenhuma bio configurada.</div>
-                    <div style="font-weight: bold; color: #075e54; margin-top: 8px; margin-bottom: 4px;">🔗 Link Pessoal:</div>
+                    <div style="font-weight: bold; color: #075e54; margin-top: 6px; margin-bottom: 2px;">🏷️ Nicho Atual:</div>
+                    <div id="display-nicho-text" style="color: #00a884; font-weight: bold;">Negócio</div>
+                    <div style="font-weight: bold; color: #075e54; margin-top: 6px; margin-bottom: 2px;">🔗 Link Pessoal:</div>
                     <div id="display-link-text" style="color: #0066cc; word-break: break-all;">Nenhum link configurado.</div>
                 </div>
 
-                <hr style="border: none; border-top: 1px solid #ddd; margin: 4px 0;" id="profile-edit-divider">
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 4px 0;">
 
                 <div id="profile-edit-section">
                     <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar Meu Perfil:</div>
@@ -219,919 +259,99 @@
                         <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
                     </div>
                     <div style="margin-bottom: 6px;">
+                        <label style="font-size: 11px; color: #555;">Alterar Nicho:</label>
+                        <select id="profile-nicho-select" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; background:#fff;"></select>
+                    </div>
+                    <div style="margin-bottom: 6px;">
                         <input type="file" id="profile-img-file" accept="image/*" style="font-size: 12px; width: 100%;">
                     </div>
                     <div style="margin-bottom: 6px;">
-                        <textarea id="profile-bio-input" placeholder="Escreva algo sobre si..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 50px; outline: none;"></textarea>
+                        <textarea id="profile-bio-input" placeholder="Sua biografia..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 45px; outline: none;"></textarea>
                     </div>
-                    <div style="margin-bottom: 6px;">
-                        <input type="text" id="profile-link-input" placeholder="https://seu-link.com" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
+                    <div style="margin-bottom: 8px;">
+                        <input type="text" id="profile-link-input" placeholder="Seu link pessoal (https://...)" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
                     </div>
-                    <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%;">💾 Salvar Perfil</button>
+                    <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px;">Guardar Perfil</button>
                 </div>
 
-                <button id="btn-close-profile" style="background: #ea0938; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%; margin-top: 4px;">Fechar</button>
+                <button id="btn-close-profile" style="background: #ccc; color: #333; border: none; padding: 6px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 4px;">Fechar</button>
             </div>
         </div>
 
         <!-- TELA DE CHAT -->
         <div id="chat-screen" class="screen-content hidden">
             <div class="chat-header">
-                <button id="btn-voltar-lista" class="btn-action-top">← Voltar</button>
-                <div class="chat-header-user-info" id="open-chat-profile-btn" title="Ver Bio">
-                    <div id="chat-contact-avatar" class="avatar-placeholder" style="width: 28px; height: 28px; font-size: 12px;">R</div>
-                    <span id="chat-contact-name" style="font-weight: bold; font-size: 13px;">Nome</span>
+                <div class="chat-header-user-info" id="open-chat-profile">
+                    <div id="chat-avatar-placeholder" class="avatar-placeholder" style="width: 32px; height: 32px; font-size: 12px;">C</div>
+                    <div>
+                        <span id="chat-header-name" style="font-weight: bold; font-size: 13px; display: block;">Nome do Contacto</span>
+                        <span id="chat-header-status" style="font-size: 10px; color: #d1fae5;">online (Privado)</span>
+                    </div>
                 </div>
                 <div class="chat-header-actions">
-                    <button id="btn-video-call" class="btn-action-top video">Vídeo</button>
-                    <button id="btn-audio-call" class="btn-action-top audio">Áudio</button>
-                    <button id="btn-limpar-chat" class="btn-action-top limpar">Limpar</button>
+                    <button class="btn-action-top video" id="btn-video-call" title="Vídeo Chamada">📹</button>
+                    <button class="btn-action-top audio" id="btn-audio-call" title="Áudio Chamada">📞</button>
+                    <button class="btn-action-top limpar" id="btn-clear-chat" title="Limpar Chat">🗑️</button>
+                    <button class="btn-action-top" id="btn-voltar-chat" style="background: #54656f;">Voltar</button>
                 </div>
             </div>
 
             <!-- BARRA DE PESQUISA COM LUPA -->
             <div class="product-tag-bar">
-                <input type="text" id="product-tag-input" placeholder="Pesquisar nas mensagens...">
-                <button id="btn-search-trigger" class="btn-search-lupa">🔍 Pesquisar</button>
+                <div style="display: flex; align-items: center; background: #ffffff; border-radius: 4px; padding: 2px 8px; border: 1px solid #ddd; width: 100%;">
+                    <span style="color: #666; margin-right: 6px; font-size: 14px;">🔍</span>
+                    <input type="text" id="product-tag-input" placeholder="Busca..." style="border: none; outline: none; width: 100%; font-size: 12px; background: transparent; padding: 4px 0;">
+                </div>
             </div>
 
-            <div id="chat-messages" class="chat-messages" onclick="fecharMenusContextuais()"></div>
+            <div class="chat-messages" id="chat-messages-container"></div>
 
-            <!-- PRÉ-VISUALIZAÇÃO DE MÍDIA (CORRIGIDO PARA SUMIR APÓS O ENVIO) -->
             <div id="media-preview-container" class="preview-box hidden">
-                <div id="preview-content-box"></div>
+                <div id="media-preview-element-wrapper"></div>
                 <div class="preview-actions">
-                    <button id="btn-confirmar-envio-midia" class="btn-enviar-pre">Enviar</button>
-                    <button id="btn-cancelar-midia" class="btn-excluir-pre">Excluir</button>
+                    <button id="btn-send-media-preview" class="btn-enviar-pre">Enviar Mídia</button>
+                    <button id="btn-cancel-media-preview" class="btn-excluir-pre">Cancelar</button>
                 </div>
             </div>
 
             <div class="chat-input-container">
                 <div style="position: relative;">
-                    <button id="btn-clip-file" class="btn-icon" title="Anexar">📎</button>
+                    <button class="btn-icon" id="btn-clip" title="Anexar Mídia">📎</button>
                     <div id="clip-popup-menu" class="clip-popup hidden">
-                        <button onclick="escolherMidia('image/*')">📷 Enviar Foto</button>
-                        <button onclick="escolherMidia('video/*')">🎥 Enviar Vídeo</button>
+                        <button id="btn-attach-image">📷 Imagem</button>
+                        <button id="btn-attach-video">🎥 Vídeo</button>
+                        <button id="btn-attach-audio">🎵 Áudio</button>
                     </div>
                 </div>
-                <input type="file" id="file-upload-input" class="hidden-file">
-                
-                <input type="text" id="mensagem-input" placeholder="Mensagem ou link...">
-                <button id="btn-enviar-msg" class="btn-send" title="Enviar">➤</button>
-                <button id="btn-enviar-audio" class="btn-mic" title="Áudio">🎤</button>
+                <input type="text" id="chat-message-input" placeholder="Mensagem ou link...">
+                <button class="btn-send" id="btn-send-message">➤</button>
+                <button class="btn-mic" id="btn-mic" title="Gravar Áudio">🎤</button>
             </div>
         </div>
+
+        <input type="file" id="hidden-image-input" accept="image/*" class="hidden-file">
+        <input type="file" id="hidden-video-input" accept="video/*" class="hidden-file">
+        <input type="file" id="hidden-audio-input" accept="audio/*" class="hidden-file">
 
         <!-- TELA DE CHAMADA -->
         <div id="call-screen" class="hidden">
-            <div class="call-user-display">
-                <div id="call-user-avatar" class="avatar-placeholder call-avatar">?</div>
+            <div style="font-size: 16px; font-weight: bold; margin-top: 10px;" id="call-status-text">A chamar...</div>
+            <div class="call-user-display" id="call-ringing-ui">
+                <div class="call-avatar" id="call-screen-avatar">C</div>
                 <div>
-                    <h2 id="call-contact-name" style="font-size: 20px; font-weight: bold; margin: 0;">Nome</h2>
-                    <p id="call-status-title" style="font-size: 13px; color: #a0aec0; margin-top: 4px;">A ligar...</p>
+                    <h2 id="call-screen-name" style="margin: 0; font-size: 22px;">Contacto</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #aaa;" id="call-type-subtitle">Chamada Zap Leve</p>
                 </div>
             </div>
-
-            <div class="call-videos" id="call-videos-container" style="display: none;">
-                <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
-                <video id="localVideo" class="local-video" autoplay playsinline muted></video>
+            <div class="call-videos hidden" id="call-video-containers">
+                <video id="remote-video" class="remote-video" autoplay playsinline></video>
+                <video id="local-video" class="local-video" autoplay playsinline muted></video>
             </div>
-
             <div class="call-controls">
-                <button id="btn-atender-chamada" class="call-answer-btn hidden" title="Atender">📞</button>
-                <button id="btn-desligar" class="call-end-btn" title="Desligar">❌</button>
+                <button class="call-end-btn" id="btn-hangup" title="Desligar">📞</button>
+                <button class="call-answer-btn hidden" id="btn-answer" title="Atender">📞</button>
             </div>
-        </div>
-
-        <!-- TELA CHEIA (LIGHTBOX) -->
-        <div id="lightbox-modal" class="lightbox-container hidden">
-            <button class="btn-sair-tela-cheia" onclick="fecharTelaCheia()">✕ Sair da Tela Cheia</button>
-            <div id="lightbox-media-box" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></div>
         </div>
     </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
-            authDomain: "zapleve.firebaseapp.com",
-            projectId: "zapleve",
-            storageBucket: "zapleve.firebasestorage.app",
-            messagingSenderId: "426242600158",
-            appId: "1:426242600158:web:c2427064b5702948fc264f"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        const ADMIN_EMAIL = "jeanaguiar636@gmail.com";
-
-        const authScreen = document.getElementById('auth-screen');
-        const contactsScreen = document.getElementById('contacts-screen');
-        const chatScreen = document.getElementById('chat-screen');
-        const callScreen = document.getElementById('call-screen');
-        const profileModal = document.getElementById('profile-modal');
-        const catalogModal = document.getElementById('catalog-modal');
-        const mediaPreviewContainer = document.getElementById('media-preview-container');
-        const previewContentBox = document.getElementById('preview-content-box');
-        const btnConfirmarEnvioMidia = document.getElementById('btn-confirmar-envio-midia');
-        const btnCancelarMidia = document.getElementById('btn-cancelar-midia');
-
-        const emailInput = document.getElementById('email');
-        const senhaInput = document.getElementById('senha');
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-        const userEmailDisplay = document.getElementById('user-email-display');
-        const userSubEmail = document.getElementById('user-sub-email');
-        const userAvatarInitial = document.getElementById('user-avatar-initial');
-        const openProfileBtn = document.getElementById('open-profile-btn');
-        const openChatProfileBtn = document.getElementById('open-chat-profile-btn');
-        const btnCloseProfile = document.getElementById('btn-close-profile');
-        const btnSaveProfile = document.getElementById('btn-save-profile');
-        
-        const modalAvatarPreview = document.getElementById('modal-avatar-preview');
-        const modalUserUsername = document.getElementById('modal-user-username');
-        const modalUserEmail = document.getElementById('modal-user-email');
-        const displayBioText = document.getElementById('display-bio-text');
-        const displayLinkText = document.getElementById('display-link-text');
-        const profileImgFile = document.getElementById('profile-img-file');
-        const profileNameInput = document.getElementById('profile-name-input');
-        const profileBioInput = document.getElementById('profile-bio-input');
-        const profileLinkInput = document.getElementById('profile-link-input');
-        const profileEditSection = document.getElementById('profile-edit-section');
-        const profileEditDivider = document.getElementById('profile-edit-divider');
-
-        const listContactsContainer = document.getElementById('list-contacts-container');
-        const btnVoltarLista = document.getElementById('btn-voltar-lista');
-        const chatContactName = document.getElementById('chat-contact-name');
-        const chatContactAvatar = document.getElementById('chat-contact-avatar');
-        const chatMessages = document.getElementById('chat-messages');
-        const mensagemInput = document.getElementById('mensagem-input');
-        const productTagInput = document.getElementById('product-tag-input');
-        const btnSearchTrigger = document.getElementById('btn-search-trigger');
-        const btnEnviarMsg = document.getElementById('btn-enviar-msg');
-        const btnEnviarAudio = document.getElementById('btn-enviar-audio');
-        
-        const btnVideoCall = document.getElementById('btn-video-call');
-        const btnAudioCall = document.getElementById('btn-audio-call');
-        const btnLimparChat = document.getElementById('btn-limpar-chat');
-        const btnDesligar = document.getElementById('btn-desligar');
-        const btnAtenderChamada = document.getElementById('btn-atender-chamada');
-        const callStatusTitle = document.getElementById('call-status-title');
-        const callContactName = document.getElementById('call-contact-name');
-        const callUserAvatar = document.getElementById('call-user-avatar');
-        const callVideosContainer = document.getElementById('call-videos-container');
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        
-        const btnClipFile = document.getElementById('btn-clip-file');
-        const clipPopupMenu = document.getElementById('clip-popup-menu');
-        const fileUploadInput = document.getElementById('file-upload-input');
-        
-        const btnOpenCatalog = document.getElementById('btn-open-catalog');
-        const btnCloseCatalog = document.getElementById('btn-close-catalog');
-        const adminProductForm = document.getElementById('admin-product-form');
-        const prodNomeInput = document.getElementById('prod-nome');
-        const prodDescInput = document.getElementById('prod-desc');
-        const prodLinkInput = document.getElementById('prod-link');
-        const prodImgFile = document.getElementById('prod-img-file');
-        const btnSaveProduct = document.getElementById('btn-save-product');
-        const productGridContainer = document.getElementById('product-grid-container');
-
-        const btnInstall = document.getElementById('btn-install');
-        const lightboxModal = document.getElementById('lightbox-modal');
-        const lightboxMediaBox = document.getElementById('lightbox-media-box');
-
-        let currentChatUser = null;
-        let unsubscribeMensagens = null;
-        let localStream = null;
-        let currentUserData = { name: "", bio: "", link: "", photo: "" };
-        let deferredPrompt = null;
-        let pendingMediaPayload = null;
-        let termoPesquisaAtual = "";
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            btnInstall.classList.remove('hidden');
-        });
-
-        btnInstall.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') btnInstall.classList.add('hidden');
-                deferredPrompt = null;
-            }
-        });
-
-        btnLogin.addEventListener('click', async () => {
-            const email = emailInput.value.trim();
-            const senha = senhaInput.value.trim();
-            if (!email || !senha) { alert('Insira email e senha.'); return; }
-            try {
-                await signInWithEmailAndPassword(auth, email, senha);
-            } catch (e) {
-                try {
-                    await createUserWithEmailAndPassword(auth, email, senha);
-                } catch (err) { alert('Erro: ' + err.message); }
-            }
-        });
-
-        btnLogout.addEventListener('click', () => signOut(auth));
-
-        // --- CATÁLOGO ---
-        btnOpenCatalog.addEventListener('click', async () => {
-            if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
-                adminProductForm.classList.remove('hidden');
-            } else {
-                adminProductForm.classList.add('hidden');
-            }
-            await carregarProdutosCatalogo();
-            catalogModal.classList.remove('hidden');
-        });
-
-        btnCloseCatalog.addEventListener('click', () => catalogModal.classList.add('hidden'));
-
-        btnSaveProduct.addEventListener('click', async () => {
-            const nome = prodNomeInput.value.trim();
-            const desc = prodDescInput.value.trim();
-            const link = prodLinkInput.value.trim();
-            const file = prodImgFile.files[0];
-
-            if (!nome) { alert('Insira pelo menos o nome do produto.'); return; }
-
-            const salvarNoFirestore = async (fotoBase64) => {
-                try {
-                    await addDoc(collection(db, "catalogo_produtos"), {
-                        nome,
-                        descricao: desc,
-                        link,
-                        foto: fotoBase64 || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop",
-                        criadoEm: serverTimestamp()
-                    });
-                    prodNomeInput.value = '';
-                    prodDescInput.value = '';
-                    prodLinkInput.value = '';
-                    prodImgFile.value = '';
-                    alert('Produto adicionado com sucesso!');
-                    carregarProdutosCatalogo();
-                } catch(e) { alert('Erro ao salvar produto: ' + e.message); }
-            };
-
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) { salvarNoFirestore(e.target.result); };
-                reader.readAsDataURL(file);
-            } else {
-                salvarNoFirestore("");
-            }
-        });
-
-        async function carregarProdutosCatalogo() {
-            productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Carregando...</p>';
-            try {
-                const querySnapshot = await getDocs(collection(db, "catalogo_produtos"));
-                productGridContainer.innerHTML = '';
-                
-                if (querySnapshot.empty) {
-                    productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Nenhum produto cadastrado.</p>';
-                    return;
-                }
-
-                querySnapshot.forEach((docSnap) => {
-                    const p = docSnap.data();
-                    const prodId = docSnap.id;
-                    const eAdmin = (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL);
-
-                    const card = document.createElement('div');
-                    card.className = 'product-card';
-                    card.innerHTML = `
-                        <img src="${p.foto}" onclick="abrirLightboxImagem('${p.foto}')">
-                        <h4>${p.nome}</h4>
-                        <p>${p.descricao || 'Sem descrição'}</p>
-                        <div class="product-card-actions">
-                            <a href="${p.link || '#'}" target="_blank" class="btn-prod-buy">Ver / Comprar</a>
-                            ${eAdmin ? `<button class="btn-prod-del" onclick="removerProduto('${prodId}')">🗑️</button>` : ''}
-                        </div>
-                    `;
-                    productGridContainer.appendChild(card);
-                });
-            } catch(e) {
-                productGridContainer.innerHTML = '<p style="font-size:12px; color:red; text-align:center; grid-column: span 2;">Erro ao carregar catálogo.</p>';
-            }
-        }
-
-        window.removerProduto = async function(prodId) {
-            if (confirm('Deseja excluir este produto?')) {
-                try {
-                    await deleteDoc(doc(db, "catalogo_produtos", prodId));
-                    carregarProdutosCatalogo();
-                } catch(e) { alert('Erro ao excluir: ' + e.message); }
-            }
-        };
-
-        // --- PERFIL ---
-        openProfileBtn.addEventListener('click', async () => {
-            if (!auth.currentUser) return;
-            await abrirModalPerfilUtilizador(auth.currentUser.email, auth.currentUser.uid);
-        });
-
-        openChatProfileBtn.addEventListener('click', async () => {
-            if (!currentChatUser) return;
-            await abrirModalPerfilPorEmail(currentChatUser);
-        });
-
-        async function abrirModalPerfilUtilizador(emailUser, uidUser) {
-            let dadosPerfil = { name: "", bio: "", link: "", photo: "" };
-            try {
-                if (uidUser) {
-                    const snap = await getDoc(doc(db, "utilizadores", uidUser));
-                    if (snap.exists()) dadosPerfil = snap.data();
-                }
-            } catch(e) { console.log(e); }
-
-            const nomeExibicao = dadosPerfil.name || emailUser.split('@')[0];
-            modalUserUsername.textContent = nomeExibicao;
-            
-            if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
-                modalUserEmail.textContent = emailUser;
-                modalUserEmail.style.display = 'block';
-            } else {
-                modalUserEmail.style.display = 'none';
-            }
-
-            displayBioText.textContent = dadosPerfil.bio || "Nenhuma bio configurada.";
-            displayLinkText.innerHTML = dadosPerfil.link ? `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>` : "Nenhum link configurado.";
-
-            profileEditSection.classList.remove('hidden');
-            profileEditDivider.classList.remove('hidden');
-            profileNameInput.value = dadosPerfil.name || emailUser.split('@')[0];
-            profileBioInput.value = dadosPerfil.bio || "";
-            profileLinkInput.value = dadosPerfil.link || "";
-
-            if (dadosPerfil.photo) modalAvatarPreview.innerHTML = `<img src="${dadosPerfil.photo}">`;
-            else modalAvatarPreview.textContent = nomeExibicao.charAt(0).toUpperCase();
-
-            profileModal.classList.remove('hidden');
-        }
-
-        async function abrirModalPerfilPorEmail(emailAlvo) {
-            let dadosPerfil = { name: "", bio: "", link: "", photo: "" };
-            try {
-                const q = query(collection(db, "utilizadores"), where("email", "==", emailAlvo));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) dadosPerfil = querySnapshot.docs[0].data();
-            } catch(e) { console.log(e); }
-
-            const nomeExibicao = dadosPerfil.name || emailAlvo.split('@')[0];
-            modalUserUsername.textContent = nomeExibicao;
-            
-            if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
-                modalUserEmail.textContent = emailAlvo;
-                modalUserEmail.style.display = 'block';
-            } else {
-                modalUserEmail.style.display = 'none';
-            }
-
-            displayBioText.textContent = dadosPerfil.bio || "Nenhuma bio configurada.";
-            displayLinkText.innerHTML = dadosPerfil.link ? `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>` : "Nenhum link configurado.";
-
-            profileEditSection.classList.add('hidden');
-            profileEditDivider.classList.add('hidden');
-
-            if (dadosPerfil.photo) modalAvatarPreview.innerHTML = `<img src="${dadosPerfil.photo}">`;
-            else modalAvatarPreview.textContent = nomeExibicao.charAt(0).toUpperCase();
-
-            profileModal.classList.remove('hidden');
-        }
-
-        btnCloseProfile.addEventListener('click', () => profileModal.classList.add('hidden'));
-
-        btnSaveProfile.addEventListener('click', async () => {
-            if (!auth.currentUser) return;
-            const newName = profileNameInput.value.trim() || auth.currentUser.email.split('@')[0];
-            const newBio = profileBioInput.value.trim();
-            const newLink = profileLinkInput.value.trim();
-            const file = profileImgFile.files[0];
-            
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    currentUserData.photo = e.target.result;
-                    await salvarPerfilFirestore(newName, newBio, newLink, currentUserData.photo);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                await salvarPerfilFirestore(newName, newBio, newLink, currentUserData.photo);
-            }
-        });
-
-        async function salvarPerfilFirestore(name, bio, link, photo) {
-            try {
-                const userRef = doc(db, "utilizadores", auth.currentUser.uid);
-                await setDoc(userRef, { email: auth.currentUser.email, name, bio, link, photo: photo || "" }, { merge: true });
-                currentUserData = { name, bio, link, photo };
-                
-                modalUserUsername.textContent = name;
-                userEmailDisplay.textContent = name;
-                displayBioText.textContent = bio || "Nenhuma bio configurada.";
-                displayLinkText.textContent = link || "Nenhum link configurado.";
-                
-                if (photo) {
-                    userAvatarInitial.innerHTML = `<img src="${photo}">`;
-                    modalAvatarPreview.innerHTML = `<img src="${photo}">`;
-                }
-                
-                alert('Perfil atualizado!');
-                profileModal.classList.add('hidden');
-                carregarContactos();
-            } catch (err) { alert('Erro ao salvar: ' + err.message); }
-        }
-
-        async function carregarPerfilInicial(user) {
-            try {
-                const userSnap = await getDoc(doc(db, "utilizadores", user.uid));
-                if (userSnap.exists()) {
-                    currentUserData = userSnap.data();
-                    const nomeExibicao = currentUserData.name || user.email.split('@')[0];
-                    userEmailDisplay.textContent = nomeExibicao;
-                    if (currentUserData.photo) userAvatarInitial.innerHTML = `<img src="${currentUserData.photo}">`;
-                } else {
-                    userEmailDisplay.textContent = user.email.split('@')[0];
-                }
-            } catch (e) { 
-                userEmailDisplay.textContent = user.email.split('@')[0];
-            }
-        }
-
-        const contactosExemplo = [
-            { nome: "julio", email: "julio@gmail.com" }, 
-            { nome: "seu-email-admin", email: "admin@gmail.com" }, 
-            { nome: "rian200905", email: "rian200905@gmail.com" },
-            { nome: "rian20092005", email: "rian20092005@gmail.com" }, 
-            { nome: "Carlos aguiar", email: "carlos@gmail.com" }, 
-            { nome: "lipesht", email: "lipesht@gmail.com" },
-            { nome: "pagenegocio", email: "pagenegocio@gmail.com" }, 
-            { nome: "murilosousa300709", email: "murilo@gmail.com" }
-        ];
-
-        async function carregarContactos() {
-            listContactsContainer.innerHTML = '';
-            for (const c of contactosExemplo) {
-                let nomeFinal = c.nome;
-                let fotoFinal = '';
-                
-                try {
-                    const q = query(collection(db, "utilizadores"), where("email", "==", c.email));
-                    const snap = await getDocs(q);
-                    if (!snap.empty) {
-                        const dados = snap.docs[0].data();
-                        if (dados.name) nomeFinal = dados.name;
-                        if (dados.photo) fotoFinal = dados.photo;
-                    }
-                } catch(e) {}
-
-                const div = document.createElement('div');
-                div.className = 'contact-item';
-                div.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="avatar-placeholder">${fotoFinal ? `<img src="${fotoFinal}">` : nomeFinal.charAt(0).toUpperCase()}</div>
-                        <span style="font-weight:500; color:#111;">${nomeFinal}</span>
-                    </div>
-                    <button class="btn-conversar">Conversar 💬</button>
-                `;
-                div.addEventListener('click', () => abrirChat(c.email, nomeFinal));
-                listContactsContainer.appendChild(div);
-            }
-        }
-
-        function abrirChat(emailContato, nomeContato) {
-            currentChatUser = emailContato;
-            contactsScreen.classList.add('hidden');
-            chatScreen.classList.remove('hidden');
-            chatContactName.textContent = nomeContato;
-            chatContactAvatar.textContent = nomeContato.charAt(0).toUpperCase();
-            termoPesquisaAtual = "";
-            productTagInput.value = "";
-            mediaPreviewContainer.classList.add('hidden');
-            pendingMediaPayload = null;
-            escutarMensagens();
-        }
-
-        btnVoltarLista.addEventListener('click', () => {
-            chatScreen.classList.add('hidden');
-            contactsScreen.classList.remove('hidden');
-            if (unsubscribeMensagens) unsubscribeMensagens();
-        });
-
-        // Função de envio otimizada para evitar erro de tamanho no Firestore
-        async function enviar(conteudo, tipo = 'texto') {
-            if (!conteudo) return;
-            const produtoTag = productTagInput.value.trim();
-            const textoFinal = produtoTag ? `[${produtoTag}] ${conteudo}` : conteudo;
-            
-            try {
-                await addDoc(collection(db, "mensagens_chat"), {
-                    remetente: auth.currentUser.email,
-                    destinatario: currentChatUser,
-                    texto: textoFinal,
-                    tipo: tipo,
-                    deletadoPara: [],
-                    criadoEm: serverTimestamp()
-                });
-                mensagemInput.value = '';
-            } catch (err) { 
-                alert('Erro ao enviar: O arquivo é muito pesado para o banco de dados. Tente enviar uma imagem ou vídeo menor.'); 
-            }
-        }
-
-        btnEnviarMsg.addEventListener('click', () => enviar(mensagemInput.value));
-        mensagemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviar(mensagemInput.value); });
-
-        btnSearchTrigger.addEventListener('click', () => {
-            termoPesquisaAtual = productTagInput.value.trim().toLowerCase();
-            escutarMensagens();
-        });
-
-        productTagInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                termoPesquisaAtual = productTagInput.value.trim().toLowerCase();
-                escutarMensagens();
-            }
-        });
-
-        // --- CLIPE (FOTO OU VÍDEO) COM COMPRESSÃO / ALERTA DE TAMANHO ---
-        btnClipFile.addEventListener('click', (e) => {
-            e.stopPropagation();
-            clipPopupMenu.classList.toggle('hidden');
-        });
-
-        window.escolherMidia = function(tipoAccept) {
-            clipPopupMenu.classList.add('hidden');
-            fileUploadInput.setAttribute('accept', tipoAccept);
-            fileUploadInput.value = '';
-            fileUploadInput.click();
-        };
-
-        window.addEventListener('click', () => {
-            clipPopupMenu.classList.add('hidden');
-        });
-
-        fileUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // Verificação de tamanho (máximo 800KB para garantir que não estoure o Firestore)
-                if (file.size > 800 * 1024) {
-                    alert('Este arquivo é muito grande (acima de 800KB). Por favor, escolha um arquivo mais leve para garantir o envio.');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const base64Data = evt.target.result;
-                    let previewHtml = '';
-                    let tipoMidia = 'ficheiro';
-
-                    if (file.type.startsWith('image/')) {
-                        previewHtml = `<img src="${base64Data}">`;
-                        tipoMidia = 'imagem';
-                    } else if (file.type.startsWith('video/')) {
-                        previewHtml = `<video src="${base64Data}" controls></video>`;
-                        tipoMidia = 'video';
-                    }
-
-                    pendingMediaPayload = { html: previewHtml, tipo: tipoMidia };
-                    previewContentBox.innerHTML = `<p style="font-size:12px; font-weight:bold; margin-bottom:4px;">Pré-visualização:</p>` + previewHtml;
-                    mediaPreviewContainer.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // CORRIGIDO: O painel some (fica hidden) IMEDIATAMENTE após clicar em enviar
-        btnConfirmarEnvioMidia.addEventListener('click', async () => {
-            if (pendingMediaPayload) {
-                const payloadParaEnviar = pendingMediaPayload;
-                
-                // Esconde e limpa o painel primeiro
-                mediaPreviewContainer.classList.add('hidden');
-                previewContentBox.innerHTML = '';
-                pendingMediaPayload = null;
-                fileUploadInput.value = '';
-
-                // Envia para o banco
-                await enviar(payloadParaEnviar.html, payloadParaEnviar.tipo);
-            }
-        });
-
-        btnCancelarMidia.addEventListener('click', () => {
-            mediaPreviewContainer.classList.add('hidden');
-            previewContentBox.innerHTML = '';
-            pendingMediaPayload = null;
-            fileUploadInput.value = '';
-        });
-
-        // --- ÁUDIO ---
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecording = false;
-
-        btnEnviarAudio.addEventListener('click', async () => {
-            if (!isRecording) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } 
-                    });
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
-                    audioChunks = [];
-
-                    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        const playerHtml = `<audio controls src="${audioUrl}" style="max-width:230px; height:38px;"></audio>`;
-                        
-                        pendingMediaPayload = { html: playerHtml, tipo: 'audio' };
-                        previewContentBox.innerHTML = `<p style="font-size:12px; font-weight:bold; margin-bottom:4px;">Ouvir Áudio:</p>` + playerHtml;
-                        mediaPreviewContainer.classList.remove('hidden');
-
-                        stream.getTracks().forEach(t => t.stop());
-                    };
-
-                    mediaRecorder.start();
-                    isRecording = true;
-                    btnEnviarAudio.classList.add('gravando');
-                } catch (err) { alert('Erro no microfone: ' + err.message); }
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                btnEnviarAudio.classList.remove('gravando');
-            }
-        });
-
-        function escutarMensagens() {
-            if (unsubscribeMensagens) unsubscribeMensagens();
-            
-            const q1 = query(collection(db, "mensagens_chat"), where("remetente", "==", auth.currentUser.email), where("destinatario", "==", currentChatUser));
-            const q2 = query(collection(db, "mensagens_chat"), where("remetente", "==", currentChatUser), where("destinatario", "==", auth.currentUser.email));
-
-            let cache = { q1: [], q2: [] };
-
-            const renderizar = async () => {
-                let todas = [...cache.q1, ...cache.q2];
-                todas.sort((a, b) => (a.criadoEm?.toMillis() || 0) - (b.criadoEm?.toMillis() || 0));
-
-                if (termoPesquisaAtual) {
-                    todas = todas.filter(m => (m.texto || "").toLowerCase().includes(termoPesquisaAtual));
-                }
-
-                chatMessages.innerHTML = '';
-                for (const data of todas) {
-                    const deletadoPara = data.deletadoPara || [];
-                    if (deletadoPara.includes(auth.currentUser.email)) continue;
-
-                    const minha = data.remetente === auth.currentUser.email;
-                    const div = document.createElement('div');
-                    div.className = minha ? 'msg msg-minha' : 'msg msg-outra';
-                    
-                    let nomeRemetente = data.remetente.split('@')[0];
-                    try {
-                        const qUser = query(collection(db, "utilizadores"), where("email", "==", data.remetente));
-                        const sUser = await getDocs(qUser);
-                        if (!sUser.empty && sUser.docs[0].data().name) {
-                            nomeRemetente = sUser.docs[0].data().name;
-                        }
-                    } catch(e) {}
-
-                    let htmlConteudo = `<span style="font-size:10px; color:#555; margin-bottom:2px; font-weight:bold;">${nomeRemetente}</span><div class="msg-corpo-conteudo">${data.texto}</div>`;
-                    htmlConteudo += `<button class="msg-menu-btn" onclick="abrirMenuContextual(event, '${data.idDoc}', ${minha})">⋮</button>`;
-                    
-                    div.innerHTML = htmlConteudo;
-                    
-                    const imgEl = div.querySelector('img');
-                    const videoEl = div.querySelector('video');
-                    const audioEl = div.querySelector('audio');
-
-                    if (imgEl) {
-                        imgEl.onclick = () => abrirTelaCheia(`<img src="${imgEl.src}" class="lightbox-content">`);
-                        const btnDown = document.createElement('a');
-                        btnDown.className = 'btn-download-media';
-                        btnDown.href = imgEl.src;
-                        btnDown.download = 'foto_zapleve.jpg';
-                        btnDown.innerHTML = '⬇️ Baixar Imagem';
-                        div.appendChild(btnDown);
-                    } else if (videoEl) {
-                        videoEl.onclick = () => abrirTelaCheia(`<video src="${videoEl.src}" controls autoplay class="lightbox-content"></video>`);
-                        const btnDown = document.createElement('a');
-                        btnDown.className = 'btn-download-media';
-                        btnDown.href = videoEl.src;
-                        btnDown.download = 'video_zapleve.mp4';
-                        btnDown.innerHTML = '⬇️ Baixar Vídeo';
-                        div.appendChild(btnDown);
-                    } else if (audioEl) {
-                        const btnDown = document.createElement('a');
-                        btnDown.className = 'btn-download-media';
-                        btnDown.href = audioEl.src;
-                        btnDown.download = 'audio_zapleve.webm';
-                        btnDown.innerHTML = '⬇️ Baixar Áudio';
-                        div.appendChild(btnDown);
-                    }
-
-                    chatMessages.appendChild(div);
-                }
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            };
-
-            const unsub1 = onSnapshot(q1, (snap) => {
-                cache.q1 = snap.docs.map(d => ({ idDoc: d.id, ...d.data() }));
-                renderizar();
-            });
-            const unsub2 = onSnapshot(q2, (snap) => {
-                cache.q2 = snap.docs.map(d => ({ idDoc: d.id, ...d.data() }));
-                renderizar();
-            });
-
-            unsubscribeMensagens = () => { unsub1(); unsub2(); };
-        }
-
-        window.fecharMenusContextuais = function() {
-            document.querySelectorAll('.context-menu').forEach(m => m.remove());
-        };
-
-        window.abrirMenuContextual = function(event, idDoc, minhaMensagem) {
-            event.stopPropagation();
-            fecharMenusContextuais();
-
-            const menu = document.createElement('div');
-            menu.className = 'context-menu';
-            
-            let htmlBotoes = `<button onclick="apagarParaMim('${idDoc}')">Apagar para mim</button>`;
-            if (minhaMensagem) {
-                htmlBotoes += `<button onclick="apagarParaTodos('${idDoc}')" style="color:#d32f2f;">Apagar para todos</button>`;
-            }
-            menu.innerHTML = htmlBotoes;
-
-            const rect = event.target.getBoundingClientRect();
-            menu.style.top = `${rect.bottom + window.scrollY}px`;
-            menu.style.right = `${window.innerWidth - rect.right}px`;
-
-            document.body.appendChild(menu);
-        };
-
-        window.apagarParaMim = async function(idDoc) {
-            fecharMenusContextuais();
-            try {
-                const ref = doc(db, "mensagens_chat", idDoc);
-                const snap = await getDoc(ref);
-                if (snap.exists()) {
-                    let deletadoPara = snap.data().deletadoPara || [];
-                    if (!deletadoPara.includes(auth.currentUser.email)) deletadoPara.push(auth.currentUser.email);
-                    await updateDoc(ref, { deletadoPara });
-                }
-            } catch(e) { alert("Erro: " + e.message); }
-        };
-
-        window.apagarParaTodos = async function(idDoc) {
-            fecharMenusContextuais();
-            try {
-                await deleteDoc(doc(db, "mensagens_chat", idDoc));
-            } catch(e) { alert("Erro: " + e.message); }
-        };
-
-        btnLimparChat.addEventListener('click', async () => {
-            if (confirm('Deseja limpar todo o histórico visível deste chat?')) {
-                try {
-                    const q1 = query(collection(db, "mensagens_chat"), where("remetente", "==", auth.currentUser.email), where("destinatario", "==", currentChatUser));
-                    const q2 = query(collection(db, "mensagens_chat"), where("remetente", "==", currentChatUser), where("destinatario", "==", auth.currentUser.email));
-                    
-                    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-                    const batchDeletes = [];
-                    
-                    snap1.forEach(d => batchDeletes.push(deleteDoc(d.ref)));
-                    snap2.forEach(d => batchDeletes.push(deleteDoc(d.ref)));
-                    
-                    await Promise.all(batchDeletes);
-                    chatMessages.innerHTML = '';
-                } catch(e) { alert("Erro: " + e.message); }
-            }
-        });
-
-        window.abrirTelaCheia = function(htmlConteudo) {
-            lightboxMediaBox.innerHTML = htmlConteudo;
-            lightboxModal.classList.remove('hidden');
-        };
-
-        window.fecharTelaCheia = function() {
-            lightboxMediaBox.innerHTML = '';
-            lightboxModal.classList.add('hidden');
-        };
-
-        window.abrirLightboxImagem = function(src) {
-            abrirTelaCheia(`<img src="${src}" class="lightbox-content">`);
-        };
-
-        let audioCtx = null;
-        let ringInterval = null;
-
-        function tocarSomCampainha() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                ringInterval = setInterval(() => {
-                    if (!audioCtx) return;
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                    osc.frequency.setValueAtTime(480, audioCtx.currentTime + 0.15);
-                    gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.9);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.9);
-                }, 1100);
-            } catch(e) { console.log(e); }
-        }
-
-        function pararSomCampainha() {
-            if (ringInterval) { clearInterval(ringInterval); ringInterval = null; }
-        }
-
-        async function configurarDadosChamada(emailContato) {
-            let nomeExibicao = emailContato.split('@')[0];
-            callUserAvatar.textContent = nomeExibicao.charAt(0).toUpperCase();
-            callContactName.textContent = nomeExibicao;
-            
-            try {
-                const q = query(collection(db, "utilizadores"), where("email", "==", emailContato));
-                const querySnapshot = await getDocs(q);
-                querySnapshot.forEach((docSnap) => {
-                    const dados = docSnap.data();
-                    if (dados.name) {
-                        nomeExibicao = dados.name;
-                        callContactName.textContent = nomeExibicao;
-                        callUserAvatar.textContent = nomeExibicao.charAt(0).toUpperCase();
-                    }
-                    if (dados.photo) {
-                        callUserAvatar.innerHTML = `<img src="${dados.photo}">`;
-                    }
-                });
-            } catch(e) { console.log(e); }
-        }
-
-        async function iniciarChamada(tipo) {
-            callScreen.classList.remove('hidden');
-            callStatusTitle.innerText = tipo === 'video' ? 'A ligar (Vídeo)...' : 'A ligar (Áudio)...';
-            btnAtenderChamada.classList.add('hidden');
-            callVideosContainer.style.display = tipo === 'video' ? 'flex' : 'none';
-            
-            await configurarDadosChamada(currentChatUser);
-            tocarSomCampainha();
-
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: tipo === 'video', audio: true });
-                if (tipo === 'video') localVideo.srcObject = localStream;
-            } catch (err) { alert('Erro câmara/microfone: ' + err.message); }
-        }
-
-        btnVideoCall.addEventListener('click', () => iniciarChamada('video'));
-        btnAudioCall.addEventListener('click', () => iniciarChamada('video'));
-
-        btnAtenderChamada.addEventListener('click', () => {
-            pararSomCampainha();
-            btnAtenderChamada.classList.add('hidden');
-            callStatusTitle.innerText = "Em Andamento";
-        });
-
-        btnDesligar.addEventListener('click', () => {
-            pararSomCampainha();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            callScreen.classList.add('hidden');
-            callVideosContainer.style.display = 'none';
-        });
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                authScreen.classList.add('hidden');
-                contactsScreen.classList.remove('hidden');
-                userSubEmail.textContent = user.email;
-                await carregarPerfilInicial(user);
-                carregarContactos();
-            } else {
-                authScreen.classList.remove('hidden');
-                contactsScreen.classList.add('hidden');
-                chatScreen.classList.add('hidden');
-                profileModal.classList.add('hidden');
-                catalogModal.classList.add('hidden');
-            }
-        });
-    </script>
 </body>
 </html>
