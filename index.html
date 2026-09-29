@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Busca com Lupa</title>
+    <title>Zap Leve - Correção de Mídia</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -48,7 +48,6 @@
         .btn-action-top.audio { background: #34b7f1; }
         .btn-action-top.limpar { background: #ea0938; }
 
-        /* Barra de Busca com Lupa no topo */
         .product-tag-bar { padding: 6px 10px; background: #fff; border-bottom: 1px solid #ddd; flex-shrink: 0; display: flex; gap: 6px; align-items: center; }
         .product-tag-bar input { flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
         .btn-search-lupa { background: #075e54; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
@@ -60,7 +59,7 @@
         .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
         .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
         
-        .msg img, .msg video { width: 100% !important; max-width: 320px !important; max-height: 420px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; }
+        .msg img, .msg video { width: 100% !important; max-width: 280px !important; max-height: 320px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; cursor: pointer; }
         
         .btn-download-media { background: #075e54; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; width: fit-content; }
         .btn-download-media:hover { background: #128c7e; }
@@ -115,15 +114,15 @@
         .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(234,9,56,0.4); }
         .call-answer-btn { background: #25d366; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(37,211,102,0.4); animation: pulse 1.2s infinite; }
         
-        .preview-box { background: #f0f2f5; padding: 10px; border-radius: 8px; text-align: center; }
-        .preview-box audio, .preview-box img, .preview-box video { max-width: 100%; max-height: 220px; border-radius: 6px; margin-bottom: 8px; }
+        .preview-box { background: #f0f2f5; padding: 10px; border-radius: 8px; text-align: center; flex-shrink: 0; }
+        .preview-box video, .preview-box img { max-width: 100%; max-height: 180px; border-radius: 6px; margin-bottom: 8px; object-fit: cover; }
         .preview-actions { display: flex; gap: 10px; justify-content: center; }
         .btn-enviar-pre { background: #00a884; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-excluir-pre { background: #ea0938; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        .lightbox-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .lightbox-content { max-width: 95%; max-height: 80vh; object-fit: contain; border-radius: 8px; }
-        .btn-sair-tela-cheia { position: absolute; top: 20px; right: 20px; background: #ea0938; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .lightbox-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .lightbox-content { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; }
+        .btn-sair-tela-cheia { position: absolute; top: 20px; right: 20px; background: #ea0938; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 100000; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
         .hidden-file { display: none; }
     </style>
@@ -169,7 +168,7 @@
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
         </div>
 
-        <!-- MODAL DO CATÁLOGO DE PRODUTOS -->
+        <!-- MODAL DO CATÁLOGO -->
         <div id="catalog-modal" class="modal-overlay hidden">
             <div class="modal-card" style="max-width: 520px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
@@ -179,14 +178,14 @@
 
                 <div id="admin-product-form" style="background: #f4f6f8; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
                     <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Adicionar / Editar Produto (Admin)</h4>
-                    <input type="text" id="prod-nome" placeholder="Nome do Produto (ex: Vestido Elegante)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                    <textarea id="prod-desc" placeholder="Descrição do produto..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 40px; outline: none;"></textarea>
-                    <input type="text" id="prod-link" placeholder="Link do Produto (ex: https://shopee.com.br/...)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                    <input type="text" id="prod-nome" placeholder="Nome do Produto..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                    <textarea id="prod-desc" placeholder="Descrição..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 40px; outline: none;"></textarea>
+                    <input type="text" id="prod-link" placeholder="Link (ex: https://...)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <label style="font-size: 11px; color: #555;">Foto do Produto:</label>
+                        <label style="font-size: 11px; color: #555;">Foto:</label>
                         <input type="file" id="prod-img-file" accept="image/*" style="font-size: 11px; flex: 1;">
                     </div>
-                    <button id="btn-save-product" style="background: #00a884; color: white; border: none; padding: 7px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;">Salvar Produto no Catálogo</button>
+                    <button id="btn-save-product" style="background: #00a884; color: white; border: none; padding: 7px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;">Salvar Produto</button>
                 </div>
 
                 <div style="font-weight: bold; font-size: 13px; color: #333; margin-top: 4px;">Produtos Disponíveis:</div>
@@ -206,7 +205,7 @@
                 </div>
 
                 <div style="background: #f0f2f5; padding: 10px; border-radius: 6px; font-size: 12px;">
-                    <div style="font-weight: bold; color: #075e54; margin-bottom: 4px;">🌐 Bio / Descrição:</div>
+                    <div style="font-weight: bold; color: #075e54; margin-bottom: 4px;">🌐 Bio:</div>
                     <div id="display-bio-text" style="color: #333;">Nenhuma bio configurada.</div>
                     <div style="font-weight: bold; color: #075e54; margin-top: 8px; margin-bottom: 4px;">🔗 Link Pessoal:</div>
                     <div id="display-link-text" style="color: #0066cc; word-break: break-all;">Nenhum link configurado.</div>
@@ -215,21 +214,17 @@
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 4px 0;" id="profile-edit-divider">
 
                 <div id="profile-edit-section">
-                    <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar o Meu Perfil:</div>
+                    <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar Meu Perfil:</div>
                     <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555; display: block; margin-bottom: 2px;">Nome de Perfil:</label>
                         <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
                     </div>
                     <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555; display: block; margin-bottom: 2px;">Alterar Foto de Perfil:</label>
                         <input type="file" id="profile-img-file" accept="image/*" style="font-size: 12px; width: 100%;">
                     </div>
                     <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555; display: block; margin-bottom: 2px;">Sua Bio (Descrição / Negócio):</label>
                         <textarea id="profile-bio-input" placeholder="Escreva algo sobre si..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 50px; outline: none;"></textarea>
                     </div>
                     <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555; display: block; margin-bottom: 2px;">Meu Link Pessoal:</label>
                         <input type="text" id="profile-link-input" placeholder="https://seu-link.com" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
                     </div>
                     <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; width: 100%;">💾 Salvar Perfil</button>
@@ -243,7 +238,7 @@
         <div id="chat-screen" class="screen-content hidden">
             <div class="chat-header">
                 <button id="btn-voltar-lista" class="btn-action-top">← Voltar</button>
-                <div class="chat-header-user-info" id="open-chat-profile-btn" title="Ver Bio e Perfil do Utilizador">
+                <div class="chat-header-user-info" id="open-chat-profile-btn" title="Ver Bio">
                     <div id="chat-contact-avatar" class="avatar-placeholder" style="width: 28px; height: 28px; font-size: 12px;">R</div>
                     <span id="chat-contact-name" style="font-weight: bold; font-size: 13px;">Nome</span>
                 </div>
@@ -254,7 +249,7 @@
                 </div>
             </div>
 
-            <!-- BARRA DE PESQUISA COM BOTÃO DE LUPA -->
+            <!-- BARRA DE PESQUISA COM LUPA -->
             <div class="product-tag-bar">
                 <input type="text" id="product-tag-input" placeholder="Pesquisar nas mensagens...">
                 <button id="btn-search-trigger" class="btn-search-lupa">🔍 Pesquisar</button>
@@ -262,6 +257,7 @@
 
             <div id="chat-messages" class="chat-messages" onclick="fecharMenusContextuais()"></div>
 
+            <!-- PRÉ-VISUALIZAÇÃO DE MÍDIA (CORRIGIDO PARA SUMIR APÓS O ENVIO) -->
             <div id="media-preview-container" class="preview-box hidden">
                 <div id="preview-content-box"></div>
                 <div class="preview-actions">
@@ -272,7 +268,7 @@
 
             <div class="chat-input-container">
                 <div style="position: relative;">
-                    <button id="btn-clip-file" class="btn-icon" title="Anexar Foto ou Vídeo">📎</button>
+                    <button id="btn-clip-file" class="btn-icon" title="Anexar">📎</button>
                     <div id="clip-popup-menu" class="clip-popup hidden">
                         <button onclick="escolherMidia('image/*')">📷 Enviar Foto</button>
                         <button onclick="escolherMidia('video/*')">🎥 Enviar Vídeo</button>
@@ -281,8 +277,8 @@
                 <input type="file" id="file-upload-input" class="hidden-file">
                 
                 <input type="text" id="mensagem-input" placeholder="Mensagem ou link...">
-                <button id="btn-enviar-msg" class="btn-send" title="Enviar Mensagem">➤</button>
-                <button id="btn-enviar-audio" class="btn-mic" title="Gravar Áudio">🎤</button>
+                <button id="btn-enviar-msg" class="btn-send" title="Enviar">➤</button>
+                <button id="btn-enviar-audio" class="btn-mic" title="Áudio">🎤</button>
             </div>
         </div>
 
@@ -291,7 +287,7 @@
             <div class="call-user-display">
                 <div id="call-user-avatar" class="avatar-placeholder call-avatar">?</div>
                 <div>
-                    <h2 id="call-contact-name" style="font-size: 20px; font-weight: bold; margin: 0;">Nome do Contacto</h2>
+                    <h2 id="call-contact-name" style="font-size: 20px; font-weight: bold; margin: 0;">Nome</h2>
                     <p id="call-status-title" style="font-size: 13px; color: #a0aec0; margin-top: 4px;">A ligar...</p>
                 </div>
             </div>
@@ -307,7 +303,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE TELA CHEIA (LIGHTBOX) -->
+        <!-- TELA CHEIA (LIGHTBOX) -->
         <div id="lightbox-modal" class="lightbox-container hidden">
             <button class="btn-sair-tela-cheia" onclick="fecharTelaCheia()">✕ Sair da Tela Cheia</button>
             <div id="lightbox-media-box" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></div>
@@ -482,7 +478,7 @@
                     prodDescInput.value = '';
                     prodLinkInput.value = '';
                     prodImgFile.value = '';
-                    alert('Produto adicionado ao catálogo com sucesso!');
+                    alert('Produto adicionado com sucesso!');
                     carregarProdutosCatalogo();
                 } catch(e) { alert('Erro ao salvar produto: ' + e.message); }
             };
@@ -497,13 +493,13 @@
         });
 
         async function carregarProdutosCatalogo() {
-            productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Carregando produtos...</p>';
+            productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Carregando...</p>';
             try {
                 const querySnapshot = await getDocs(collection(db, "catalogo_produtos"));
                 productGridContainer.innerHTML = '';
                 
                 if (querySnapshot.empty) {
-                    productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Nenhum produto cadastrado ainda.</p>';
+                    productGridContainer.innerHTML = '<p style="font-size:12px; color:#666; text-align:center; grid-column: span 2;">Nenhum produto cadastrado.</p>';
                     return;
                 }
 
@@ -531,7 +527,7 @@
         }
 
         window.removerProduto = async function(prodId) {
-            if (confirm('Deseja excluir este produto do catálogo?')) {
+            if (confirm('Deseja excluir este produto?')) {
                 try {
                     await deleteDoc(doc(db, "catalogo_produtos", prodId));
                     carregarProdutosCatalogo();
@@ -539,7 +535,7 @@
             }
         };
 
-        // --- PERFIL E PRIVACIDADE DE EMAIL ---
+        // --- PERFIL ---
         openProfileBtn.addEventListener('click', async () => {
             if (!auth.currentUser) return;
             await abrirModalPerfilUtilizador(auth.currentUser.email, auth.currentUser.uid);
@@ -570,12 +566,7 @@
             }
 
             displayBioText.textContent = dadosPerfil.bio || "Nenhuma bio configurada.";
-            
-            if (dadosPerfil.link) {
-                displayLinkText.innerHTML = `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>`;
-            } else {
-                displayLinkText.textContent = "Nenhum link configurado.";
-            }
+            displayLinkText.innerHTML = dadosPerfil.link ? `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>` : "Nenhum link configurado.";
 
             profileEditSection.classList.remove('hidden');
             profileEditDivider.classList.remove('hidden');
@@ -594,9 +585,7 @@
             try {
                 const q = query(collection(db, "utilizadores"), where("email", "==", emailAlvo));
                 const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    dadosPerfil = querySnapshot.docs[0].data();
-                }
+                if (!querySnapshot.empty) dadosPerfil = querySnapshot.docs[0].data();
             } catch(e) { console.log(e); }
 
             const nomeExibicao = dadosPerfil.name || emailAlvo.split('@')[0];
@@ -610,12 +599,7 @@
             }
 
             displayBioText.textContent = dadosPerfil.bio || "Nenhuma bio configurada.";
-            
-            if (dadosPerfil.link) {
-                displayLinkText.innerHTML = `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>`;
-            } else {
-                displayLinkText.textContent = "Nenhum link configurado.";
-            }
+            displayLinkText.innerHTML = dadosPerfil.link ? `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>` : "Nenhum link configurado.";
 
             profileEditSection.classList.add('hidden');
             profileEditDivider.classList.add('hidden');
@@ -663,7 +647,7 @@
                     modalAvatarPreview.innerHTML = `<img src="${photo}">`;
                 }
                 
-                alert('Perfil atualizado com sucesso!');
+                alert('Perfil atualizado!');
                 profileModal.classList.add('hidden');
                 carregarContactos();
             } catch (err) { alert('Erro ao salvar: ' + err.message); }
@@ -734,6 +718,8 @@
             chatContactAvatar.textContent = nomeContato.charAt(0).toUpperCase();
             termoPesquisaAtual = "";
             productTagInput.value = "";
+            mediaPreviewContainer.classList.add('hidden');
+            pendingMediaPayload = null;
             escutarMensagens();
         }
 
@@ -743,10 +729,12 @@
             if (unsubscribeMensagens) unsubscribeMensagens();
         });
 
+        // Função de envio otimizada para evitar erro de tamanho no Firestore
         async function enviar(conteudo, tipo = 'texto') {
             if (!conteudo) return;
             const produtoTag = productTagInput.value.trim();
             const textoFinal = produtoTag ? `[${produtoTag}] ${conteudo}` : conteudo;
+            
             try {
                 await addDoc(collection(db, "mensagens_chat"), {
                     remetente: auth.currentUser.email,
@@ -757,13 +745,14 @@
                     criadoEm: serverTimestamp()
                 });
                 mensagemInput.value = '';
-            } catch (err) { alert('Erro ao enviar: ' + err.message); }
+            } catch (err) { 
+                alert('Erro ao enviar: O arquivo é muito pesado para o banco de dados. Tente enviar uma imagem ou vídeo menor.'); 
+            }
         }
 
         btnEnviarMsg.addEventListener('click', () => enviar(mensagemInput.value));
         mensagemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviar(mensagemInput.value); });
 
-        // --- AÇÃO DO BOTÃO DE LUPA (PESQUISA) ---
         btnSearchTrigger.addEventListener('click', () => {
             termoPesquisaAtual = productTagInput.value.trim().toLowerCase();
             escutarMensagens();
@@ -776,7 +765,7 @@
             }
         });
 
-        // --- CLIPE (FOTO OU VÍDEO) ---
+        // --- CLIPE (FOTO OU VÍDEO) COM COMPRESSÃO / ALERTA DE TAMANHO ---
         btnClipFile.addEventListener('click', (e) => {
             e.stopPropagation();
             clipPopupMenu.classList.toggle('hidden');
@@ -796,6 +785,12 @@
         fileUploadInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                // Verificação de tamanho (máximo 800KB para garantir que não estoure o Firestore)
+                if (file.size > 800 * 1024) {
+                    alert('Este arquivo é muito grande (acima de 800KB). Por favor, escolha um arquivo mais leve para garantir o envio.');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(evt) {
                     const base64Data = evt.target.result;
@@ -818,22 +813,30 @@
             }
         });
 
+        // CORRIGIDO: O painel some (fica hidden) IMEDIATAMENTE após clicar em enviar
         btnConfirmarEnvioMidia.addEventListener('click', async () => {
             if (pendingMediaPayload) {
-                await enviar(pendingMediaPayload.html, pendingMediaPayload.tipo);
+                const payloadParaEnviar = pendingMediaPayload;
+                
+                // Esconde e limpa o painel primeiro
                 mediaPreviewContainer.classList.add('hidden');
+                previewContentBox.innerHTML = '';
                 pendingMediaPayload = null;
                 fileUploadInput.value = '';
+
+                // Envia para o banco
+                await enviar(payloadParaEnviar.html, payloadParaEnviar.tipo);
             }
         });
 
         btnCancelarMidia.addEventListener('click', () => {
             mediaPreviewContainer.classList.add('hidden');
+            previewContentBox.innerHTML = '';
             pendingMediaPayload = null;
             fileUploadInput.value = '';
         });
 
-        // --- ÁUDIO LIMPO ---
+        // --- ÁUDIO ---
         let mediaRecorder = null;
         let audioChunks = [];
         let isRecording = false;
@@ -854,7 +857,7 @@
                         const playerHtml = `<audio controls src="${audioUrl}" style="max-width:230px; height:38px;"></audio>`;
                         
                         pendingMediaPayload = { html: playerHtml, tipo: 'audio' };
-                        previewContentBox.innerHTML = `<p style="font-size:12px; font-weight:bold; margin-bottom:4px;">Ouvir Áudio Gravado:</p>` + playerHtml;
+                        previewContentBox.innerHTML = `<p style="font-size:12px; font-weight:bold; margin-bottom:4px;">Ouvir Áudio:</p>` + playerHtml;
                         mediaPreviewContainer.classList.remove('hidden');
 
                         stream.getTracks().forEach(t => t.stop());
@@ -871,7 +874,6 @@
             }
         });
 
-        // --- ESCUTA NO FIRESTORE COM FILTRO DA LUPA ---
         function escutarMensagens() {
             if (unsubscribeMensagens) unsubscribeMensagens();
             
@@ -884,7 +886,6 @@
                 let todas = [...cache.q1, ...cache.q2];
                 todas.sort((a, b) => (a.criadoEm?.toMillis() || 0) - (b.criadoEm?.toMillis() || 0));
 
-                // Filtrar pelo termo da lupa se houver
                 if (termoPesquisaAtual) {
                     todas = todas.filter(m => (m.texto || "").toLowerCase().includes(termoPesquisaAtual));
                 }
@@ -917,9 +918,7 @@
                     const audioEl = div.querySelector('audio');
 
                     if (imgEl) {
-                        imgEl.style.cursor = 'pointer';
                         imgEl.onclick = () => abrirTelaCheia(`<img src="${imgEl.src}" class="lightbox-content">`);
-                        
                         const btnDown = document.createElement('a');
                         btnDown.className = 'btn-download-media';
                         btnDown.href = imgEl.src;
@@ -928,7 +927,6 @@
                         div.appendChild(btnDown);
                     } else if (videoEl) {
                         videoEl.onclick = () => abrirTelaCheia(`<video src="${videoEl.src}" controls autoplay class="lightbox-content"></video>`);
-                        
                         const btnDown = document.createElement('a');
                         btnDown.className = 'btn-download-media';
                         btnDown.href = videoEl.src;
@@ -961,7 +959,6 @@
             unsubscribeMensagens = () => { unsub1(); unsub2(); };
         }
 
-        // --- MENU CONTEXTUAL APAGAR ---
         window.fecharMenusContextuais = function() {
             document.querySelectorAll('.context-menu').forEach(m => m.remove());
         };
@@ -996,14 +993,14 @@
                     if (!deletadoPara.includes(auth.currentUser.email)) deletadoPara.push(auth.currentUser.email);
                     await updateDoc(ref, { deletadoPara });
                 }
-            } catch(e) { alert("Erro ao apagar: " + e.message); }
+            } catch(e) { alert("Erro: " + e.message); }
         };
 
         window.apagarParaTodos = async function(idDoc) {
             fecharMenusContextuais();
             try {
                 await deleteDoc(doc(db, "mensagens_chat", idDoc));
-            } catch(e) { alert("Erro ao apagar para todos: " + e.message); }
+            } catch(e) { alert("Erro: " + e.message); }
         };
 
         btnLimparChat.addEventListener('click', async () => {
@@ -1020,9 +1017,7 @@
                     
                     await Promise.all(batchDeletes);
                     chatMessages.innerHTML = '';
-                } catch(e) {
-                    alert("Erro ao limpar chat: " + e.message);
-                }
+                } catch(e) { alert("Erro: " + e.message); }
             }
         });
 
@@ -1112,7 +1107,7 @@
         btnAtenderChamada.addEventListener('click', () => {
             pararSomCampainha();
             btnAtenderChamada.classList.add('hidden');
-            callStatusTitle.innerText = "Chamada em Andamento";
+            callStatusTitle.innerText = "Em Andamento";
         });
 
         btnDesligar.addEventListener('click', () => {
