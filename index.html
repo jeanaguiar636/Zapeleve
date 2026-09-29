@@ -130,7 +130,7 @@
         <div id="chat-screen" class="screen-content hidden">
             <div class="app-header">
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
-                    <button id="btn-back-to-contacts" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0;">⬅️</button>
+                    <button id="btn-back-to-contacts" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0;">⬅</button>
                     <div id="chat-user-avatar" class="avatar-placeholder" style="width: 34px; height: 34px; flex-shrink: 0;">U</div>
                     <span id="chat-user-name" style="font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Utilizador</span>
                 </div>
@@ -257,9 +257,10 @@
         let currentUserData = null;
         let activeChatUser = null;
         let unsubscribeChat = null;
-        let unsubscribeCalls = null;
+        let unsubscribeCall = null;
         let selectedFileBase64 = null;
         let ringingInterval = null;
+        let currentCallTargetUid = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -409,7 +410,7 @@
             escutarMensagensReais(userTarget.uid);
         }
 
-        // Gestão de Entrada de Mensagens e Envio (Com cliques diretos e microfone sem OK)
+        // Gestão de Entrada de Mensagens e Envio
         const chatInput = document.getElementById('chat-input-text');
         const mainBtn = document.getElementById('whatsapp-main-btn');
 
@@ -482,7 +483,6 @@
                         conteudoHtml = `<span>${m.texto}</span>`;
                     }
 
-                    // Opção de apagar mensagem (para todos se for minha, ou para mim)
                     conteudoHtml += `<div style="text-align: right; font-size: 10px; margin-top: 2px; cursor: pointer; color: #555;" class="btn-delete-msg" title="Apagar mensagem">🗑️</div>`;
                     bubble.innerHTML = conteudoHtml;
 
@@ -537,7 +537,7 @@
             mediaInput.value = '';
         });
 
-        // Gravação de Áudio Fluida (Clica para gravar, clica de novo para parar e ir ao preview)
+        // Gravação de Áudio Direta SEM ALERTA DE OK
         let mediaRecorder;
         let audioChunks = [];
         let recordedAudioUrl = null;
@@ -583,21 +583,25 @@
             recordedAudioUrl = null;
         });
 
-        // SISTEMA DE CHAMADAS REAIS ENTRE DISPOSITIVOS (VIA FIRESTORE)
-        function tocarAlarmeSonoro() {
+        // SISTEMA DE CHAMADAS REAIS ENTRE APARELHOS DIFERENTES COM LOOPING CONTÍNUO
+        function tocarAlarmeSonoroContinuo() {
+            if (ringingInterval) return; // Se já está tocando, não duplica
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 ringingInterval = setInterval(() => {
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(520, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start();
-                    setTimeout(() => { osc.stop(); }, 600);
-                }, 1000);
+                    setTimeout(() => { try { osc.stop(); } catch(e){} }, 700);
+                }, 1200);
             } catch(e) { console.log(e); }
         }
 
@@ -610,18 +614,20 @@
 
         async function iniciarChamadaReal(tipo) {
             if(!activeChatUser || !auth.currentUser) return;
-            const chamadaRef = doc(db, "calls", activeChatUser.uid);
+            currentCallTargetUid = activeChatUser.uid;
+            const chamadaOutroRef = doc(db, "calls", activeChatUser.uid);
             try {
-                await setDoc(chamadaRef, {
+                // Envia o sinal de chamada para o documento do OUTRO usuário
+                await setDoc(chamadaOutroRef, {
                     callerId: auth.currentUser.uid,
                     callerName: currentUserData.nome || auth.currentUser.email,
                     callerPhoto: currentUserData.foto || '',
-                    type: tipo, // 'voz' ou 'video'
+                    type: tipo,
                     status: 'ringing',
                     timestamp: Date.now()
                 });
 
-                document.getElementById('call-contact-name').textContent = activeChatUser.nome;
+                document.getElementById('call-contact-name').textContent = activeChatUser.nome || 'Utilizador';
                 const avatar = document.getElementById('call-contact-avatar');
                 if(activeChatUser.foto) avatar.innerHTML = `<img src="${activeChatUser.foto}" style="width:100%;height:100%;object-fit:cover;">`;
                 else avatar.textContent = (activeChatUser.nome || 'U').charAt(0).toUpperCase();
@@ -629,17 +635,23 @@
                 document.getElementById('call-status-text').textContent = `A chamar (${tipo})...`;
                 document.getElementById('btn-accept-call').classList.add('hidden');
                 document.getElementById('active-call-screen').classList.remove('hidden');
-                tocarAlarmeSonoro();
+                
+                tocarAlarmeSonoroContinuo();
+                ouvirEstadoDaChamadaPropria(activeChatUser.uid);
             } catch(e) { alert('Erro ao iniciar chamada: ' + e.message); }
         }
 
         function escutarChamadasEntrantes(uid) {
             const callDocRef = doc(db, "calls", uid);
-            onSnapshot(callDocRef, (docSnap) => {
+            if(unsubscribeCall) unsubscribeCall();
+
+            unsubscribeCall = onSnapshot(callDocRef, (docSnap) => {
                 if(!docSnap.exists()) return;
                 const data = docSnap.data();
+                
+                // Se a chamada é para mim e está a tocar
                 if(data.status === 'ringing' && data.callerId !== uid) {
-                    // Recebeu chamada de outro utilizador!
+                    currentCallTargetUid = data.callerId;
                     document.getElementById('call-contact-name').textContent = data.callerName || 'Utilizador';
                     const avatar = document.getElementById('call-contact-avatar');
                     if(data.callerPhoto) avatar.innerHTML = `<img src="${data.callerPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
@@ -648,7 +660,29 @@
                     document.getElementById('call-status-text').textContent = `A receber chamada de ${data.type}...`;
                     document.getElementById('btn-accept-call').classList.remove('hidden');
                     document.getElementById('active-call-screen').classList.remove('hidden');
-                    tocarAlarmeSonoro();
+                    tocarAlarmeSonoroContinuo();
+                } 
+                // Se quem ligou cancelou ou desligou
+                else if(data.status === 'ended' || data.status === 'rejected') {
+                    fecharTelaChamada();
+                }
+                // Se foi atendida
+                else if(data.status === 'answered') {
+                    pararAlarmeSonoro();
+                    document.getElementById('call-status-text').textContent = 'Chamada em curso...';
+                    document.getElementById('btn-accept-call').classList.add('hidden');
+                }
+            });
+        }
+
+        async function ouvirEstadoDaChamadaPropria(outroUid) {
+            const callOutroRef = doc(db, "calls", outroUid);
+            onSnapshot(callOutroRef, (docSnap) => {
+                if(!docSnap.exists()) return;
+                const data = docSnap.data();
+                if(data.status === 'answered') {
+                    pararAlarmeSonoro();
+                    document.getElementById('call-status-text').textContent = 'Chamada em curso...';
                 } else if(data.status === 'ended') {
                     fecharTelaChamada();
                 }
@@ -658,18 +692,30 @@
         document.getElementById('btn-video-call').addEventListener('click', () => iniciarChamadaReal('video'));
         document.getElementById('btn-audio-call').addEventListener('click', () => iniciarChamadaReal('voz'));
 
-        document.getElementById('btn-accept-call').addEventListener('click', () => {
+        document.getElementById('btn-accept-call').addEventListener('click', async () => {
             pararAlarmeSonoro();
-            document.getElementById('call-status-text').textContent = 'Chamada ativa...';
+            document.getElementById('call-status-text').textContent = 'Chamada em curso...';
             document.getElementById('btn-accept-call').classList.add('hidden');
+            
+            if(auth.currentUser) {
+                try {
+                    await setDoc(doc(db, "calls", auth.currentUser.uid), { status: 'answered' }, { merge: true });
+                } catch(e) {}
+            }
+            if(currentCallTargetUid) {
+                try {
+                    await setDoc(doc(db, "calls", currentCallTargetUid), { status: 'answered' }, { merge: true });
+                } catch(e) {}
+            }
         });
 
         document.getElementById('btn-end-call').addEventListener('click', async () => {
             pararAlarmeSonoro();
             fecharTelaChamada();
-            if(activeChatUser) {
+            
+            if(currentCallTargetUid) {
                 try {
-                    await setDoc(doc(db, "calls", activeChatUser.uid), { status: 'ended' }, { merge: true });
+                    await setDoc(doc(db, "calls", currentCallTargetUid), { status: 'ended' }, { merge: true });
                 } catch(e) {}
             }
             if(auth.currentUser) {
@@ -683,6 +729,7 @@
             pararAlarmeSonoro();
             document.getElementById('active-call-screen').classList.add('hidden');
             document.getElementById('btn-accept-call').classList.add('hidden');
+            currentCallTargetUid = null;
         }
 
         document.getElementById('btn-back-to-contacts').addEventListener('click', () => {
