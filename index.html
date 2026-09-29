@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Catálogo e Chamadas com Foto</title>
+    <title>Zap Leve - Nome de Perfil e Privacidade</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -81,7 +81,6 @@
         .floating-cart { position: fixed; bottom: 80px; right: 20px; background: #25d366; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: none; transition: transform 0.2s; }
         .floating-cart:hover { transform: scale(1.08); }
 
-        /* MODAIS E CATÁLOGO */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
         .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
 
@@ -94,7 +93,6 @@
         .btn-prod-buy { flex: 1; background: #25d366; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
         .btn-prod-del { background: #ea0938; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
 
-        /* TELA DE CHAMADA COM FOTO E NOME */
         #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; text-align: center; color: white; }
         .call-user-display { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 20px; }
         .call-avatar { width: 100px; height: 100px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: white; overflow: hidden; border: 3px solid rgba(255,255,255,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
@@ -184,7 +182,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE PERFIL -->
+        <!-- MODAL DE PERFIL (COM NOME DE PERFIL EDITÁVEL E EMAIL OCULTO PARA NÃO-ADMINS) -->
         <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
                 <div style="text-align: center; position: relative;">
@@ -192,6 +190,7 @@
                 </div>
                 <div style="text-align: center;">
                     <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
+                    <!-- O email só aparece se for admin ou próprio perfil -->
                     <span id="modal-user-email" style="font-size: 12px; color: #666;">email@gmail.com</span>
                 </div>
 
@@ -206,6 +205,10 @@
 
                 <div id="profile-edit-section">
                     <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar o Meu Perfil:</div>
+                    <div style="margin-bottom: 6px;">
+                        <label style="font-size: 11px; color: #555; display: block; margin-bottom: 2px;">Nome de Perfil:</label>
+                        <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
+                    </div>
                     <div style="margin-bottom: 6px;">
                         <label style="font-size: 11px; color: #555; display: block; margin-bottom: 2px;">Alterar Foto de Perfil:</label>
                         <input type="file" id="profile-img-file" accept="image/*" style="font-size: 12px; width: 100%;">
@@ -270,7 +273,7 @@
             </div>
         </div>
 
-        <!-- TELA DE CHAMADA COM NOME E FOTO DE PERFIL -->
+        <!-- TELA DE CHAMADA -->
         <div id="call-screen" class="hidden">
             <div class="call-user-display">
                 <div id="call-user-avatar" class="avatar-placeholder call-avatar">?</div>
@@ -315,6 +318,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        const ADMIN_EMAIL = "jeanaguiar636@gmail.com";
+
         const authScreen = document.getElementById('auth-screen');
         const contactsScreen = document.getElementById('contacts-screen');
         const chatScreen = document.getElementById('chat-screen');
@@ -344,6 +349,7 @@
         const displayBioText = document.getElementById('display-bio-text');
         const displayLinkText = document.getElementById('display-link-text');
         const profileImgFile = document.getElementById('profile-img-file');
+        const profileNameInput = document.getElementById('profile-name-input');
         const profileBioInput = document.getElementById('profile-bio-input');
         const profileLinkInput = document.getElementById('profile-link-input');
         const profileEditSection = document.getElementById('profile-edit-section');
@@ -392,7 +398,7 @@
         let currentChatUser = null;
         let unsubscribeMensagens = null;
         let localStream = null;
-        let currentUserData = { bio: "", link: "", photo: "" };
+        let currentUserData = { name: "", bio: "", link: "", photo: "" };
         let deferredPrompt = null;
         let pendingMediaPayload = null;
 
@@ -428,7 +434,7 @@
 
         // --- CATÁLOGO ---
         btnOpenCatalog.addEventListener('click', async () => {
-            if (auth.currentUser && auth.currentUser.email.includes("jeanaguiar")) {
+            if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
                 adminProductForm.classList.remove('hidden');
             } else {
                 adminProductForm.classList.add('hidden');
@@ -488,7 +494,7 @@
                 querySnapshot.forEach((docSnap) => {
                     const p = docSnap.data();
                     const prodId = docSnap.id;
-                    const eAdmin = (auth.currentUser && auth.currentUser.email.includes("jeanaguiar"));
+                    const eAdmin = (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL);
 
                     const card = document.createElement('div');
                     card.className = 'product-card';
@@ -517,7 +523,7 @@
             }
         };
 
-        // --- PERFIL ---
+        // --- PERFIL E PRIVACIDADE DE EMAIL ---
         openProfileBtn.addEventListener('click', async () => {
             if (!auth.currentUser) return;
             await abrirModalPerfilUtilizador(auth.currentUser.email, auth.currentUser.uid);
@@ -525,25 +531,29 @@
 
         openChatProfileBtn.addEventListener('click', async () => {
             if (!currentChatUser) return;
-            await abrirModalPerfilUtilizador(currentChatUser, null);
+            await abrirModalPerfilUtilizadorPorEmail(currentChatUser);
         });
 
         async function abrirModalPerfilUtilizador(emailUser, uidUser) {
-            let dadosPerfil = { bio: "", link: "", photo: "" };
+            let dadosPerfil = { name: "", bio: "", link: "", photo: "" };
             try {
                 if (uidUser) {
                     const snap = await getDoc(doc(db, "utilizadores", uidUser));
                     if (snap.exists()) dadosPerfil = snap.data();
-                } else {
-                    const q = query(collection(db, "utilizadores"), where("email", "==", emailUser));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) dadosPerfil = querySnapshot.docs[0].data();
                 }
             } catch(e) { console.log(e); }
 
-            const nomeUser = emailUser.split('@')[0];
-            modalUserUsername.textContent = nomeUser;
-            modalUserEmail.textContent = emailUser;
+            const nomeExibicao = dadosPerfil.name || emailUser.split('@')[0];
+            modalUserUsername.textContent = nomeExibicao;
+            
+            // Apenas o admin vê o email
+            if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
+                modalUserEmail.textContent = emailUser;
+                modalUserEmail.style.display = 'block';
+            } else {
+                modalUserEmail.style.display = 'none';
+            }
+
             displayBioText.textContent = dadosPerfil.bio || "Nenhuma bio configurada.";
             
             if (dadosPerfil.link) {
@@ -552,19 +562,53 @@
                 displayLinkText.textContent = "Nenhum link configurado.";
             }
 
-            const eProprioPerfil = (auth.currentUser && auth.currentUser.email === emailUser);
-            if (eProprioPerfil) {
-                profileEditSection.classList.remove('hidden');
-                profileEditDivider.classList.remove('hidden');
-                profileBioInput.value = dadosPerfil.bio || "";
-                profileLinkInput.value = dadosPerfil.link || "";
-            } else {
-                profileEditSection.classList.add('hidden');
-                profileEditDivider.classList.add('hidden');
-            }
+            profileEditSection.classList.remove('hidden');
+            profileEditDivider.classList.remove('hidden');
+            profileNameInput.value = dadosPerfil.name || emailUser.split('@')[0];
+            profileBioInput.value = dadosPerfil.bio || "";
+            profileLinkInput.value = dadosPerfil.link || "";
 
             if (dadosPerfil.photo) modalAvatarPreview.innerHTML = `<img src="${dadosPerfil.photo}">`;
-            else modalAvatarPreview.textContent = nomeUser.charAt(0).toUpperCase();
+            else modalAvatarPreview.textContent = nomeExibicao.charAt(0).toUpperCase();
+
+            profileModal.classList.remove('hidden');
+        }
+
+        async function abrirModalPerfilPorEmail(emailAlvo) {
+            let dadosPerfil = { name: "", bio: "", link: "", photo: "" };
+            try {
+                const q = query(collection(db, "utilizadores"), where("email", "==", emailAlvo));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    dadosPerfil = querySnapshot.docs[0].data();
+                }
+            } catch(e) { console.log(e); }
+
+            const nomeExibicao = dadosPerfil.name || emailAlvo.split('@')[0];
+            modalUserUsername.textContent = nomeExibicao;
+            
+            // Apenas admin vê o email de outros usuários
+            if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
+                modalUserEmail.textContent = emailAlvo;
+                modalUserEmail.style.display = 'block';
+            } else {
+                modalUserEmail.style.display = 'none';
+            }
+
+            displayBioText.textContent = dadosPerfil.bio || "Nenhuma bio configurada.";
+            
+            if (dadosPerfil.link) {
+                displayLinkText.innerHTML = `<a href="${dadosPerfil.link}" target="_blank" style="color: #0066cc; text-decoration: underline;">${dadosPerfil.link}</a>`;
+            } else {
+                displayLinkText.textContent = "Nenhum link configurado.";
+            }
+
+            // Não é o próprio perfil, esconde edição
+            profileEditSection.classList.add('hidden');
+            profileEditDivider.classList.add('hidden');
+
+            if (dadosPerfil.photo) modalAvatarPreview.innerHTML = `<img src="${dadosPerfil.photo}">`;
+            else modalAvatarPreview.textContent = nomeExibicao.charAt(0).toUpperCase();
 
             profileModal.classList.remove('hidden');
         }
@@ -573,6 +617,7 @@
 
         btnSaveProfile.addEventListener('click', async () => {
             if (!auth.currentUser) return;
+            const newName = profileNameInput.value.trim() || auth.currentUser.email.split('@')[0];
             const newBio = profileBioInput.value.trim();
             const newLink = profileLinkInput.value.trim();
             const file = profileImgFile.files[0];
@@ -581,24 +626,33 @@
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     currentUserData.photo = e.target.result;
-                    await salvarPerfilFirestore(newBio, newLink, currentUserData.photo);
+                    await salvarPerfilFirestore(newName, newBio, newLink, currentUserData.photo);
                 };
                 reader.readAsDataURL(file);
             } else {
-                await salvarPerfilFirestore(newBio, newLink, currentUserData.photo);
+                await salvarPerfilFirestore(newName, newBio, newLink, currentUserData.photo);
             }
         });
 
-        async function salvarPerfilFirestore(bio, link, photo) {
+        async function salvarPerfilFirestore(name, bio, link, photo) {
             try {
                 const userRef = doc(db, "utilizadores", auth.currentUser.uid);
-                await setDoc(userRef, { email: auth.currentUser.email, bio, link, photo: photo || "" }, { merge: true });
-                currentUserData = { bio, link, photo };
+                await setDoc(userRef, { email: auth.currentUser.email, name, bio, link, photo: photo || "" }, { merge: true });
+                currentUserData = { name, bio, link, photo };
+                
+                modalUserUsername.textContent = name;
+                userEmailDisplay.textContent = name;
                 displayBioText.textContent = bio || "Nenhuma bio configurada.";
                 displayLinkText.textContent = link || "Nenhum link configurado.";
-                if (photo) userAvatarInitial.innerHTML = `<img src="${photo}">`;
+                
+                if (photo) {
+                    userAvatarInitial.innerHTML = `<img src="${photo}">`;
+                    modalAvatarPreview.innerHTML = `<img src="${photo}">`;
+                }
+                
                 alert('Perfil atualizado com sucesso!');
                 profileModal.classList.add('hidden');
+                carregarContactos();
             } catch (err) { alert('Erro ao salvar: ' + err.message); }
         }
 
@@ -607,36 +661,60 @@
                 const userSnap = await getDoc(doc(db, "utilizadores", user.uid));
                 if (userSnap.exists()) {
                     currentUserData = userSnap.data();
+                    const nomeExibicao = currentUserData.name || user.email.split('@')[0];
+                    userEmailDisplay.textContent = nomeExibicao;
                     if (currentUserData.photo) userAvatarInitial.innerHTML = `<img src="${currentUserData.photo}">`;
+                } else {
+                    userEmailDisplay.textContent = user.email.split('@')[0];
                 }
-            } catch (e) { console.log(e); }
+            } catch (e) { 
+                userEmailDisplay.textContent = user.email.split('@')[0];
+            }
         }
 
         const contactosExemplo = [
-            { nome: "julio" }, { nome: "seu-email-admin" }, { nome: "rian200905" },
-            { nome: "rian20092005" }, { nome: "Carlos aguiar" }, { nome: "lipesht" },
-            { nome: "pagenegocio" }, { nome: "murilosousa300709" }
+            { nome: "julio", email: "julio@gmail.com" }, 
+            { nome: "seu-email-admin", email: "admin@gmail.com" }, 
+            { nome: "rian200905", email: "rian200905@gmail.com" },
+            { nome: "rian20092005", email: "rian20092005@gmail.com" }, 
+            { nome: "Carlos aguiar", email: "carlos@gmail.com" }, 
+            { nome: "lipesht", email: "lipesht@gmail.com" },
+            { nome: "pagenegocio", email: "pagenegocio@gmail.com" }, 
+            { nome: "murilosousa300709", email: "murilo@gmail.com" }
         ];
 
-        function carregarContactos() {
+        async function carregarContactos() {
             listContactsContainer.innerHTML = '';
-            contactosExemplo.forEach(c => {
+            for (const c of contactosExemplo) {
+                let nomeFinal = c.nome;
+                let fotoFinal = '';
+                
+                try {
+                    const q = query(collection(db, "utilizadores"), where("email", "==", c.email));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        const dados = snap.docs[0].data();
+                        if (dados.name) nomeFinal = dados.name;
+                        if (dados.photo) fotoFinal = dados.photo;
+                    }
+                } catch(e) {}
+
                 const div = document.createElement('div');
                 div.className = 'contact-item';
                 div.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="avatar-placeholder">${c.nome.charAt(0).toUpperCase()}</div>
-                        <span style="font-weight:500; color:#111;">${c.nome}</span>
+                        <div class="avatar-placeholder">${fotoFinal ? `<img src="${fotoFinal}">` : nomeFinal.charAt(0).toUpperCase()}</div>
+                        <span style="font-weight:500; color:#111;">${nomeFinal}</span>
                     </div>
                     <button class="btn-conversar">Conversar 💬</button>
                 `;
-                div.addEventListener('click', () => abrirChat(c.nome));
+                div.addEventListener('click', () => abrirChat(c.email, nomeFinal));
                 listContactsContainer.appendChild(div);
-            });
+            }
         }
 
-        function abrirChat(nomeContato) {
-            currentChatUser = nomeContato;
+        function abrirChat(emailContato, nomeContato) {
+            currentChatUser = emailContato;
             contactsScreen.classList.add('hidden');
             chatScreen.classList.remove('hidden');
             chatContactName.textContent = nomeContato;
@@ -775,24 +853,34 @@
 
             let cache = { q1: [], q2: [] };
 
-            const renderizar = () => {
+            const renderizar = async () => {
                 const todas = [...cache.q1, ...cache.q2];
                 todas.sort((a, b) => (a.criadoEm?.toMillis() || 0) - (b.criadoEm?.toMillis() || 0));
 
                 chatMessages.innerHTML = '';
-                todas.forEach((data) => {
+                for (const data of todas) {
                     const deletadoPara = data.deletadoPara || [];
-                    if (deletadoPara.includes(auth.currentUser.email)) return;
+                    if (deletadoPara.includes(auth.currentUser.email)) continue;
 
                     const minha = data.remetente === auth.currentUser.email;
                     const div = document.createElement('div');
                     div.className = minha ? 'msg msg-minha' : 'msg msg-outra';
                     
-                    let htmlConteudo = `<span style="font-size:10px; color:#555; margin-bottom:2px;">${data.remetente}</span><div>${data.texto}</div>`;
+                    // Mostra o nome de perfil do remetente em vez do e-mail
+                    let nomeRemetente = data.remetente.split('@')[0];
+                    try {
+                        const qUser = query(collection(db, "utilizadores"), where("email", "==", data.remetente));
+                        const sUser = await getDocs(qUser);
+                        if (!sUser.empty && sUser.docs[0].data().name) {
+                            nomeRemetente = sUser.docs[0].data().name;
+                        }
+                    } catch(e) {}
+
+                    let htmlConteudo = `<span style="font-size:10px; color:#555; margin-bottom:2px; font-weight:bold;">${nomeRemetente}</span><div>${data.texto}</div>`;
                     htmlConteudo += `<button class="msg-menu-btn" onclick="abrirMenuContextual(event, '${data.idDoc}', ${minha})">⋮</button>`;
                     div.innerHTML = htmlConteudo;
                     chatMessages.appendChild(div);
-                });
+                }
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             };
 
@@ -873,7 +961,7 @@
             }
         });
 
-        // --- CHAMADAS COM FOTO E NOME DE PERFIL ---
+        // --- CHAMADAS COM FOTO E NOME ---
         let audioCtx = null;
         let ringInterval = null;
 
@@ -903,17 +991,22 @@
             if (ringInterval) { clearInterval(ringInterval); ringInterval = null; }
         }
 
-        async function configurarDadosChamada(nomeContato) {
-            callContactName.textContent = nomeContato;
-            callUserAvatar.textContent = nomeContato.charAt(0).toUpperCase();
+        async function configurarDadosChamada(emailContato) {
+            let nomeExibicao = emailContato.split('@')[0];
+            callUserAvatar.textContent = nomeExibicao.charAt(0).toUpperCase();
+            callContactName.textContent = nomeExibicao;
             
-            // Tenta buscar a foto de perfil do contato no Firestore
             try {
-                const q = query(collection(db, "utilizadores"), where("email", ">=", nomeContato));
+                const q = query(collection(db, "utilizadores"), where("email", "==", emailContato));
                 const querySnapshot = await getDocs(q);
                 querySnapshot.forEach((docSnap) => {
                     const dados = docSnap.data();
-                    if (dados.email && dados.email.startsWith(nomeContato) && dados.photo) {
+                    if (dados.name) {
+                        nomeExibicao = dados.name;
+                        callContactName.textContent = nomeExibicao;
+                        callUserAvatar.textContent = nomeExibicao.charAt(0).toUpperCase();
+                    }
+                    if (dados.photo) {
                         callUserAvatar.innerHTML = `<img src="${dados.photo}">`;
                     }
                 });
@@ -935,8 +1028,12 @@
             } catch (err) { alert('Erro câmara/microfone: ' + err.message); }
         }
 
-        btnVideoCall.addEventListener('click', () => iniciarChamada('video'));
-        btnAudioCall.addEventListener('click', () => iniciarChamada('audio'));
+        btnVideoCall.addEventListener('click', () => iniciarChanadaSegura('video'));
+        btnAudioCall.addEventListener('click', () => iniciarChanadaSegura('audio'));
+
+        function iniciarChanadaSegura(tipo) {
+            iniciarChamada(tipo);
+        }
 
         btnAtenderChamada.addEventListener('click', () => {
             pararSomCampainha();
@@ -960,9 +1057,7 @@
             if (user) {
                 authScreen.classList.add('hidden');
                 contactsScreen.classList.remove('hidden');
-                userEmailDisplay.textContent = user.email.split('@')[0];
                 userSubEmail.textContent = user.email;
-                userAvatarInitial.textContent = user.email.charAt(0).toUpperCase();
                 await carregarPerfilInicial(user);
                 carregarContactos();
             } else {
