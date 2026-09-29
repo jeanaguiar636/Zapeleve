@@ -36,26 +36,30 @@
         .chat-input-area { display: flex; align-items: center; padding: 8px 10px; background: #f0f0f0; gap: 6px; flex-shrink: 0; }
         .chat-input-area input[type="text"] { flex: 1; padding: 10px 14px; border: none; border-radius: 20px; outline: none; font-size: 13px; background: #ffffff; }
         
-        /* Botões de Chamada no Header */
+        /* Botões de Chamada no Header refinados com textos e ícones */
         .call-buttons-container { display: flex; gap: 6px; align-items: center; }
         .btn-call-styled {
-            background: #25d366; color: white; border: none; padding: 5px 10px; border-radius: 16px;
-            font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;
+            background: #25d366;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.2s;
         }
         .btn-call-styled.video { background: #34b7f1; }
+        .btn-call-styled:hover { opacity: 0.9; }
 
         /* Botões de Ação na Barra Inferior */
         .whatsapp-icon-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
         .whatsapp-icon-btn.mic { background: #128c7e; }
         .whatsapp-icon-btn.send { background: #00a884; font-size: 14px; }
-        .whatsapp-icon-btn.recording { background: #ea0938; animation: pulse 1.2s infinite; }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
 
         .floating-cart { 
             position: fixed; bottom: 80px; right: 20px; 
@@ -67,9 +71,9 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
         .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         
-        /* Tela de Chamada Ativa / Recebida */
+        /* Tela de Chamada Ativa (Modal de Voz / Vídeo) */
         .call-screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 2000; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 20px; color: white; text-align: center; }
-        .call-avatar-lg { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #25d366; object-fit: cover; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px auto; overflow: hidden; }
+        .call-avatar-lg { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #25d366; object-fit: cover; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px auto; }
     </style>
 </head>
 <body>
@@ -126,7 +130,7 @@
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
         </div>
 
-        <!-- TELA DE CHAT -->
+        <!-- TELA DE CHAT COM BOTÕES DE CHAMADA REFINADOS NO TOPO -->
         <div id="chat-screen" class="screen-content hidden">
             <div class="app-header">
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
@@ -135,6 +139,7 @@
                     <span id="chat-user-name" style="font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Utilizador</span>
                 </div>
                 
+                <!-- Botões de chamada com rótulos visíveis e elegantes -->
                 <div class="call-buttons-container">
                     <button id="btn-video-call" class="btn-call-styled video" title="Chamada de Vídeo">📹 Vídeo</button>
                     <button id="btn-audio-call" class="btn-call-styled" title="Chamada de Voz">📞 Ligar</button>
@@ -143,6 +148,7 @@
             
             <div class="chat-messages" id="chat-messages-container"></div>
 
+            <!-- Área Inferior do Chat (Input, Clipe para Mídia Real, e Botão de Áudio com Preview) -->
             <div class="chat-input-area">
                 <input type="file" id="media-file-input" accept="image/*,video/*" style="display: none;">
                 <button id="btn-attach-media" class="whatsapp-icon-btn" style="background: none; color: #555; font-size: 20px;" title="Enviar Imagem ou Vídeo">📎</button>
@@ -151,11 +157,11 @@
             </div>
         </div>
 
-        <!-- MODAL DE PREVIEW DE ÁUDIO -->
+        <!-- MODAL DE PRÉ-VISUALIZAÇÃO DE ÁUDIO GRAVADO -->
         <div id="audio-preview-modal" class="modal-overlay hidden">
             <div class="modal-card" style="text-align: center;">
-                <h3 style="color: #075e54; margin: 0;">Ouvir Mensagem de Voz</h3>
-                <p style="font-size: 12px; color: #666;">Confirme o envio do seu áudio:</p>
+                <h3 style="color: #075e54; margin: 0;">Mensagem de Voz Gravada</h3>
+                <p style="font-size: 12px; color: #666;">Ouça o seu áudio antes de enviar:</p>
                 <audio id="audio-preview-element" controls style="width: 100%; margin: 10px 0;"></audio>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button id="btn-send-audio" style="flex: 1; background: #25d366; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar Áudio</button>
@@ -164,7 +170,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE PREVIEW DE MÍDIA (FOTO/VÍDEO) -->
+        <!-- MODAL DE PRÉ-VISUALIZAÇÃO DE MÍDIA (IMAGEM/VÍDEO) -->
         <div id="media-preview-modal" class="modal-overlay hidden">
             <div class="modal-card" style="text-align: center;">
                 <h3 style="color: #075e54; margin: 0;">Enviar Mídia</h3>
@@ -176,18 +182,17 @@
             </div>
         </div>
 
-        <!-- TELA DE CHAMADA REAL / TOQUE ENTRE DISPOSITIVOS -->
+        <!-- TELA DE CHAMADA ATIVA (COM TOQUE E IDENTIDADE DO CONTACTO) -->
         <div id="active-call-screen" class="call-screen-overlay hidden">
             <div style="margin-top: 20px;">
                 <span style="font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #25d366;" id="call-status-text">A chamar...</span>
-                <h2 id="call-contact-name" style="margin: 5px 0; font-size: 22px;">Nome</h2>
+                <h2 id="call-contact-name" style="margin: 5px 0; font-size: 22px;">Nome do Contacto</h2>
             </div>
             <div>
                 <div id="call-contact-avatar" class="call-avatar-lg">U</div>
             </div>
-            <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px;" id="call-action-buttons">
-                <button id="btn-end-call" style="background: #ea0938; color: white; border: none; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" title="Recusar / Desligar">📞</button>
-                <button id="btn-accept-call" class="hidden" style="background: #25d366; color: white; border: none; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" title="Atender">📞</button>
+            <div style="margin-bottom: 30px;">
+                <button id="btn-end-call" style="background: #ea0938; color: white; border: none; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" title="Encerrar Chamada">📞</button>
             </div>
         </div>
 
@@ -235,11 +240,11 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE FIREBASE E LÓGICA COMPLETA -->
+    <!-- SCRIPT DE FIREBASE E FUNCIONALIDADES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, addDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
@@ -257,9 +262,7 @@
         let currentUserData = null;
         let activeChatUser = null;
         let unsubscribeChat = null;
-        let unsubscribeCalls = null;
         let selectedFileBase64 = null;
-        let ringingInterval = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -283,7 +286,6 @@
                 }
                 carregarDadosUsuario(user, currentUserData);
                 carregarTodosContactos();
-                escutarChamadasEntrantes(user.uid);
             }
         });
 
@@ -409,7 +411,7 @@
             escutarMensagensReais(userTarget.uid);
         }
 
-        // Gestão de Entrada de Mensagens e Envio (Com cliques diretos e microfone sem OK)
+        // Comportamento do Botão Principal (Texto vs Enviar vs Microfone)
         const chatInput = document.getElementById('chat-input-text');
         const mainBtn = document.getElementById('whatsapp-main-btn');
 
@@ -434,7 +436,7 @@
                 mainBtn.className = 'whatsapp-icon-btn mic';
                 mainBtn.title = 'Gravar Áudio';
             } else {
-                toggleGravacaoAudioDireta();
+                iniciarGravacaoAudioComPreview();
             }
         });
 
@@ -466,41 +468,26 @@
                 }
                 snapshot.forEach((docSnap) => {
                     const m = docSnap.data();
-                    const msgId = docSnap.id;
                     const bubble = document.createElement('div');
                     const meuEnvio = m.remetente === auth.currentUser.uid;
                     bubble.className = `message-bubble ${meuEnvio ? 'message-outgoing' : 'message-incoming'}`;
                     
-                    let conteudoHtml = '';
                     if(m.tipo === 'imagem') {
-                        conteudoHtml = `<img src="${m.texto}" style="max-width:100%; border-radius:6px; display:block;">`;
+                        bubble.innerHTML = `<img src="${m.texto}" style="max-width:100%; border-radius:6px; display:block;">`;
                     } else if(m.tipo === 'video') {
-                        conteudoHtml = `<video controls src="${m.texto}" style="max-width:100%; border-radius:6px; display:block;"></video>`;
+                        bubble.innerHTML = `<video controls src="${m.texto}" style="max-width:100%; border-radius:6px; display:block;"></video>`;
                     } else if(m.tipo === 'audio') {
-                        conteudoHtml = `<audio controls src="${m.texto}" style="max-width: 200px;"></audio>`;
+                        bubble.innerHTML = `<audio controls src="${m.texto}" style="max-width: 200px;"></audio>`;
                     } else {
-                        conteudoHtml = `<span>${m.texto}</span>`;
+                        bubble.textContent = m.texto;
                     }
-
-                    // Opção de apagar mensagem (para todos se for minha, ou para mim)
-                    conteudoHtml += `<div style="text-align: right; font-size: 10px; margin-top: 2px; cursor: pointer; color: #555;" class="btn-delete-msg" title="Apagar mensagem">🗑️</div>`;
-                    bubble.innerHTML = conteudoHtml;
-
-                    bubble.querySelector('.btn-delete-msg').addEventListener('click', async () => {
-                        if(confirm('Apagar esta mensagem?')) {
-                            try {
-                                await deleteDoc(doc(db, "chats", chatId, "mensagens", msgId));
-                            } catch(e) { alert('Erro ao apagar: ' + e.message); }
-                        }
-                    });
-
                     msgContainer.appendChild(bubble);
                 });
                 msgContainer.scrollTop = msgContainer.scrollHeight;
             });
         }
 
-        // Envio de Mídia com Preview (Foto/Vídeo)
+        // Manipulação Real de Arquivos de Mídia (Imagens e Vídeos do Dispositivo)
         const mediaInput = document.getElementById('media-file-input');
         document.getElementById('btn-attach-media').addEventListener('click', () => { mediaInput.click(); });
 
@@ -537,38 +524,37 @@
             mediaInput.value = '';
         });
 
-        // Gravação de Áudio Fluida (Clica para gravar, clica de novo para parar e ir ao preview)
+        // Gravação de Áudio com Preview antes do Envio
         let mediaRecorder;
         let audioChunks = [];
         let recordedAudioUrl = null;
-        let isRecording = false;
 
-        async function toggleGravacaoAudioDireta() {
-            if(!isRecording) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-                    
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        recordedAudioUrl = URL.createObjectURL(audioBlob);
-                        document.getElementById('audio-preview-element').src = recordedAudioUrl;
-                        document.getElementById('audio-preview-modal').classList.remove('hidden');
-                    };
+        async function iniciarGravacaoAudioComPreview() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    recordedAudioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audio-preview-element').src = recordedAudioUrl;
+                    document.getElementById('audio-preview-modal').classList.remove('hidden');
+                };
 
-                    mediaRecorder.start();
-                    isRecording = true;
-                    mainBtn.classList.add('recording');
-                    mainBtn.textContent = '⏹️';
-                } catch(e) { alert('Erro ao aceder ao microfone: ' + e.message); }
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                mainBtn.classList.remove('recording');
-                mainBtn.textContent = '🎤';
-            }
+                mediaRecorder.start();
+                mainBtn.style.background = '#ea0938';
+                mainBtn.textContent = '⏹️️';
+                alert('A gravar áudio... Clique OK e depois clique no botão vermelho para parar e rever.');
+                
+                mainBtn.onclick = () => {
+                    mediaRecorder.stop();
+                    mainBtn.style.background = '#128c7e';
+                    mainBtn.textContent = '🎤';
+                    mainBtn.onclick = null;
+                };
+            } catch(e) { alert('Erro ao aceder ao microfone: ' + e.message); }
         }
 
         document.getElementById('btn-discard-audio').addEventListener('click', () => {
@@ -583,107 +569,42 @@
             recordedAudioUrl = null;
         });
 
-        // SISTEMA DE CHAMADAS REAIS ENTRE DISPOSITIVOS (VIA FIRESTORE)
-        function tocarAlarmeSonoro() {
+        // Simulação de Chamadas com Toque Sonoro Alto e Identidade do Contacto
+        function tocarAlarmeChamada() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                ringingInterval = setInterval(() => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(520, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                    setTimeout(() => { osc.stop(); }, 600);
-                }, 1000);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                setTimeout(() => { osc.stop(); audioCtx.close(); }, 1200);
             } catch(e) { console.log(e); }
         }
 
-        function pararAlarmeSonoro() {
-            if(ringingInterval) {
-                clearInterval(ringingInterval);
-                ringingInterval = null;
+        function iniciarChamada(tipo) {
+            if(!activeChatUser) return;
+            document.getElementById('call-contact-name').textContent = activeChatUser.nome || 'Utilizador';
+            const avatarCall = document.getElementById('call-contact-avatar');
+            if(activeChatUser.foto) {
+                avatarCall.innerHTML = `<img src="${activeChatUser.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+            } else {
+                avatarCall.textContent = (activeChatUser.nome || 'U').charAt(0).toUpperCase();
             }
+            document.getElementById('call-status-text').textContent = `A chamar (${tipo === 'video' ? 'Vídeo' : 'Voz'})...`;
+            document.getElementById('active-call-screen').classList.remove('hidden');
+            tocarAlarmeChamada();
         }
 
-        async function iniciarChamadaReal(tipo) {
-            if(!activeChatUser || !auth.currentUser) return;
-            const chamadaRef = doc(db, "calls", activeChatUser.uid);
-            try {
-                await setDoc(chamadaRef, {
-                    callerId: auth.currentUser.uid,
-                    callerName: currentUserData.nome || auth.currentUser.email,
-                    callerPhoto: currentUserData.foto || '',
-                    type: tipo, // 'voz' ou 'video'
-                    status: 'ringing',
-                    timestamp: Date.now()
-                });
+        document.getElementById('btn-video-call').addEventListener('click', () => iniciarChamada('video'));
+        document.getElementById('btn-audio-call').addEventListener('click', () => iniciarChamada('voz'));
 
-                document.getElementById('call-contact-name').textContent = activeChatUser.nome;
-                const avatar = document.getElementById('call-contact-avatar');
-                if(activeChatUser.foto) avatar.innerHTML = `<img src="${activeChatUser.foto}" style="width:100%;height:100%;object-fit:cover;">`;
-                else avatar.textContent = (activeChatUser.nome || 'U').charAt(0).toUpperCase();
-
-                document.getElementById('call-status-text').textContent = `A chamar (${tipo})...`;
-                document.getElementById('btn-accept-call').classList.add('hidden');
-                document.getElementById('active-call-screen').classList.remove('hidden');
-                tocarAlarmeSonoro();
-            } catch(e) { alert('Erro ao iniciar chamada: ' + e.message); }
-        }
-
-        function escutarChamadasEntrantes(uid) {
-            const callDocRef = doc(db, "calls", uid);
-            onSnapshot(callDocRef, (docSnap) => {
-                if(!docSnap.exists()) return;
-                const data = docSnap.data();
-                if(data.status === 'ringing' && data.callerId !== uid) {
-                    // Recebeu chamada de outro utilizador!
-                    document.getElementById('call-contact-name').textContent = data.callerName || 'Utilizador';
-                    const avatar = document.getElementById('call-contact-avatar');
-                    if(data.callerPhoto) avatar.innerHTML = `<img src="${data.callerPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
-                    else avatar.textContent = (data.callerName || 'U').charAt(0).toUpperCase();
-
-                    document.getElementById('call-status-text').textContent = `A receber chamada de ${data.type}...`;
-                    document.getElementById('btn-accept-call').classList.remove('hidden');
-                    document.getElementById('active-call-screen').classList.remove('hidden');
-                    tocarAlarmeSonoro();
-                } else if(data.status === 'ended') {
-                    fecharTelaChamada();
-                }
-            });
-        }
-
-        document.getElementById('btn-video-call').addEventListener('click', () => iniciarChamadaReal('video'));
-        document.getElementById('btn-audio-call').addEventListener('click', () => iniciarChamadaReal('voz'));
-
-        document.getElementById('btn-accept-call').addEventListener('click', () => {
-            pararAlarmeSonoro();
-            document.getElementById('call-status-text').textContent = 'Chamada ativa...';
-            document.getElementById('btn-accept-call').classList.add('hidden');
-        });
-
-        document.getElementById('btn-end-call').addEventListener('click', async () => {
-            pararAlarmeSonoro();
-            fecharTelaChamada();
-            if(activeChatUser) {
-                try {
-                    await setDoc(doc(db, "calls", activeChatUser.uid), { status: 'ended' }, { merge: true });
-                } catch(e) {}
-            }
-            if(auth.currentUser) {
-                try {
-                    await setDoc(doc(db, "calls", auth.currentUser.uid), { status: 'ended' }, { merge: true });
-                } catch(e) {}
-            }
-        });
-
-        function fecharTelaChamada() {
-            pararAlarmeSonoro();
+        document.getElementById('btn-end-call').addEventListener('click', () => {
             document.getElementById('active-call-screen').classList.add('hidden');
-            document.getElementById('btn-accept-call').classList.add('hidden');
-        }
+        });
 
         document.getElementById('btn-back-to-contacts').addEventListener('click', () => {
             if(unsubscribeChat) unsubscribeChat();
