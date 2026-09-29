@@ -207,16 +207,13 @@
             <button onclick="fecharMenuLateral()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
         </div>
         
-        <!-- Área exclusiva do Admin no Menu Lateral -->
         <div id="admin-menu-section" class="hidden" style="padding: 10px; background: rgba(0,168,132,0.1); border-bottom: 1px solid var(--border-color);">
             <button class="btn-alt" style="width:100%; padding:8px; font-size:12px; background:#d4a24c; margin:0;" onclick="abrirPainelAdminGeral()">⚙️ Painel de Controlo Admin</button>
         </div>
 
         <div style="padding: 12px; flex: 1; overflow-y: auto;">
             <p style="font-size: 11px; font-weight: bold; opacity: 0.7; margin-bottom: 8px;">SELECIONE UM NICHO:</p>
-            <div id="lista-nichos-lateral" style="display: flex; flex-direction: column; gap: 4px;">
-                <!-- Carregado via JS -->
-            </div>
+            <div id="lista-nichos-lateral" style="display: flex; flex-direction: column; gap: 4px;"></div>
         </div>
     </div>
 
@@ -269,7 +266,7 @@
         </svg>
     </button>
 
-    <!-- Modal de Perfil / Bio (Com campo de nome e escolha de nicho) -->
+    <!-- Modal de Perfil / Bio (Com o botão de menu/nichos integrado dentro da Bio) -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
             
@@ -285,6 +282,11 @@
             <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
             <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
             
+            <!-- Botão de Menu de Canais e Nichos posicionado dentro da Bio -->
+            <button class="btn-alt" style="background: #202c33; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer; margin-top: 4px;" onclick="fecharPerfilUsuario(); abrirMenuLateral();">
+                📂 Abrir Menu de Canais & Nichos
+            </button>
+
             <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
                 📲 Baixar e Instalar Aplicativo
             </button>
@@ -303,7 +305,7 @@
 
                 <label style="font-size: 11px; opacity: 0.9; font-weight: bold;">Escolher Canal / Nicho de Contato:</label>
                 <select id="select-meu-nicho" style="font-size: 13px; padding: 9px; margin-bottom: 8px;">
-                    <option value="Religião">✝️️ Religião</option>
+                    <option value="Religião">✝ Religião</option>
                     <option value="Negócios">💼 Negócios</option>
                     <option value="Namoro">❤️ Namoro</option>
                     <option value="Pet">🐾 Pet</option>
@@ -422,18 +424,14 @@
     <!-- TELA DE CONTACTOS -->
     <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
         <div class="header-top">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <!-- Botão de Hambúrguer discreto no canto superior esquerdo para abrir o Menu de Nichos/Canais -->
-                <button onclick="abrirMenuLateral()" style="background:none; border:none; color:white; font-size:22px; cursor:pointer; padding:0 4px;" title="Abrir Canais e Nichos">☰</button>
-                <div class="user-info-area" onclick="abrirMeuPerfil()">
-                    <div id="meu-avatar-topo-container" style="position:relative;">
-                        <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
-                        <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
-                    </div>
-                    <div>
-                        <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
-                        <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
-                    </div>
+            <div class="user-info-area" onclick="abrirMeuPerfil()" style="width: 100%;">
+                <div id="meu-avatar-topo-container" style="position:relative;">
+                    <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                    <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
+                    <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
                 </div>
             </div>
             <div style="display:flex; gap:6px; align-items: center;">
@@ -520,7 +518,6 @@
     
     const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
 
-    // Lista Padrão de Nichos / Canais
     const nichosPadrao = [
         "✝️ Religião",
         "💼 Negócios",
@@ -658,7 +655,6 @@
         fecharPainelAdminGeral();
     };
 
-    // Instalação PWA
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
