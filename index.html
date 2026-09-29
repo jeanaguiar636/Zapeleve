@@ -68,22 +68,6 @@
         .logo-area { text-align: center; margin: 15px 0; }
         .logo-area span { font-size: 45px; }
         .logo-area h1 { font-size: 26px; color: var(--header-bg); margin: 5px 0 0 0; }
-        
-        #alerta-perfil {
-            background-color: #ea0038;
-            color: white;
-            text-align: center;
-            padding: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            z-index: 1001;
-        }
-        #alerta-perfil span { text-decoration: underline; cursor: pointer; }
 
         .botao-flutuante-loja {
             position: fixed;
@@ -113,7 +97,6 @@
         button:hover { opacity: 0.9; }
         .btn-alt { background: #075e54; }
         .btn-danger { background: #ea0038; }
-        .btn-install { background: #005c4b; margin-top: 8px; }
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
@@ -137,8 +120,8 @@
         .embed-container { margin-top: 6px; border-radius: 6px; overflow: hidden; background: #000; width: 100%; max-width: 320px; aspect-ratio: 16/9; }
         .embed-container iframe, .embed-container blockquote { width: 100%; height: 100%; border: none; margin: 0; }
 
-        .msg-download-btn { background: #0275d8; border: none; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: bold; }
-        .msg-download-btn:hover { background: #014c8a; }
+        .msg-download-btn { background: #014c8a; border: none; color: #ffffff; padding: 8px 14px; font-size: 13px; border-radius: 6px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .msg-download-btn:hover { background: #003366; }
         
         .msg-product-body { padding: 4px 0; display: flex; flex-direction: column; gap: 6px; }
 
@@ -200,15 +183,21 @@
         .quick-chip:hover { border-color: #00a884; color: #00a884; }
         .btn-config-quick { background: #075e54; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 
-        video, img.msg-img { max-width: 100%; border-radius: 6px; margin-top: 6px; display: block; }
-        img.msg-img { max-height: 220px; object-fit: cover; background: #000; }
+        video, img.msg-img { max-width: 100%; border-radius: 8px; margin-top: 6px; display: block; }
+        img.msg-img { max-height: 280px; width: 100%; object-fit: cover; background: #000; cursor: pointer; transition: opacity 0.2s; }
+        img.msg-img:hover { opacity: 0.92; }
+
+        #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="alerta-perfil">
-        ⚠️ O seu perfil está incompleto! <span onclick="editarNomeUsuario()">Clique aqui para preencher o seu nome</span>
+    <!-- Modal de Ampliação de Imagem -->
+    <div id="modal-zoom-imagem" onclick="fecharZoomImagem()">
+        <img id="imagem-zoom-src" src="">
+        <span style="color: white; margin-top: 15px; font-size: 13px; background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; cursor: pointer;">Toque em qualquer lugar para fechar</span>
     </div>
 
     <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine de Produtos">
@@ -217,30 +206,43 @@
         </svg>
     </button>
 
+    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto e botão de instalação) -->
     <div id="modal-perfil-usuario" class="modal">
-        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
+            
+            <!-- Aviso Vermelho na Bio -->
+            <div id="alerta-perfil-bio" class="hidden" style="background-color: #ea0038; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; width: 100%; text-align: center; margin-bottom: 4px;">
+                ⚠️ Complete o seu perfil (Nome, foto, descrição e links)
+            </div>
+
             <div id="perfil-avatar-container" style="position: relative;">
                 <div id="perfil-avatar-grande" class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin-bottom: 5px;">?</div>
                 <img id="perfil-img-grande" class="hidden" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid white;" src="">
             </div>
+            
             <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
             <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
             
-            <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 10px; text-align: left; border: 1px solid var(--border-color);">
+            <!-- Botão Flutuante de Instalação no Perfil (se não instalado) -->
+            <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
+                📲 Baixar e Instalar Aplicativo
+            </button>
+
+            <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 5px; text-align: left; border: 1px solid var(--border-color);">
                 <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold; color: var(--header-bg);">🌐 Link de Afiliado / Perfil do Utilizador:</p>
                 <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
             </div>
 
-            <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
+            <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
                 <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
                 <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
                 <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 6px;">
-                <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal:</label>
+                <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal / Afiliado / Vídeos:</label>
                 <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
             </div>
 
-            <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 15px;">Fechar</div>
+            <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
 
@@ -259,7 +261,7 @@
             <video id="local-video" autoplay playsinline muted></video>
         </div>
         <div class="call-controls">
-            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙️</button>
+            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙</button>
             <button class="call-btn btn-cam" onclick="alternarCamera()" id="btn-toggle-cam">📷</button>
             <button class="call-btn btn-hangup" onclick="encerrarChamada()">📞</button>
         </div>
@@ -315,7 +317,7 @@
         </div>
     </div>
 
-    <!-- TELA DE ENTRADA / LOGIN REESTRUTURADA E LIMPA -->
+    <!-- TELA DE LOGIN -->
     <div id="auth-screen" class="screen-content" style="justify-content: center; max-width: 380px; margin: 0 auto;">
         <div class="logo-area" style="margin-bottom: 25px;">
             <span>⚡💬</span>
@@ -326,14 +328,12 @@
         <input type="email" id="email" placeholder="Seu e-mail">
         <input type="password" id="password" placeholder="Sua senha">
         
-        <!-- Botões Entrar e Abrir Conta lado a lado -->
         <div style="display: flex; gap: 8px; margin: 6px 0;">
             <button class="btn-alt" style="flex: 1; margin: 0; background: #0275d8;" onclick="entrar()">Entrar</button>
             <button style="flex: 1; margin: 0; background: #28a745;" onclick="cadastrar()">Abrir Conta</button>
         </div>
 
-        <button class="btn-install" style="margin-top: 12px;" onclick="abrirInstalacao()">📲 Baixar App no Aparelho</button>
-        <button class="btn-alt" style="background: #333; margin-top: 6px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
+        <button class="btn-alt" style="background: #333; margin-top: 10px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
     </div>
 
     <div id="modal-instalar" class="modal">
@@ -454,6 +454,62 @@
     
     const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
 
+    // Instalação PWA
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        atualizarVisibilidadeBotaoInstalacao();
+    });
+
+    function verificarSeEstaInstalado() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function atualizarVisibilidadeBotaoInstalacao() {
+        const btnInstalar = document.getElementById('btn-instalar-no-perfil');
+        if (!btnInstalar) return;
+        if (!verificarSeEstaInstalado()) {
+            btnInstalar.classList.remove('hidden');
+        } else {
+            btnInstalar.classList.add('hidden');
+        }
+    }
+
+    window.abrirInstalacaoDoPerfil = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                deferredPrompt = null;
+                document.getElementById('btn-instalar-no-perfil').classList.add('hidden');
+            }
+        } else {
+            const instrucoes = document.getElementById('instrucoes-texto');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                instrucoes.innerHTML = "Para instalar no seu iPhone/iPad:<br>1. Toque no botão de <b>Partilha</b> (quadrado com seta para cima) no Safari.<br>2. Role para baixo e escolha <b>'Adicionar ao Ecrã Principal'</b>.";
+            } else {
+                instrucoes.innerHTML = "Para instalar no seu dispositivo:<br>1. Toque no menu do navegador (três pontos no canto superior direito).<br>2. Selecione <b>'Instalar aplicativo'</b> ou <b>'Adicionar à tela inicial'</b>.";
+            }
+            document.getElementById('modal-instalar').style.display = 'flex';
+        }
+    };
+
+    window.fecharInstalacao = () => {
+        document.getElementById('modal-instalar').style.display = 'none';
+    };
+
+    // Zoom de Imagem
+    window.ampliarImagem = (src) => {
+        document.getElementById('imagem-zoom-src').src = src;
+        document.getElementById('modal-zoom-imagem').style.display = 'flex';
+    };
+
+    window.fecharZoomImagem = () => {
+        document.getElementById('modal-zoom-imagem').style.display = 'none';
+    };
+
     window.toggleMenuAnexos = (e) => {
         e.stopPropagation();
         const menu = document.getElementById('menu-anexos');
@@ -489,17 +545,27 @@
         document.getElementById('perfil-nome-exibicao').innerText = dados.nome || usuarioAtual.email.split('@')[0];
         document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
         
+        // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
+        const alertaBio = document.getElementById('alerta-perfil-bio');
+        if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal) {
+            alertaBio.classList.remove('hidden');
+        } else {
+            alertaBio.classList.add('hidden');
+        }
+
         const linkSalvo = dados.linkPessoal || "";
         const linkContainer = document.getElementById('perfil-link-container');
         if (linkSalvo) {
             linkContainer.innerHTML = `<a href="${linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo}" target="_blank" style="color: #0275d8; text-decoration: underline;">${linkSalvo}</a>`;
         } else {
-            linkContainer.innerText = "Nenhum link configurado.";
+            linkContainer.innerText = "Nenhum link ou vídeo configurado.";
         }
 
         document.getElementById('input-meu-link').value = linkSalvo;
         document.getElementById('input-foto-perfil').value = "";
         document.getElementById('meu-painel-edicao-link').classList.remove('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
         document.getElementById('modal-perfil-usuario').style.display = 'flex';
     };
 
@@ -523,6 +589,7 @@
 
         document.getElementById('perfil-nome-exibicao').innerText = contatoSelecionado.nome;
         document.getElementById('perfil-email-exibicao').innerText = dados.email || "Utilizador Zap Leve";
+        document.getElementById('alerta-perfil-bio').classList.add('hidden');
 
         const linkSalvo = dados.linkPessoal || "";
         const linkContainer = document.getElementById('perfil-link-container');
@@ -533,6 +600,8 @@
         }
 
         document.getElementById('meu-painel-edicao-link').classList.add('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
         document.getElementById('modal-perfil-usuario').style.display = 'flex';
     };
 
@@ -560,13 +629,13 @@
                     document.getElementById('meu-img-topo').classList.remove('hidden');
                     document.getElementById('meu-avatar-topo').classList.add('hidden');
 
-                    alert("Perfil e foto atualizados com sucesso!");
+                    alert("Perfil atualizado com sucesso!");
                     fecharPerfilUsuario();
                 };
                 reader.readAsDataURL(file);
             } else {
                 await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
-                alert("Link de perfil atualizado com sucesso!");
+                alert("Perfil atualizado com sucesso!");
                 fecharPerfilUsuario();
             }
         } catch (e) {
@@ -621,15 +690,6 @@
     };
     if (localStorage.getItem('zapleve_dark') === '1') {
         document.body.classList.add('dark-mode');
-    }
-
-    function verificarAlertaPerfilLocal(nome) {
-        const alertaEl = document.getElementById('alerta-perfil');
-        if (!nome || nome.trim() === "" || nome.includes("@")) {
-            alertaEl.style.display = "flex";
-        } else {
-            alertaEl.style.display = "none";
-        }
     }
 
     window.abrirVitrineAfiliado = async () => {
@@ -892,25 +952,6 @@
     let unsubscribeCall = null;
     const serversConfig = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
 
-    window.editarNomeUsuario = async () => {
-        if (!usuarioAtual) return;
-        const atual = document.getElementById('user-display-contacts').innerText;
-        const novoNome = prompt("Digite o seu novo nome de utilizador:", atual === usuarioAtual.email ? "" : atual);
-        if (!novoNome || !novoNome.trim()) return;
-
-        try {
-            const userRef = doc(db, "usuarios", usuarioAtual.uid);
-            await updateDoc(userRef, { nome: novoNome.trim() });
-            document.getElementById('user-display-contacts').innerText = novoNome.trim();
-            meuNomeAtual = novoNome.trim();
-            document.getElementById('meu-avatar-topo').innerText = novoNome.trim().charAt(0).toUpperCase();
-            verificarAlertaPerfilLocal(novoNome.trim());
-            alert("Nome de utilizador atualizado com sucesso!");
-        } catch (e) {
-            alert("Erro ao atualizar nome: " + e.message);
-        }
-    };
-
     window.iniciarChamada = async (comVideo) => {
         if (!contatoSelecionado) return;
         
@@ -1134,14 +1175,11 @@
                 document.getElementById('meu-img-topo').classList.add('hidden');
             }
 
-            verificarAlertaPerfilLocal(nomeExibicao);
-
             escutarChamadasEntrantes(user.uid);
             carregarContatos();
             atualizarBarraAtalhos();
         } else {
             usuarioAtual = null;
-            document.getElementById('alerta-perfil').style.display = 'none';
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('contacts-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.add('hidden');
@@ -1286,15 +1324,15 @@
             
             if (data.tipo === 'produto') {
                 let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
-                if (data.imagemUrlProduto) cartaoHtml += `<img src="${data.imagemUrlProduto}" style="width:100%; max-height:180px; object-fit:cover; border-radius:4px; margin-bottom:6px;">`;
+                if (data.imagemUrlProduto) cartaoHtml += `<img src="${data.imagemUrlProduto}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem('${data.imagemUrlProduto}')">`;
                 if (data.linkAfiliado) cartaoHtml += `<a href="${data.linkAfiliado}" target="_blank" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
                 conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
             } else if (data.tipo === 'imagem') {
                 let imgSrc = data.imagemUrlLocal || data.imagemBase64 || '';
-                conteudoHtml += `<img class="msg-img" src="${imgSrc}"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar</a>`;
+                conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem('${imgSrc}')" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
             } else if (data.tipo === 'video') {
                 let vidSrc = data.videoUrlLocal || data.videoBase64 || '';
-                conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar</a>`;
+                conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar Vídeo</a>`;
             } else if (data.tipo === 'audio') {
                 const audioId = "audio_" + data.id;
                 let audSrc = data.audioUrlLocal || data.audioBase64 || '';
