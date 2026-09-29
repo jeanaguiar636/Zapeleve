@@ -44,6 +44,35 @@
         .whatsapp-icon-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; }
         .whatsapp-icon-btn.mic { background: #128c7e; }
 
+        /* Botões de Chamada Super Aparentes e Estilizados no Header do Chat */
+        .call-buttons-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .btn-call-styled {
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .btn-call-styled:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+        .btn-call-styled:active {
+            transform: scale(0.95);
+        }
+
         .floating-cart { 
             position: fixed; bottom: 80px; right: 20px; 
             background: #25d366; color: #ffffff; width: 56px; height: 56px; 
@@ -125,17 +154,19 @@
             <div class="contacts-list" id="nicho-users-list-container"></div>
         </div>
 
-        <!-- TELA DE CHAT COM CHAMADAS REAIS E BOTÃO ESTILO WHATSAPP -->
+        <!-- TELA DE CHAT COM BOTÕES DE CHAMADA BEM APARENTES E ESTILIZADOS NO CABEÇALHO -->
         <div id="chat-screen" class="screen-content hidden">
             <div class="app-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btn-back-to-nicho-users" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
-                    <div id="chat-user-avatar" class="avatar-placeholder" style="width: 32px; height: 32px;">U</div>
-                    <span id="chat-user-name" style="font-weight: bold; font-size: 14px;">Utilizador</span>
+                <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                    <button id="btn-back-to-nicho-users" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0;">⬅️</button>
+                    <div id="chat-user-avatar" class="avatar-placeholder" style="width: 34px; height: 34px; flex-shrink: 0;">U</div>
+                    <span id="chat-user-name" style="font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Utilizador</span>
                 </div>
-                <div style="display: flex; gap: 14px; font-size: 18px;">
-                    <button id="btn-video-call" style="background:none; border:none; color:white; cursor:pointer;" title="Chamada de Vídeo">📹</button>
-                    <button id="btn-audio-call" style="background:none; border:none; color:white; cursor:pointer;" title="Chamada de Áudio">📞</button>
+                
+                <!-- Botões de chamada bem visíveis no cabeçalho -->
+                <div class="call-buttons-container">
+                    <button id="btn-video-call" class="btn-call-styled" title="Chamada de Vídeo">📹</button>
+                    <button id="btn-audio-call" class="btn-call-styled" title="Chamada de Áudio">📞</button>
                 </div>
             </div>
             
@@ -193,7 +224,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE FIREBASE E LIGAÇÕES COMPLETAS -->
+    <!-- SCRIPT DE FIREBASE E LIGAÇÕES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -455,14 +486,12 @@
         mainBtn.addEventListener('click', async () => {
             const texto = chatInput.value.trim();
             if(texto.length > 0) {
-                // Enviar Mensagem Real de Texto
                 await enviarMensagemFirestore({ texto: texto, tipo: 'texto' });
                 chatInput.value = '';
                 mainBtn.textContent = '🎤';
                 mainBtn.className = 'whatsapp-icon-btn mic';
                 mainBtn.title = 'Gravar Áudio';
             } else {
-                // Gravação de Áudio Real com Microfone do Telemóvel
                 iniciarGravacaoAudioReal();
             }
         });
@@ -486,7 +515,6 @@
         function escutarMensagensReais(outroUid) {
             const msgContainer = document.getElementById('chat-messages-container');
             const chatId = [auth.currentUser.uid, outroUid].sort().join('_');
-            
             const q = query(collection(db, "chats", chatId, "mensagens"), orderBy("timestamp", "asc"));
             
             if(unsubscribeChat) unsubscribeChat();
@@ -516,7 +544,6 @@
             });
         }
 
-        // Anexar Imagem Real
         document.getElementById('btn-attach-media').addEventListener('click', async () => {
             const urlImg = prompt('Insira o link direto da imagem que quer enviar:');
             if(urlImg) {
@@ -524,7 +551,6 @@
             }
         });
 
-        // Gravação Real de Áudio com o Microfone
         let mediaRecorder;
         let audioChunks = [];
         async function iniciarGravacaoAudioReal() {
@@ -544,7 +570,7 @@
                 };
 
                 mediaRecorder.start();
-                mainBtn.style.background = '#ea0938'; // Fica vermelho gravando
+                mainBtn.style.background = '#ea0938';
                 mainBtn.textContent = '⏹️';
                 alert('A gravar áudio... Clique OK e depois clique no botão vermelho para parar e enviar.');
                 
@@ -552,7 +578,6 @@
                     mediaRecorder.stop();
                     mainBtn.style.background = '#128c7e';
                     mainBtn.textContent = '🎤';
-                    // Restaura evento original
                     mainBtn.onclick = null;
                 };
             } catch(e) {
@@ -560,9 +585,8 @@
             }
         }
 
-        // Chamadas de Vídeo e Áudio integradas com WhatsApp ou Janela
         document.getElementById('btn-video-call').addEventListener('click', () => {
-            if(activeChatUser && activeChatUser.email) {
+            if(activeChatUser) {
                 if(confirm('Deseja iniciar chamada de vídeo com ' + activeChatUser.nome + '?')) {
                     window.open('https://wa.me/?text=' + encodeURIComponent('Olá, vamos iniciar uma chamada de vídeo no Zap Leve?'), '_blank');
                 }
