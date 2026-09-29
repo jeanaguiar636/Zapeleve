@@ -190,7 +190,6 @@
         #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
 
-        /* Menu Lateral Estilo Gaveta (Nichos e Admin) */
         #side-menu-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--bg-app); color: var(--text-app); z-index: 2500; box-shadow: 4px 0 15px rgba(0,0,0,0.3); transition: left 0.3s ease; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
         #side-menu-drawer.open { left: 0; }
         #menu-overlay-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2400; }
@@ -199,7 +198,7 @@
 <body>
 
 <div class="container">
-    <!-- Menu Lateral Retrátil de Nichos e Admin -->
+    <!-- Menu Lateral de Nichos e Admin -->
     <div id="menu-overlay-bg" onclick="fecharMenuLateral()"></div>
     <div id="side-menu-drawer">
         <div style="background: var(--header-bg); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
@@ -266,7 +265,7 @@
         </svg>
     </button>
 
-    <!-- Modal de Perfil / Bio (Com o botão de menu/nichos integrado dentro da Bio) -->
+    <!-- Modal de Perfil / Bio (Com o botão de menu integrado) -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
             
@@ -282,7 +281,6 @@
             <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
             <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
             
-            <!-- Botão de Menu de Canais e Nichos posicionado dentro da Bio -->
             <button class="btn-alt" style="background: #202c33; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer; margin-top: 4px;" onclick="fecharPerfilUsuario(); abrirMenuLateral();">
                 📂 Abrir Menu de Canais & Nichos
             </button>
@@ -498,7 +496,7 @@
                     </div>
 
                     <input type="text" id="mensagem-texto" placeholder="Mensagem ou link (www..., https://...)" onkeypress="if(event.key === 'Enter') enviarMensagemPrivada()">
-                    <button id="btn-gravar-audio" class="action-btn mic-rec-btn" onclick="toggleGravarAudio()" title="Gravar Áudio Global">🎙️</button>
+                    <button id="btn-gravar-audio" class="action-btn mic-rec-btn" onclick="toggleGravarAudio()" title="Gravar Áudio P2P">🎙️</button>
                 </div>
                 <button onclick="enviarMensagemPrivada()" style="padding: 8px; font-size: 13px; border-radius: 20px; background: #00a884;">Enviar Mensagem / Link</button>
             </div>
@@ -1077,13 +1075,14 @@
 
     let peerConnection = null;
     let localStream = null;
+    let dataChannel = null; // Canal P2P para tráfego direto de mídia/arquivos
     let unsubscribeCall = null;
     const serversConfig = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
 
     window.iniciarChamada = async (comVideo) => {
         if (!contatoSelecionado) return;
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("O seu navegador não suporta chamadas de áudio/vídeo P2P.");
+            alert("O seu navegador não suporta chamadas P2P.");
             return;
         }
 
@@ -1100,6 +1099,11 @@
 
             peerConnection = new RTCPeerConnection(serversConfig);
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            // Configura o Data Channel (P2P para dados)
+            dataChannel = peerConnection.createDataChannel("zapleveP2P");
+            dataChannel.onopen = () => console.log("Canal de dados P2P aberto!");
+            dataChannel.onmessage = (event) => receberDadosP2P(JSON.parse(event.data));
 
             peerConnection.ontrack = (event) => {
                 pararSomCampainha();
@@ -1208,6 +1212,11 @@
 
             peerConnection = new RTCPeerConnection(serversConfig);
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ondatachannel = (event) => {
+                dataChannel = event.channel;
+                dataChannel.onmessage = (e) => receberDadosP2P(JSON.parse(e.data));
+            };
 
             peerConnection.ontrack = (event) => {
                 document.getElementById('call-placeholder-info').style.display = 'none';
@@ -1486,14 +1495,14 @@
                 if (data.linkAfiliado) cartaoHtml += `<a href="${data.linkAfiliado}" target="_blank" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
                 conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
             } else if (data.tipo === 'imagem') {
-                let imgSrc = data.imagemUrlLocal || data.imagemBase64 || '';
+                let imgSrc = data.imagemUrlLocal || data.conteudo || data.imagemBase64 || '';
                 conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem('${imgSrc}')" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
             } else if (data.tipo === 'video') {
-                let vidSrc = data.videoUrlLocal || data.videoBase64 || '';
+                let vidSrc = data.videoUrlLocal || data.conteudo || data.videoBase64 || '';
                 conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar Vídeo</a>`;
             } else if (data.tipo === 'audio') {
-                const audioId = "audio_" + data.id;
-                let audSrc = data.audioUrlLocal || data.audioBase64 || '';
+                const audioId = "audio_" + (data.id || Math.random());
+                let audSrc = data.audioUrlLocal || data.conteudo || data.audioBase64 || '';
                 conteudoHtml += `
                     <div class="wa-audio-player">
                         <button class="wa-play-btn" id="btn_${audioId}" onclick="tocarAudioLocal('${audioId}')">▶</button>
@@ -1559,16 +1568,43 @@
         inputEl.value = "";
     };
 
+    // Funções de Envio P2P (Sem gastar o Firebase)
+    window.enviarMidiaP2P = (conteudoBase64, tipo) => {
+        if (!dataChannel || dataChannel.readyState !== "open") {
+            alert("Para enviar mídias diretamente sem o Firebase, é necessário iniciar uma chamada de voz/vídeo ou estabelecer conexão P2P ativa.");
+            return;
+        }
+        const payload = { tipo: tipo, conteudo: conteudoBase64, remetente: usuarioAtual.email };
+        dataChannel.send(JSON.stringify(payload));
+        
+        // Insere na própria tela local
+        const box = document.getElementById('mensagens');
+        let htmlExtra = "";
+        if(tipo === 'imagem') htmlExtra = `<img class="msg-img" src="${conteudoBase64}">`;
+        else if(tipo === 'video') htmlExtra = `<video controls width="100%"><source src="${conteudoBase64}" type="video/mp4"></video>`;
+        else if(tipo === 'audio') htmlExtra = `<p style="font-size:12px;">🎙️ Áudio P2P enviado</p>`;
+        
+        box.innerHTML += `<div class="msg msg-minha"><div class="msg-content">${htmlExtra}</div></div>`;
+        box.scrollTop = box.scrollHeight;
+    };
+
+    function receberDadosP2P(data) {
+        const box = document.getElementById('mensagens');
+        let htmlExtra = "";
+        if(data.tipo === 'imagem') htmlExtra = `<img class="msg-img" src="${data.conteudo}">`;
+        else if(data.tipo === 'video') htmlExtra = `<video controls width="100%"><source src="${data.conteudo}" type="video/mp4"></video>`;
+        else if(data.tipo === 'audio') htmlExtra = `<p style="font-size:12px;">🎙️ Áudio P2P recebido</p>`;
+        
+        box.innerHTML += `<div class="msg"><div class="msg-content">${htmlExtra}</div></div>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
     window.enviarImagemGlobal = async (inputElement) => {
         const file = inputElement.files[0];
         if (!file || !contatoSelecionado) return;
         const reader = new FileReader();
-        reader.onload = async function(e) {
-            const base64Data = e.target.result;
-            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                texto: "📷 Imagem", imagemBase64: base64Data, remetente: usuarioAtual.email, tipo: "imagem", criadoEm: serverTimestamp()
-            });
+        reader.onload = function(e) {
+            window.enviarMidiaP2P(e.target.result, 'imagem');
         };
         reader.readAsDataURL(file);
     };
@@ -1577,12 +1613,8 @@
         const file = inputElement.files[0];
         if (!file || !contatoSelecionado) return;
         const reader = new FileReader();
-        reader.onload = async function(e) {
-            const base64Data = e.target.result;
-            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                texto: "📹 Vídeo", videoBase64: base64Data, remetente: usuarioAtual.email, tipo: "video", criadoEm: serverTimestamp()
-            });
+        reader.onload = function(e) {
+            window.enviarMidiaP2P(e.target.result, 'video');
         };
         reader.readAsDataURL(file);
     };
@@ -1603,12 +1635,8 @@
                 mediaRecorder.onstop = async () => {
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        const base64Audio = e.target.result;
-                        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-                        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                            texto: "🎙️ Áudio", audioBase64: base64Audio, remetente: usuarioAtual.email, tipo: "audio", criadoEm: serverTimestamp()
-                        });
+                    reader.onload = function(e) {
+                        window.enviarMidiaP2P(e.target.result, 'audio');
                     };
                     reader.readAsDataURL(blob);
                 };
