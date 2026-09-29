@@ -3,16 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Comunidade e Loja</title>
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
-        'name': 'Zap Leve',
-        'short_name': 'ZapLeve',
-        'start_url': '/',
-        'display': 'standalone',
-        'background_color': '#ffffff',
-        'theme_color': '#075e54',
-        'icons': [{'src': 'https://cdn-icons-png.flaticon.com/512/733/733585.png', 'sizes': '512x512', 'type': 'image/png'}]
-    }">
+    <title>Zap Leve - Comunidade Nuvem</title>
+    <!-- Importando o Firebase SDK via CDN com a sua configuração -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
+          authDomain: "zapleve.firebaseapp.com",
+          projectId: "zapleve",
+          storageBucket: "zapleve.firebasestorage.app",
+          messagingSenderId: "426242600158",
+          appId: "1:426242600158:web:9bf280a9379bccc6fc264f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        window.db = db;
+        window.auth = auth;
+        window.firebaseFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot };
+    </script>
+
     <style>
         * { box-sizing: border-box; }
         html, body {
@@ -27,10 +41,8 @@
         .app-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 10px 14px; flex-shrink: 0; }
         .app-title-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px; overflow: hidden; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); }
-        .avatar-placeholder img { width: 100%; height: 100%; object-fit: cover; }
         
         .header-actions-right { display: flex; gap: 6px; align-items: center; }
-        .btn-install-app { background: #25d366 !important; border: none; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .btn-theme { background: #128c7e; border: none; color: white; width: 32px; height: 32px; border-radius: 4px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         .niches-container { flex: 1; overflow-y: auto; background: #f0f2f5; padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: start; }
@@ -51,104 +63,47 @@
         .chat-header-user-info { display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .chat-header-actions { display: flex; gap: 4px; align-items: center; }
         .btn-action-top { background: #128c7e; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
-        .btn-action-top.video { background: #25d366; }
-        .btn-action-top.audio { background: #34b7f1; }
         .btn-action-top.limpar { background: #ea0938; }
 
         .product-tag-bar { padding: 6px 10px; background: #fff; border-bottom: 1px solid #ddd; flex-shrink: 0; display: flex; gap: 6px; align-items: center; }
         .product-tag-bar input { flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
         
         .chat-messages { flex: 1; background: #efeae2; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-        
-        .msg { padding: 8px 12px; border-radius: 8px; max-width: 90%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; }
-        .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
-        .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
-        
-        .msg img, .msg video { width: 100% !important; max-width: 280px !important; max-height: 320px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; cursor: pointer; }
-        
-        .btn-download-media { background: #075e54; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; width: fit-content; }
+        .msg { padding: 8px 12px; border-radius: 8px; max-width: 90%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+        .msg-minha { background: #dcf8c6; margin-left: auto; }
+        .msg-outra { background: #fff; margin-right: auto; }
 
-        .chat-input-container { background: #f0f2f5; padding: 8px 10px; border-top: 1px solid #d1d7db; display: flex; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
+        .chat-input-container { background: #f0f2f5; padding: 8px 10px; border-top: 1px solid #d1d7db; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .chat-input-container input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #d1d7db; border-radius: 24px; outline: none; font-size: 14px; background: #fff; }
-        .btn-icon { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; color: #54656f; display: flex; align-items: center; justify-content: center; position: relative; }
         .btn-send { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .btn-mic { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
-        .btn-mic.gravando { background: #ea0938; animation: pulse 1.2s infinite; }
 
-        .clip-popup { position: absolute; bottom: 55px; left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; width: 150px; z-index: 200; overflow: hidden; }
-        .clip-popup button { background: none; border: none; padding: 10px 14px; text-align: left; font-size: 13px; cursor: pointer; color: #333; display: flex; align-items: center; gap: 8px; }
-        .clip-popup button:hover { background: #f0f2f5; }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-
-        /* Botão flutuante verde com o carrinho em branco */
+        /* Botão flutuante verde, borda branca e carrinho branco */
         .floating-cart { 
-            position: fixed; 
-            bottom: 80px; 
-            right: 20px; 
-            background: #25d366; 
-            color: #ffffff; 
-            width: 56px; 
-            height: 56px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 24px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            cursor: pointer; 
-            z-index: 100; 
-            border: none; 
+            position: fixed; bottom: 80px; right: 20px; 
+            background: #25d366; color: #ffffff; width: 56px; height: 56px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: 2px solid #ffffff; 
         }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
         .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 4px; }
-        .product-card { background: #f9f9f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
-        .product-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; }
-        .product-card h4 { margin: 0; font-size: 13px; color: #075e54; }
-        .product-card p { margin: 0; font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b141a; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; text-align: center; color: white; }
-        .call-user-display { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 20px; }
-        .call-avatar { width: 100px; height: 100px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: white; overflow: hidden; border: 3px solid rgba(255,255,255,0.3); }
-        .call-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .call-videos { display: flex; flex: 1; justify-content: center; align-items: center; position: relative; margin: 10px 0; }
-        .remote-video { width: 100%; max-height: 60vh; object-fit: cover; border-radius: 12px; background: #222; }
-        .local-video { width: 90px; height: 130px; object-fit: cover; border-radius: 8px; position: absolute; bottom: 15px; right: 15px; border: 2px solid #fff; background: #333; }
-        .call-controls { display: flex; justify-content: center; gap: 25px; padding-bottom: 20px; align-items: center; }
-        .call-end-btn { background: #ea0938; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; }
-        .call-answer-btn { background: #25d366; width: 65px; height: 65px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; animation: pulse 1.2s infinite; }
-        
-        .preview-box { background: #f0f2f5; padding: 10px; border-radius: 8px; text-align: center; flex-shrink: 0; }
-        .preview-box video, .preview-box img { max-width: 100%; max-height: 180px; border-radius: 6px; margin-bottom: 8px; object-fit: cover; }
-        .preview-actions { display: flex; gap: 10px; justify-content: center; }
-        .btn-enviar-pre { background: #00a884; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-excluir-pre { background: #ea0938; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-        .hidden-file { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- TELA DE LOGIN -->
+        <!-- TELA DE LOGIN / REGISTO -->
         <div id="auth-screen" class="screen-content" style="justify-content: center; padding: 20px; position: relative;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <span style="font-size: 50px;">⚡</span>
-                <h1 style="color: #075e54; margin: 5px 0;">Zap Leve</h1>
+                <h1 style="color: #075e54; margin: 5px 0;">Zap Leve (Nuvem)</h1>
             </div>
             <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                 <input type="email" id="email" placeholder="Seu e-mail" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
                 <input type="password" id="senha" placeholder="Sua senha" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
                 
                 <div style="margin: 8px 0;">
-                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Escolha o seu Nicho Inicial:</label>
+                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Escolha o seu Nicho:</label>
                     <select id="auth-nicho" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px;">
                         <option value="Negócio">💼 Negócio</option>
                         <option value="Namoro">❤️ Namoro</option>
@@ -163,97 +118,55 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 12px;">
-                    <a href="#" id="link-forgot-password" style="font-size: 12px; color: #0066cc; text-decoration: underline;">Esqueceu a senha / Redefinir senha?</a>
+                    <a href="#" id="link-forgot-password" style="font-size: 12px; color: #0066cc; text-decoration: underline;">Esqueceu a senha?</a>
                 </div>
             </div>
         </div>
 
-        <!-- TELA DE LISTA DE NICHOS -->
+        <!-- TELA PRINCIPAL DE NICHOS -->
         <div id="contacts-screen" class="screen-content hidden">
             <div class="app-header">
                 <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
                     <div id="user-avatar-initial" class="avatar-placeholder">J</div>
                     <div>
                         <span id="user-email-display" style="font-weight: bold; font-size: 14px; display: block;">Zap Leve ⚡</span>
-                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">Comunidade</span>
+                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">Sincronizado na Nuvem</span>
                     </div>
                 </div>
                 <div class="header-actions-right">
                     <button id="btn-open-admin-panel" class="hidden" style="background: #ea0938; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">🛡️ Admin</button>
-                    <button id="btn-theme-toggle" class="btn-theme">🌓</button>
-                    <button id="btn-install" class="btn-install-app hidden">📲 Baixar App</button>
                     <button id="btn-logout" class="btn-action-top limpar">Sair</button>
                 </div>
             </div>
 
-            <div style="padding: 10px 16px; background: #f0f2f5; font-size: 13px; font-weight: bold; color: #54656f; display: flex; justify-content: space-between; align-items: center;">
-                <span>Escolha um Nicho:</span>
-                <button id="btn-open-privacy-page" style="background: none; border: none; color: #0066cc; font-size: 11px; cursor: pointer; text-decoration: underline;">📄 Privacidade / Termos</button>
-            </div>
-
             <div class="niches-container" id="niches-grid-container"></div>
-
+            
             <div class="contacts-footer">
-                <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar para o Zap Leve</button>
+                <button class="btn-convidar" onclick="alert('Link de convite copiado!')">📢 Convidar para o Zap Leve</button>
             </div>
 
             <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
         </div>
 
-        <!-- TELA DE UTILIZADORES DENTRO DE UM NICHO -->
+        <!-- UTILIZADORES DO NICHO -->
         <div id="nicho-users-screen" class="screen-content hidden">
             <div class="app-header">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <button id="btn-back-to-niches" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
                     <h3 id="nicho-screen-title" style="margin: 0; font-size: 16px;">Nicho</h3>
                 </div>
-                <button id="btn-logout-nicho" class="btn-action-top limpar">Sair</button>
             </div>
-            <div style="padding: 8px 16px; background: #f0f2f5; font-size: 12px; color: #555;">Utilizadores registados neste nicho (e-mails ocultos por privacidade):</div>
             <div class="contacts-list" id="nicho-users-list-container"></div>
         </div>
 
-        <!-- PAINEL ADMINISTRATIVO -->
-        <div id="admin-panel-modal" class="modal-overlay hidden">
-            <div class="modal-card" style="max-width: 540px; max-height: 85vh;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 style="margin: 0; color: #075e54;">🛡️ Painel Administrativo Completo</h3>
-                    <button id="btn-close-admin-panel" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px;">
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Criar Novo Nicho / Grupo</h4>
-                        <input type="text" id="new-niche-name" placeholder="Nome do Nicho (ex: Esportes)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
-                        <input type="text" id="new-niche-icon" placeholder="Emoji (ex: ⚽)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
-                        <button id="btn-save-new-niche" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Adicionar Nicho</button>
-                    </div>
-
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">📄 Criar / Editar Página de Privacidade e Termos</h4>
-                        <input type="text" id="admin-page-title" placeholder="Título da Página" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
-                        <textarea id="admin-page-content" placeholder="Escreva o conteúdo..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 70px; outline: none; margin-bottom: 8px;"></textarea>
-                        <button id="btn-save-admin-page" style="background: #0066cc; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Salvar e Publicar Página</button>
-                    </div>
-
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">👥 Gerir Utilizadores (Excluir Contas)</h4>
-                        <div id="admin-users-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- MODAL DA PÁGINA DE PRIVACIDADE -->
-        <div id="privacy-page-modal" class="modal-overlay hidden">
+        <!-- PERFIL MODAL -->
+        <div id="profile-modal" class="modal-overlay hidden">
             <div class="modal-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 id="privacy-modal-title" style="margin: 0; color: #075e54;">Política de Privacidade</h3>
-                    <button id="btn-close-privacy" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
-                </div>
-                <div id="privacy-modal-content" style="font-size: 13px; color: #333; line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
-                    Nenhum conteúdo publicado ainda.
-                </div>
+                <h3 style="margin: 0; color: #075e54;">Meu Perfil</h3>
+                <input type="text" id="profile-name-input" placeholder="Seu nome..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <textarea id="profile-bio-input" placeholder="Sua bio..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 50px;"></textarea>
+                <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer;">Guardar</button>
+                <button id="btn-close-profile" style="background: #ccc; border: none; padding: 6px; border-radius: 4px; cursor: pointer;">Fechar</button>
             </div>
         </div>
 
@@ -261,361 +174,159 @@
         <div id="catalog-modal" class="modal-overlay hidden">
             <div class="modal-card" style="max-width: 520px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 style="margin: 0; color: #075e54;">🛍️ Catálogo de Produtos (Loja)</h3>
-                    <button id="btn-close-catalog" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
+                    <h3 style="margin: 0; color: #075e54;">🛍️ Catálogo de Produtos</h3>
+                    <button id="btn-close-catalog" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
                 </div>
-
-                <div id="admin-product-form" style="background: #f4f6f8; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Adicionar / Editar Produto</h4>
-                    <input type="text" id="prod-nome" placeholder="Nome do Produto..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                    <textarea id="prod-desc" placeholder="Descrição..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 40px; outline: none;"></textarea>
-                    <input type="text" id="prod-link" placeholder="Link (ex: https://...)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                    <button id="btn-save-product" style="background: #00a884; color: white; border: none; padding: 7px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;">Salvar Produto</button>
-                </div>
-
-                <div style="font-weight: bold; font-size: 13px; color: #333; margin-top: 4px;">Produtos Disponíveis:</div>
                 <div id="product-grid-container" class="product-grid"></div>
-            </div>
-        </div>
-
-        <!-- MODAL DE PERFIL (COM EDIÇÃO DE NOME, BIO E NICHO) -->
-        <div id="profile-modal" class="modal-overlay hidden">
-            <div class="modal-card">
-                <div style="text-align: center; position: relative;">
-                    <div id="modal-avatar-preview" class="avatar-placeholder" style="width: 80px; height: 80px; margin: 0 auto; font-size: 28px;">J</div>
-                </div>
-                <div style="text-align: center;">
-                    <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
-                    <span id="modal-user-email" style="font-size: 11px; color: #888;">(E-mail privado)</span>
-                </div>
-
-                <div style="background: #f0f2f5; padding: 10px; border-radius: 6px; font-size: 12px;">
-                    <div style="font-weight: bold; color: #075e54; margin-bottom: 4px;">🌐 Bio:</div>
-                    <div id="display-bio-text" style="color: #333;">Nenhuma bio configurada.</div>
-                    <div style="font-weight: bold; color: #075e54; margin-top: 6px; margin-bottom: 2px;">🏷️ Nicho Atual:</div>
-                    <div id="display-nicho-text" style="color: #00a884; font-weight: bold;">Negócio</div>
-                    <div style="font-weight: bold; color: #075e54; margin-top: 6px; margin-bottom: 2px;">🔗 Link Pessoal:</div>
-                    <div id="display-link-text" style="color: #0066cc; word-break: break-all;">Nenhum link configurado.</div>
-                </div>
-
-                <hr style="border: none; border-top: 1px solid #ddd; margin: 4px 0;">
-
-                <div id="profile-edit-section">
-                    <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar Meu Perfil:</div>
-                    <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555;">Nome de Utilizador:</label>
-                        <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555;">Nicho:</label>
-                        <select id="profile-nicho-select" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; background:#fff;">
-                            <option value="Negócio">💼 Negócio</option>
-                            <option value="Namoro">❤️ Namoro</option>
-                            <option value="Religião">⛪ Religião</option>
-                            <option value="Pets">🐾 Pets</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                        <textarea id="profile-bio-input" placeholder="Sua biografia..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 45px; outline: none;"></textarea>
-                    </div>
-                    <div style="margin-bottom: 8px;">
-                        <input type="text" id="profile-link-input" placeholder="Seu link pessoal (https://...)" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
-                    </div>
-                    <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px;">Guardar Perfil</button>
-                </div>
-
-                <button id="btn-close-profile" style="background: #ccc; color: #333; border: none; padding: 6px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 4px;">Fechar</button>
-            </div>
-        </div>
-
-        <!-- TELA DE CHAT -->
-        <div id="chat-screen" class="screen-content hidden">
-            <div class="chat-header">
-                <div class="chat-header-user-info" id="open-chat-profile">
-                    <div id="chat-avatar-placeholder" class="avatar-placeholder" style="width: 32px; height: 32px; font-size: 12px;">C</div>
-                    <div>
-                        <span id="chat-header-name" style="font-weight: bold; font-size: 13px; display: block;">Nome do Contacto</span>
-                        <span id="chat-header-status" style="font-size: 10px; color: #d1fae5;">online (Privado)</span>
-                    </div>
-                </div>
-                <div class="chat-header-actions">
-                    <button class="btn-action-top video" id="btn-video-call" title="Vídeo Chamada">📹</button>
-                    <button class="btn-action-top audio" id="btn-audio-call" title="Áudio Chamada">📞</button>
-                    <button class="btn-action-top limpar" id="btn-clear-chat" title="Limpar Chat">🗑️</button>
-                    <button class="btn-action-top" id="btn-voltar-chat" style="background: #54656f;">Voltar</button>
-                </div>
-            </div>
-
-            <!-- BARRA DE PESQUISA COM LUPA -->
-            <div class="product-tag-bar">
-                <div style="display: flex; align-items: center; background: #ffffff; border-radius: 4px; padding: 2px 8px; border: 1px solid #ddd; width: 100%;">
-                    <span style="color: #666; margin-right: 6px; font-size: 14px;">🔍</span>
-                    <input type="text" id="product-tag-input" placeholder="Busca..." style="border: none; outline: none; width: 100%; font-size: 12px; background: transparent; padding: 4px 0;">
-                </div>
-            </div>
-
-            <div class="chat-messages" id="chat-messages-container"></div>
-
-            <div class="chat-input-container">
-                <input type="text" id="chat-message-input" placeholder="Mensagem ou link...">
-                <button class="btn-send" id="btn-send-message">➤</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT COMPLETO DE FUNCIONALIDADES -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const loggedUser = localStorage.getItem('zap_logged_user');
-            if (loggedUser) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                carregarAmbientePrincipal();
-            }
+    <script type="module">
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const { auth, db, firebaseFns } = window;
+                const { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, collection, getDocs, doc, setDoc } = firebaseFns;
 
-            // Entrar
-            document.getElementById('btn-login-action').addEventListener('click', () => {
-                const email = document.getElementById('email').value.trim();
-                const senha = document.getElementById('senha').value.trim();
-                if(!email || !senha) return alert('Insira o e-mail e a senha.');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let user = users.find(u => u.email === email);
-                if(!user) return alert('E-mail não encontrado. Clique em Criar Conta.');
-                if(user.senha !== senha) return alert('Senha incorreta!');
-                localStorage.setItem('zap_logged_user', email);
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                carregarAmbientePrincipal();
-            });
-
-            // Criar Conta
-            document.getElementById('btn-register-action').addEventListener('click', () => {
-                const email = document.getElementById('email').value.trim();
-                const senha = document.getElementById('senha').value.trim();
-                const nicho = document.getElementById('auth-nicho').value;
-                if(!email || !senha) return alert('Preencha e-mail e senha.');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                if(users.find(u => u.email === email)) return alert('E-mail já registado. Clique em Entrar.');
-                users.push({
-                    email: email, senha: senha, nome: email.split('@')[0],
-                    nicho: nicho, bio: 'Olá! Estou a usar o Zap Leve.', link: ''
-                });
-                localStorage.setItem('zap_users', JSON.stringify(users));
-                localStorage.setItem('zap_logged_user', email);
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                carregarAmbientePrincipal();
-            });
-
-            // Redefinir Senha
-            document.getElementById('link-forgot-password').addEventListener('click', (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value.trim();
-                if(!email) return alert('Digite o e-mail no campo acima primeiro.');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let user = users.find(u => u.email === email);
-                if(!user) return alert('E-mail não encontrado.');
-                const novaSenha = prompt('Nova senha:');
-                if(novaSenha) {
-                    user.senha = novaSenha.trim();
-                    localStorage.setItem('zap_users', JSON.stringify(users));
-                    alert('Senha redefinida com sucesso!');
-                }
-            });
-
-            // Logout
-            document.getElementById('btn-logout').addEventListener('click', () => {
-                localStorage.removeItem('zap_logged_user');
-                location.reload();
-            });
-
-            // Abrir Modal de Perfil do Próprio Utilizador
-            document.getElementById('open-profile-btn').addEventListener('click', () => {
-                const emailAtivo = localStorage.getItem('zap_logged_user');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let u = users.find(x => x.email === emailAtivo);
-                if(u) {
-                    document.getElementById('modal-user-username').textContent = u.nome;
-                    document.getElementById('modal-avatar-preview').textContent = u.nome.charAt(0).toUpperCase();
-                    document.getElementById('display-bio-text').textContent = u.bio || 'Nenhuma bio configurada.';
-                    document.getElementById('display-nicho-text').textContent = u.nicho || 'Negócio';
-                    document.getElementById('display-link-text').textContent = u.link || 'Nenhum link configurado.';
-                    
-                    document.getElementById('profile-name-input').value = u.nome;
-                    document.getElementById('profile-bio-input').value = u.bio || '';
-                    document.getElementById('profile-link-input').value = u.link || '';
-                    document.getElementById('profile-nicho-select').value = u.nicho || 'Negócio';
-                }
-                document.getElementById('profile-modal').classList.remove('hidden');
-            });
-
-            document.getElementById('btn-close-profile').addEventListener('click', () => {
-                document.getElementById('profile-modal').classList.add('hidden');
-            });
-
-            // Salvar Perfil
-            document.getElementById('btn-save-profile').addEventListener('click', () => {
-                const emailAtivo = localStorage.getItem('zap_logged_user');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let u = users.find(x => x.email === emailAtivo);
-                if(u) {
-                    u.nome = document.getElementById('profile-name-input').value.trim() || u.nome;
-                    u.bio = document.getElementById('profile-bio-input').value.trim();
-                    u.link = document.getElementById('profile-link-input').value.trim();
-                    u.nicho = document.getElementById('profile-nicho-select').value;
-                    localStorage.setItem('zap_users', JSON.stringify(users));
-                    alert('Perfil guardado com sucesso!');
-                    document.getElementById('profile-modal').classList.add('hidden');
-                    carregarAmbientePrincipal();
-                }
-            });
-
-            // Painel Admin
-            document.getElementById('btn-open-admin-panel').addEventListener('click', () => {
-                carregarListaAdminUtilizadores();
-                document.getElementById('admin-panel-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-close-admin-panel').addEventListener('click', () => {
-                document.getElementById('admin-panel-modal').classList.add('hidden');
-            });
-
-            // Exibir Página Privacidade
-            document.getElementById('btn-open-privacy-page').addEventListener('click', () => {
-                const savedPage = localStorage.getItem('zap_custom_privacy_page');
-                if(savedPage) {
-                    const data = JSON.parse(savedPage);
-                    document.getElementById('privacy-modal-title').textContent = data.title;
-                    document.getElementById('privacy-modal-content').textContent = data.content;
-                }
-                document.getElementById('privacy-page-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-close-privacy').addEventListener('click', () => {
-                document.getElementById('privacy-page-modal').classList.add('hidden');
-            });
-
-            // Admin salvar página
-            document.getElementById('btn-save-admin-page').addEventListener('click', () => {
-                const title = document.getElementById('admin-page-title').value.trim();
-                const content = document.getElementById('admin-page-content').value.trim();
-                if(!title || !content) return alert('Preencha o título e o conteúdo.');
-                localStorage.setItem('zap_custom_privacy_page', JSON.stringify({ title, content }));
-                alert('Página publicada com sucesso!');
-            });
-
-            // Catálogo
-            document.getElementById('btn-open-catalog').addEventListener('click', () => {
-                document.getElementById('catalog-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-close-catalog').addEventListener('click', () => {
-                document.getElementById('catalog-modal').classList.add('hidden');
-            });
-        });
-
-        function carregarAmbientePrincipal() {
-            const emailAtivo = localStorage.getItem('zap_logged_user');
-            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-            let currentUser = users.find(u => u.email === emailAtivo);
-            if (currentUser) {
-                document.getElementById('user-email-display').textContent = currentUser.nome || emailAtivo.split('@')[0];
-                document.getElementById('user-avatar-initial').textContent = (currentUser.nome || emailAtivo).charAt(0).toUpperCase();
-                
-                if(emailAtivo.includes('admin') || emailAtivo === 'admin@zapleve.com') {
-                    document.getElementById('btn-open-admin-panel').classList.remove('hidden');
-                }
-            }
-            renderizarNichos();
-        }
-
-        function renderizarNichos() {
-            const container = document.getElementById('niches-grid-container');
-            if(!container) return;
-            const lista = [
-                { nome: 'Negócio', icone: '💼', desc: 'Loja e Parcerias' },
-                { nome: 'Namoro', icone: '❤️', desc: 'Conexões' },
-                { nome: 'Religião', icone: '⛪', desc: 'Fé e Comunhão' },
-                { nome: 'Pets', icone: '🐾', desc: 'Amigos de 4 patas' }
-            ];
-            container.innerHTML = '';
-            lista.forEach(n => {
-                const card = document.createElement('div');
-                card.className = 'niche-card';
-                card.innerHTML = `
-                    <div class="niche-icon">${n.icone}</div>
-                    <div class="niche-title">${n.nome}</div>
-                    <div class="niche-count">${n.desc}</div>
-                `;
-                card.addEventListener('click', () => abrirNicho(n.nome));
-                container.appendChild(card);
-            });
-        }
-
-        function abrirNicho(nomeNicho) {
-            document.getElementById('contacts-screen').classList.add('hidden');
-            document.getElementById('nicho-users-screen').classList.remove('hidden');
-            document.getElementById('nicho-screen-title').textContent = 'Nicho: ' + nomeNicho;
-            
-            const container = document.getElementById('nicho-users-list-container');
-            container.innerHTML = '';
-            
-            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-            let filtrados = users.filter(u => u.nicho === nomeNicho);
-            
-            if(filtrados.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">Nenhum utilizador neste nicho ainda.</div>';
-                return;
-            }
-
-            filtrados.forEach(u => {
-                const item = document.createElement('div');
-                item.className = 'contact-item';
-                item.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="avatar-placeholder" style="width: 38px; height: 38px; font-size: 14px;">${u.nome.charAt(0).toUpperCase()}</div>
-                        <div>
-                            <div style="font-weight: bold; font-size: 14px; color: #333;">${u.nome}</div>
-                            <div style="font-size: 11px; color: #666;">${u.bio || 'Disponível'}</div>
-                        </div>
-                    </div>
-                    <button class="btn-conversar">Ver Bio 👤</button>
-                `;
-                item.addEventListener('click', () => {
-                    alert('Utilizador: ' + u.nome + '\nBio: ' + (u.bio || 'Sem bio') + '\nLink: ' + (u.link || 'Nenhum'));
-                });
-                container.appendChild(item);
-            });
-        }
-
-        document.getElementById('btn-back-to-niches').addEventListener('click', () => {
-            document.getElementById('nicho-users-screen').classList.add('hidden');
-            document.getElementById('contacts-screen').classList.remove('hidden');
-        });
-
-        document.getElementById('btn-logout-nicho').addEventListener('click', () => {
-            localStorage.removeItem('zap_logged_user');
-            location.reload();
-        });
-
-        function carregarListaAdminUtilizadores() {
-            const listDiv = document.getElementById('admin-users-list');
-            listDiv.innerHTML = '';
-            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-            users.forEach(u => {
-                const row = document.createElement('div');
-                row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;';
-                row.innerHTML = `
-                    <span><b>${u.nome}</b> (${u.email})</span>
-                    <button style="background: #ea0938; color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">Excluir</button>
-                `;
-                row.querySelector('button').addEventListener('click', () => {
-                    if(confirm('Tem certeza que deseja excluir o utilizador ' + u.nome + '?')) {
-                        let atualizados = users.filter(x => x.email !== u.email);
-                        localStorage.setItem('zap_users', JSON.stringify(atualizados));
-                        carregarListaAdminUtilizadores();
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        document.getElementById('auth-screen').classList.add('hidden');
+                        document.getElementById('contacts-screen').classList.remove('hidden');
+                        carregarDadosUsuario(user);
                     }
                 });
-                listDiv.appendChild(row);
-            });
-        }
+
+                document.getElementById('btn-login-action').addEventListener('click', async () => {
+                    const email = document.getElementById('email').value.trim();
+                    const senha = document.getElementById('senha').value.trim();
+                    try {
+                        await signInWithEmailAndPassword(auth, email, senha);
+                    } catch (e) {
+                        alert('Erro ao entrar: ' + e.message);
+                    }
+                });
+
+                document.getElementById('btn-register-action').addEventListener('click', async () => {
+                    const email = document.getElementById('email').value.trim();
+                    const senha = document.getElementById('senha').value.trim();
+                    const nicho = document.getElementById('auth-nicho').value;
+                    try {
+                        const res = await createUserWithEmailAndPassword(auth, email, senha);
+                        await setDoc(doc(db, "users", res.user.uid), {
+                            uid: res.user.uid,
+                            email: email,
+                            nome: email.split('@')[0],
+                            nicho: nicho,
+                            bio: 'Olá! Estou no Zap Leve.',
+                            link: ''
+                        });
+                        alert('Conta criada na nuvem com sucesso!');
+                    } catch (e) {
+                        alert('Erro ao registar: ' + e.message);
+                    }
+                });
+
+                document.getElementById('link-forgot-password').addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('email').value.trim();
+                    if(!email) return alert('Digite o seu e-mail no campo acima.');
+                    try {
+                        await sendPasswordResetEmail(auth, email);
+                        alert('E-mail de recuperação enviado com sucesso!');
+                    } catch(err) {
+                        alert('Erro: ' + err.message);
+                    }
+                });
+
+                document.getElementById('btn-logout').addEventListener('click', async () => {
+                    await signOut(auth);
+                    location.reload();
+                });
+
+                // Perfil modal open/close
+                document.getElementById('open-profile-btn').addEventListener('click', () => {
+                    document.getElementById('profile-modal').classList.remove('hidden');
+                });
+                document.getElementById('btn-close-profile').addEventListener('click', () => {
+                    document.getElementById('profile-modal').classList.add('hidden');
+                });
+
+                // Catálogo modal open/close
+                document.getElementById('btn-open-catalog').addEventListener('click', () => {
+                    document.getElementById('catalog-modal').classList.remove('hidden');
+                });
+                document.getElementById('btn-close-catalog').addEventListener('click', () => {
+                    document.getElementById('catalog-modal').classList.add('hidden');
+                });
+
+                function carregarDadosUsuario(user) {
+                    document.getElementById('user-email-display').textContent = user.email;
+                    document.getElementById('user-avatar-initial').textContent = user.email.charAt(0).toUpperCase();
+                    if(user.email.includes('admin') || user.email === 'admin@zapleve.com') {
+                        document.getElementById('btn-open-admin-panel')?.classList.remove('hidden');
+                    }
+                    renderizarNichosCloud();
+                }
+
+                function renderizarNichosCloud() {
+                    const container = document.getElementById('niches-grid-container');
+                    container.innerHTML = '';
+                    const lista = [
+                        { nome: 'Negócio', icone: '💼', desc: 'Loja e Parcerias' },
+                        { nome: 'Namoro', icone: '❤️', desc: 'Conexões' },
+                        { nome: 'Religião', icone: '⛪', desc: 'Fé e Comunhão' },
+                        { nome: 'Pets', icone: '🐾', desc: 'Amigos de 4 patas' }
+                    ];
+                    lista.forEach(n => {
+                        const card = document.createElement('div');
+                        card.className = 'niche-card';
+                        card.innerHTML = `<div class="niche-icon">${n.icone}</div><div class="niche-title">${n.nome}</div><div class="niche-count">${n.desc}</div>`;
+                        card.addEventListener('click', () => abrirNichoCloud(n.nome));
+                        container.appendChild(card);
+                    });
+                }
+
+                async function abrirNichoCloud(nomeNicho) {
+                    document.getElementById('contacts-screen').classList.add('hidden');
+                    document.getElementById('nicho-users-screen').classList.remove('hidden');
+                    document.getElementById('nicho-screen-title').textContent = 'Nicho: ' + nomeNicho;
+                    
+                    const container = document.getElementById('nicho-users-list-container');
+                    container.innerHTML = '<div style="padding:20px; text-align:center;">A carregar utilizadores da nuvem...</div>';
+                    
+                    const querySnapshot = await getDocs(collection(db, "users"));
+                    container.innerHTML = '';
+                    
+                    let encontrou = false;
+                    querySnapshot.forEach((docSnap) => {
+                        const u = docSnap.data();
+                        if(u.nicho === nomeNicho) {
+                            encontrou = true;
+                            const item = document.createElement('div');
+                            item.className = 'contact-item';
+                            item.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="avatar-placeholder" style="width: 38px; height: 38px;">${(u.nome || 'U').charAt(0).toUpperCase()}</div>
+                                    <div>
+                                        <div style="font-weight: bold; font-size: 14px;">${u.nome}</div>
+                                        <div style="font-size: 11px; color: #666;">${u.bio || 'Disponível'}</div>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(item);
+                        }
+                    });
+                    if(!encontrou) {
+                        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Nenhum utilizador neste nicho na nuvem ainda.</div>';
+                    }
+                }
+
+                document.getElementById('btn-back-to-niches').addEventListener('click', () => {
+                    document.getElementById('nicho-users-screen').classList.add('hidden');
+                    document.getElementById('contacts-screen').classList.remove('hidden');
+                });
+            }, 1000);
+        });
     </script>
 </body>
 </html>
