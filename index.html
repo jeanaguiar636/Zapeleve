@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Vídeos Maiores</title>
+    <title>Zap Leve - Botões de Download</title>
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
         'name': 'Zap Leve',
         'short_name': 'ZapLeve',
@@ -53,13 +53,15 @@
 
         .chat-messages { flex: 1; background: #efeae2; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
         
-        /* Balões de mensagens mais largos para acomodar vídeos grandes */
         .msg { padding: 8px 12px; border-radius: 8px; max-width: 90%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; }
         .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
         .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
         
-        /* Ajuste para imagens e vídeos ficarem grandes e destacados */
         .msg img, .msg video { width: 100% !important; max-width: 320px !important; max-height: 420px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; }
+        
+        /* Botão de download embutido abaixo de cada mídia */
+        .btn-download-media { background: #075e54; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; width: fit-content; }
+        .btn-download-media:hover { background: #128c7e; }
 
         .msg-menu-btn { position: absolute; top: 4px; right: 6px; background: none; border: none; font-size: 14px; cursor: pointer; color: #555; padding: 2px 6px; font-weight: bold; z-index: 5; }
 
@@ -116,6 +118,11 @@
         .preview-actions { display: flex; gap: 10px; justify-content: center; }
         .btn-enviar-pre { background: #00a884; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-excluir-pre { background: #ea0938; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        /* Estilo para a Tela Cheia (Lightbox / Zoom) com botão Sair */
+        .lightbox-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .lightbox-content { max-width: 95%; max-height: 80vh; object-fit: contain; border-radius: 8px; }
+        .btn-sair-tela-cheia { position: absolute; top: 20px; right: 20px; background: #ea0938; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
         .hidden-file { display: none; }
     </style>
@@ -299,9 +306,10 @@
             </div>
         </div>
 
-        <!-- MODAL DE AMPLIAR IMAGEM -->
-        <div id="image-lightbox-modal" class="modal-overlay hidden" onclick="this.classList.add('hidden')">
-            <img id="lightbox-img" style="max-width:90%; max-height:90vh; border-radius:8px; object-fit:contain;">
+        <!-- MODAL DE TELA CHEIA (LIGHTBOX) COM BOTÃO SAIR -->
+        <div id="lightbox-modal" class="lightbox-container hidden">
+            <button class="btn-sair-tela-cheia" onclick="fecharTelaCheia()">✕ Sair da Tela Cheia</button>
+            <div id="lightbox-media-box" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></div>
         </div>
     </div>
 
@@ -397,8 +405,8 @@
         const productGridContainer = document.getElementById('product-grid-container');
 
         const btnInstall = document.getElementById('btn-install');
-        const imageLightboxModal = document.getElementById('image-lightbox-modal');
-        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxModal = document.getElementById('lightbox-modal');
+        const lightboxMediaBox = document.getElementById('lightbox-media-box');
 
         let currentChatUser = null;
         let unsubscribeMensagens = null;
@@ -504,7 +512,7 @@
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
-                        <img src="${p.foto}" onclick="abrirLightbox('${p.foto}')">
+                        <img src="${p.foto}" onclick="abrirLightboxImagem('${p.foto}')">
                         <h4>${p.nome}</h4>
                         <p>${p.descricao || 'Sem descrição'}</p>
                         <div class="product-card-actions">
@@ -778,10 +786,10 @@
                     let tipoMidia = 'ficheiro';
 
                     if (file.type.startsWith('image/')) {
-                        previewHtml = `<img src="${base64Data}" style="max-height:220px; object-fit:contain; border-radius:6px; cursor:pointer;" onclick="abrirLightbox(this.src)">`;
+                        previewHtml = `<img src="${base64Data}">`;
                         tipoMidia = 'imagem';
                     } else if (file.type.startsWith('video/')) {
-                        previewHtml = `<video src="${base64Data}" controls style="max-height:360px; width:100%; border-radius:6px;"></video>`;
+                        previewHtml = `<video src="${base64Data}" controls></video>`;
                         tipoMidia = 'video';
                     }
 
@@ -846,7 +854,7 @@
             }
         });
 
-        // --- ESCUTA NO FIRESTORE ---
+        // --- ESCUTA NO FIRESTORE COM BOTÕES DE DOWNLOAD AUTOMÁTICOS ---
         function escutarMensagens() {
             if (unsubscribeMensagens) unsubscribeMensagens();
             
@@ -877,9 +885,44 @@
                         }
                     } catch(e) {}
 
-                    let htmlConteudo = `<span style="font-size:10px; color:#555; margin-bottom:2px; font-weight:bold;">${nomeRemetente}</span><div>${data.texto}</div>`;
+                    let htmlConteudo = `<span style="font-size:10px; color:#555; margin-bottom:2px; font-weight:bold;">${nomeRemetente}</span><div class="msg-corpo-conteudo">${data.texto}</div>`;
                     htmlConteudo += `<button class="msg-menu-btn" onclick="abrirMenuContextual(event, '${data.idDoc}', ${minha})">⋮</button>`;
+                    
                     div.innerHTML = htmlConteudo;
+                    
+                    // Adicionar botões de download dinâmicos caso haja mídias na mensagem
+                    const imgEl = div.querySelector('img');
+                    const videoEl = div.querySelector('video');
+                    const audioEl = div.querySelector('audio');
+
+                    if (imgEl) {
+                        imgEl.style.cursor = 'pointer';
+                        imgEl.onclick = () => abrirTelaCheia(`<img src="${imgEl.src}" class="lightbox-content">`);
+                        
+                        const btnDown = document.createElement('a');
+                        btnDown.className = 'btn-download-media';
+                        btnDown.href = imgEl.src;
+                        btnDown.download = 'foto_zapleve.jpg';
+                        btnDown.innerHTML = '⬇️ Baixar Imagem';
+                        div.appendChild(btnDown);
+                    } else if (videoEl) {
+                        videoEl.onclick = () => abrirTelaCheia(`<video src="${videoEl.src}" controls autoplay class="lightbox-content"></video>`);
+                        
+                        const btnDown = document.createElement('a');
+                        btnDown.className = 'btn-download-media';
+                        btnDown.href = videoEl.src;
+                        btnDown.download = 'video_zapleve.mp4';
+                        btnDown.innerHTML = '⬇️ Baixar Vídeo';
+                        div.appendChild(btnDown);
+                    } else if (audioEl) {
+                        const btnDown = document.createElement('a');
+                        btnDown.className = 'btn-download-media';
+                        btnDown.href = audioEl.src;
+                        btnDown.download = 'audio_zapleve.webm';
+                        btnDown.innerHTML = '⬇️ Baixar Áudio';
+                        div.appendChild(btnDown);
+                    }
+
                     chatMessages.appendChild(div);
                 }
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -962,6 +1005,21 @@
             }
         });
 
+        // --- TELA CHEIA (LIGHTBOX) COM BOTÃO SAIR ---
+        window.abrirTelaCheia = function(htmlConteudo) {
+            lightboxMediaBox.innerHTML = htmlConteudo;
+            lightboxModal.classList.remove('hidden');
+        };
+
+        window.fecharTelaCheia = function() {
+            lightboxMediaBox.innerHTML = '';
+            lightboxModal.classList.add('hidden');
+        };
+
+        window.abrirLightboxImagem = function(src) {
+            abrirTelaCheia(`<img src="${src}" class="lightbox-content">`);
+        };
+
         // --- CHAMADAS COM FOTO E NOME ---
         let audioCtx = null;
         let ringInterval = null;
@@ -1030,7 +1088,7 @@
         }
 
         btnVideoCall.addEventListener('click', () => iniciarChamada('video'));
-        btnAudioCall.addEventListener('click', () => iniciarChamada('video')); // Mantém o fluxo normal
+        btnAudioCall.addEventListener('click', () => iniciarChamada('video'));
 
         btnAtenderChamada.addEventListener('click', () => {
             pararSomCampainha();
@@ -1044,11 +1102,6 @@
             callScreen.classList.add('hidden');
             callVideosContainer.style.display = 'none';
         });
-
-        window.abrirLightbox = function(src) {
-            lightboxImg.src = src;
-            imageLightboxModal.classList.remove('hidden');
-        };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
