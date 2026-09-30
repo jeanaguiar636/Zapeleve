@@ -3,595 +3,1630 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Comunidade e Loja</title>
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
-        'name': 'Zap Leve',
-        'short_name': 'ZapLeve',
-        'start_url': '/',
-        'display': 'standalone',
-        'background_color': '#ffffff',
-        'theme_color': '#075e54',
-        'icons': [{'src': 'https://cdn-icons-png.flaticon.com/512/733/733585.png', 'sizes': '512x512', 'type': 'image/png'}]
-    }">
+    <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <style>
+        :root {
+            --bg-app: #ffffff;
+            --text-app: #111111;
+            --header-bg: #00a884;
+            --chat-bg: #efeae2;
+            --input-bg: #f0f2f5;
+            --msg-minha: #d9fdd3;
+            --msg-outra: #ffffff;
+            --border-color: #d1d7db;
+        }
+        body.dark-mode {
+            --bg-app: #111b21;
+            --text-app: #e9edef;
+            --header-bg: #202c33;
+            --chat-bg: #0b141a;
+            --input-bg: #202c33;
+            --msg-minha: #005c4b;
+            --msg-outra: #202c33;
+            --border-color: #222d34;
+        }
+
         * { box-sizing: border-box; }
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #ffffff;
-        }
-        .container { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; background: white; }
-        .hidden { display: none !important; }
-        .screen-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #ffffff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-        
-        .app-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 10px 14px; flex-shrink: 0; }
-        .app-title-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px; overflow: hidden; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); }
-        .avatar-placeholder img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .header-actions-right { display: flex; gap: 6px; align-items: center; }
-        .btn-install-app { background: #25d366 !important; border: none; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-        .btn-theme { background: #128c7e; border: none; color: white; width: 32px; height: 32px; border-radius: 4px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        .niches-container { flex: 1; overflow-y: auto; background: #f0f2f5; padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: start; }
-        .niche-card { background: white; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; border: 1px solid #e2e8f0; transition: transform 0.1s; }
-        .niche-card:active { transform: scale(0.97); }
-        .niche-icon { font-size: 28px; }
-        .niche-title { font-weight: bold; font-size: 14px; color: #075e54; margin: 0; }
-        .niche-count { font-size: 11px; color: #666; }
-
-        .contacts-list { flex: 1; overflow-y: auto; background: #fff; }
-        .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
-        .btn-conversar { background: none; border: none; color: #00a884; font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-
-        .contacts-footer { padding: 10px 14px; background: #fff; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-        .btn-convidar { background: #075e54; color: white; border: none; width: 100%; padding: 12px; border-radius: 24px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-        .chat-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 8px 10px; gap: 4px; flex-shrink: 0; }
-        .chat-header-user-info { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .chat-header-actions { display: flex; gap: 4px; align-items: center; }
-        .btn-action-top { background: #128c7e; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
-        .btn-action-top.video { background: #25d366; }
-        .btn-action-top.audio { background: #34b7f1; }
-        .btn-action-top.limpar { background: #ea0938; }
-
-        .product-tag-bar { padding: 6px 10px; background: #fff; border-bottom: 1px solid #ddd; flex-shrink: 0; display: flex; gap: 6px; align-items: center; }
-        .product-tag-bar input { flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
-        
-        .chat-messages { flex: 1; background: #efeae2; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-        
-        .msg { padding: 8px 12px; border-radius: 8px; max-width: 90%; word-break: break-word; font-size: 14px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; }
-        .msg-minha { background: #dcf8c6; margin-left: auto; display: flex; flex-direction: column; }
-        .msg-outra { background: #fff; margin-right: auto; display: flex; flex-direction: column; }
-        
-        .msg img, .msg video { width: 100% !important; max-width: 280px !important; max-height: 320px !important; object-fit: cover; border-radius: 6px; margin-top: 4px; display: block; cursor: pointer; }
-        
-        .btn-download-media { background: #075e54; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; width: fit-content; }
-
-        .chat-input-container { background: #f0f2f5; padding: 8px 10px; border-top: 1px solid #d1d7db; display: flex; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
-        .chat-input-container input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #d1d7db; border-radius: 24px; outline: none; font-size: 14px; background: #fff; }
-        .btn-send { background: #00a884; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-
-        /* Botão flutuante verde, com borda branca e carrinho em branco */
-        .floating-cart { 
-            position: fixed; 
-            bottom: 80px; 
-            right: 20px; 
-            background: #25d366; 
-            color: #ffffff; 
-            width: 56px; 
-            height: 56px; 
-            border-radius: 50%; 
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-app); 
+            color: var(--text-app);
+            margin: 0; 
+            padding: 0; 
             display: flex; 
-            align-items: center; 
             justify-content: center; 
-            font-size: 24px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            cursor: pointer; 
-            z-index: 100; 
-            border: 2px solid #ffffff; 
+            align-items: center; 
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden; 
+            transition: background 0.3s, color 0.3s;
+        }
+        .container { 
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg-app); 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+        }
+        
+        .hidden { display: none !important; }
+        h2, h3 { color: var(--header-bg); margin-top: 0; }
+        
+        .screen-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            overflow: hidden;
+            background: var(--bg-app);
+            width: 100%;
+            height: 100%;
         }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
-        .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .logo-area { text-align: center; margin: 15px 0; }
+        .logo-area span { font-size: 45px; }
+        .logo-area h1 { font-size: 26px; color: var(--header-bg); margin: 5px 0 0 0; }
 
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 4px; }
-        .product-card { background: #f9f9f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
-        .product-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; }
-        .product-card h4 { margin: 0; font-size: 13px; color: #075e54; }
-        .product-card p { margin: 0; font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .botao-flutuante-loja {
+            position: fixed;
+            bottom: 125px;
+            right: 18px;
+            background-color: #27ae60;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            z-index: 999;
+            text-decoration: none;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .botao-flutuante-loja:hover { transform: scale(1.08); background-color: #219653; }
+        .botao-flutuante-loja svg { width: 24px; height: 24px; fill: currentColor; }
         
-        .hidden-file { display: none; }
+        input, textarea, button, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; outline: none; background: var(--input-bg); color: var(--text-app); }
+        input:focus { border-color: #00a884; }
+        button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-alt { background: #075e54; }
+        .btn-danger { background: #ea0038; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+        .close-modal { background: #ea0038; padding: 8px 15px; margin-top: 15px; display: block; text-align: center; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
+
+        .contact-list { flex: 1; border: none; overflow-y: auto; padding: 0; margin-bottom: 10px; background: var(--bg-app); }
+        .contact-item { padding: 12px 10px; margin-bottom: 2px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg-app); }
+        .contact-item:hover { opacity: 0.8; }
+        .contact-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: bold; flex-shrink: 0; cursor: pointer; }
+        .contact-name { font-weight: 500; color: var(--text-app); font-size: 15px; }
+
+        .chat-box { flex: 1; border: none; overflow-y: auto; padding: 12px; margin-bottom: 0; background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; }
+        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); color: var(--text-app); max-width: 88%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); display: flex; gap: 8px; align-items: flex-start; word-break: break-word; position: relative; }
+        .msg-minha { background: var(--msg-minha); margin-left: auto; flex-direction: row-reverse; }
+        .msg-content { flex: 1; overflow: hidden; }
+        
+        .msg-content a { color: #0275d8; text-decoration: underline; word-break: break-all; }
+        body.dark-mode .msg-content a { color: #58a6ff; }
+        
+        .embed-container { margin-top: 6px; border-radius: 6px; overflow: hidden; background: #000; width: 100%; max-width: 320px; aspect-ratio: 16/9; }
+        .embed-container iframe, .embed-container blockquote { width: 100%; height: 100%; border: none; margin: 0; }
+
+        .msg-download-btn { background: #014c8a; border: none; color: #ffffff; padding: 8px 14px; font-size: 13px; border-radius: 6px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .msg-download-btn:hover { background: #003366; }
+        
+        .msg-product-body { padding: 4px 0; display: flex; flex-direction: column; gap: 6px; }
+
+        .wa-audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 20px; margin-top: 4px; min-width: 210px; }
+        .wa-play-btn { width: 36px; height: 36px; border-radius: 50%; background: #00a884; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; margin: 0; }
+        .wa-audio-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .wa-audio-bar { width: 100%; height: 4px; background: #ccc; border-radius: 2px; position: relative; cursor: pointer; }
+        .wa-audio-progress { height: 100%; background: #00a884; width: 0%; border-radius: 2px; transition: width 0.1s linear; }
+        .wa-audio-time { font-size: 10px; opacity: 0.7; font-family: monospace; }
+
+        #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 1000; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; color: white; }
+        .call-videos { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px; background: #0b141a; margin: 10px 0; }
+        #remote-video { width: 100%; height: 100%; object-fit: cover; }
+        #local-video { position: absolute; bottom: 15px; right: 15px; width: 110px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid white; background: #222; }
+        
+        #call-placeholder-info { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; z-index: 2; }
+        .call-avatar-grande { width: 90px; height: 90px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold; border: 3px solid white; }
+
+        .call-controls { display: flex; justify-content: center; gap: 20px; padding: 15px; }
+        .call-btn { width: 56px; height: 56px; border-radius: 50%; border: none; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
+        .btn-hangup { background: #ea0038; }
+        .btn-mic, .btn-cam { background: #333; }
+
+        .chat-input-area { display: flex; flex-direction: column; background: var(--input-bg); padding: 6px 10px; border-top: 1px solid var(--border-color); gap: 4px; }
+        .input-group { display: flex; gap: 6px; align-items: center; width: 100%; position: relative; }
+        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px 10px 42px; border: 1px solid var(--border-color); color: var(--text-app); }
+        
+        .action-btn { width: 38px; height: 38px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; flex-shrink: 0; color: white; border: none; cursor: pointer; }
+        .mic-rec-btn { background: #ff9800; }
+        .mic-rec-btn.gravando { background: #ea0038; animation: pulsar 1.2s infinite; }
+        
+        .clip-btn { position: absolute; left: 6px; background: transparent; border: none; color: #54657f; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; padding: 0; margin: 0; z-index: 5; }
+        .clip-btn:hover { background: rgba(0,0,0,0.05); }
+
+        #menu-anexos { display: none; position: absolute; bottom: 65px; left: 10px; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; flex-direction: column; padding: 6px; width: 160px; }
+        .anexo-opcao { display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: var(--text-app); cursor: pointer; border-radius: 4px; text-decoration: none; }
+        .anexo-opcao:hover { background: var(--input-bg); }
+
+        @keyframes pulsar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); color: white; padding: 10px 14px; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .user-info-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        
+        .texto-voltar { color: #ffffff; font-size: 14px; font-weight: bold; cursor: pointer; background: none; border: none; padding: 0; margin-right: 6px; text-decoration: underline; }
+        .texto-voltar:hover { opacity: 0.8; }
+
+        .usuario-editavel { font-size: 11px; color: #e0f2f1; cursor: pointer; text-decoration: underline; display: inline-block; }
+        .usuario-editavel:hover { color: #ffffff; }
+
+        .btn-topo-padrao { border: none; color: white; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; white-space: nowrap; }
+        .btn-topo-limpar { background: #ea0038; }
+        .btn-topo-video { background: #007bff; }
+        .btn-topo-telefone { background: #28a745; }
+        .btn-topo-sair { background: #ea0038; }
+        
+        .quick-replies { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; white-space: nowrap; align-items: center; scrollbar-width: none; }
+        .quick-replies::-webkit-scrollbar { display: none; }
+        .quick-chip { background: var(--bg-app); border: 1px solid var(--border-color); color: var(--text-app); padding: 4px 10px; border-radius: 16px; font-size: 11px; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .quick-chip:hover { border-color: #00a884; color: #00a884; }
+        .btn-config-quick { background: #075e54; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+
+        video, img.msg-img { max-width: 100%; border-radius: 8px; margin-top: 6px; display: block; }
+        img.msg-img { max-height: 280px; width: 100%; object-fit: cover; background: #000; cursor: pointer; transition: opacity 0.2s; }
+        img.msg-img:hover { opacity: 0.92; }
+
+        #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+
+        /* Menu Lateral Estilo Gaveta (Nichos e Admin) */
+        #side-menu-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--bg-app); color: var(--text-app); z-index: 2500; box-shadow: 4px 0 15px rgba(0,0,0,0.3); transition: left 0.3s ease; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
+        #side-menu-drawer.open { left: 0; }
+        #menu-overlay-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2400; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- TELA DE LOGIN -->
-        <div id="auth-screen" class="screen-content" style="justify-content: center; padding: 20px; position: relative;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <span style="font-size: 50px;">⚡</span>
-                <h1 style="color: #075e54; margin: 5px 0;">Zap Leve</h1>
+
+<div class="container">
+    <!-- Menu Lateral Retrátil de Nichos e Admin -->
+    <div id="menu-overlay-bg" onclick="fecharMenuLateral()"></div>
+    <div id="side-menu-drawer">
+        <div style="background: var(--header-bg); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin:0; color:white; font-size:16px;">📂 Canais & Nichos</h3>
+            <button onclick="fecharMenuLateral()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+        
+        <div id="admin-menu-section" class="hidden" style="padding: 10px; background: rgba(0,168,132,0.1); border-bottom: 1px solid var(--border-color);">
+            <button class="btn-alt" style="width:100%; padding:8px; font-size:12px; background:#d4a24c; margin:0;" onclick="abrirPainelAdminGeral()">⚙️ Painel de Controlo Admin</button>
+        </div>
+
+        <div style="padding: 12px; flex: 1; overflow-y: auto;">
+            <p style="font-size: 11px; font-weight: bold; opacity: 0.7; margin-bottom: 8px;">SELECIONE UM NICHO:</p>
+            <div id="lista-nichos-lateral" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Contatos por Nicho -->
+    <div id="modal-nicho-contatos" class="modal">
+        <div class="modal-content">
+            <h3 id="titulo-modal-nicho" style="margin-bottom:8px;">Contatos do Nicho</h3>
+            <div id="lista-contatos-nicho" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+                <p style="text-align:center; font-size:12px;">A carregar contatos...</p>
             </div>
-            <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <input type="email" id="email" placeholder="Seu e-mail" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
-                <input type="password" id="senha" placeholder="Sua senha" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
+            <div class="close-modal" onclick="fecharModalNicho()">Fechar</div>
+        </div>
+    </div>
+
+    <!-- Modal do Painel Admin Completo -->
+    <div id="modal-painel-admin" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <h3>👑 Painel Completo do Administrador</h3>
+            <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <button class="btn-alt" style="flex:1; padding:6px; font-size:11px; margin:0;" onclick="mudarAbaAdminMaster('usuarios')">👥 Utilizadores</button>
+                <button class="btn-alt" style="flex:1; padding:6px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdminMaster('nichos')">🏷️ Gerir Nichos</button>
+            </div>
+
+            <div id="admin-aba-usuarios">
+                <p style="font-size:12px; font-weight:bold; margin-bottom:6px;">Lista Geral de Utilizadores Cadastrados:</p>
+                <div id="tabela-usuarios-admin" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                    <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
+                </div>
+            </div>
+
+            <div id="admin-aba-nichos" class="hidden">
+                <p style="font-size:12px; font-weight:bold; margin-bottom:6px;">Adicionar Novo Canal/Nicho:</p>
+                <input type="text" id="novo-nicho-nome" placeholder="Nome do Nicho (ex: Criptomoedas)" style="font-size:12px; padding:8px; margin-bottom:6px;">
+                <button class="btn-alt" style="padding:8px; font-size:12px; margin:0;" onclick="criarNovoNicho()">➕ Criar Nicho</button>
+            </div>
+
+            <div class="close-modal" onclick="fecharPainelAdminGeral()">Fechar</div>
+        </div>
+    </div>
+
+    <!-- Modal de Ampliação de Imagem -->
+    <div id="modal-zoom-imagem" onclick="fecharZoomImagem()">
+        <img id="imagem-zoom-src" src="">
+        <span style="color: white; margin-top: 15px; font-size: 13px; background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; cursor: pointer;">Toque em qualquer lugar para fechar</span>
+    </div>
+
+    <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine de Produtos">
+        <svg viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+    </button>
+
+    <!-- Modal de Perfil / Bio (Com o botão de menu/nichos integrado dentro da Bio) -->
+    <div id="modal-perfil-usuario" class="modal">
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
+            
+            <div id="alerta-perfil-bio" class="hidden" style="background-color: #ea0038; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; width: 100%; text-align: center; margin-bottom: 4px;">
+                ⚠️ Complete o seu perfil (Nome, foto, descrição e nicho)
+            </div>
+
+            <div id="perfil-avatar-container" style="position: relative;">
+                <div id="perfil-avatar-grande" class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin-bottom: 5px;">?</div>
+                <img id="perfil-img-grande" class="hidden" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid white;" src="">
+            </div>
+            
+            <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
+            <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
+            
+            <!-- Botão de Menu de Canais e Nichos posicionado dentro da Bio -->
+            <button class="btn-alt" style="background: #202c33; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer; margin-top: 4px;" onclick="fecharPerfilUsuario(); abrirMenuLateral();">
+                📂 Abrir Menu de Canais & Nichos
+            </button>
+
+            <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
+                📲 Baixar e Instalar Aplicativo
+            </button>
+
+            <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 5px; text-align: left; border: 1px solid var(--border-color);">
+                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold; color: var(--header-bg);">🌐 Link de Afiliado / Perfil do Utilizador:</p>
+                <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
+            </div>
+
+            <!-- Painel de Edição do Perfil -->
+            <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
+                <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: bold; color: var(--header-bg);">✏️ Editar o Meu Perfil:</p>
                 
-                <div style="margin: 8px 0;">
-                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Escolha o seu Nicho Inicial:</label>
-                    <select id="auth-nicho" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px;">
-                        <option value="Negócio">💼 Negócio</option>
-                        <option value="Namoro">❤️ Namoro</option>
-                        <option value="Religião">⛪ Religião</option>
-                        <option value="Pets">🐾 Pets</option>
-                    </select>
-                </div>
+                <label style="font-size: 11px; opacity: 0.9; font-weight: bold;">Meu Nome de Utilizador:</label>
+                <input type="text" id="input-meu-nome" placeholder="Digite seu nome completo ou apelido" style="font-size: 13px; padding: 9px; margin-bottom: 8px; border: 2px solid #00a884;">
 
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                    <button id="btn-login-action" style="flex: 1; padding: 12px; background: #34b7f1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Entrar</button>
-                    <button id="btn-register-action" style="flex: 1; padding: 12px; background: #25d366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Criar Conta</button>
-                </div>
+                <label style="font-size: 11px; opacity: 0.9; font-weight: bold;">Escolher Canal / Nicho de Contato:</label>
+                <select id="select-meu-nicho" style="font-size: 13px; padding: 9px; margin-bottom: 8px;">
+                    <option value="Religião">✝ Religião</option>
+                    <option value="Negócios">💼 Negócios</option>
+                    <option value="Namoro">❤️ Namoro</option>
+                    <option value="Pet">🐾 Pet</option>
+                    <option value="Construção Civil">🏗️ Construção Civil</option>
+                    <option value="Engenheiros">👷 Engenheiros</option>
+                    <option value="Psicólogos">🧠 Psicólogos</option>
+                    <option value="Faxineiros">🧹 Faxineiros</option>
+                </select>
 
-                <div style="text-align: center; margin-top: 12px;">
-                    <a href="#" id="link-forgot-password" style="font-size: 12px; color: #0066cc; text-decoration: underline;">Esqueceu a senha / Redefinir senha?</a>
-                </div>
+                <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
+                <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 8px;">
+                
+                <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal / Afiliado / Vídeos:</label>
+                <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 8px;">
+                
+                <button class="btn-alt" style="padding: 10px; font-size: 13px; margin: 0; width: 100%; background: #00a884;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
             </div>
+
+            <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
+    </div>
 
-        <!-- TELA DE LISTA DE NICHOS -->
-        <div id="contacts-screen" class="screen-content hidden">
-            <div class="app-header">
-                <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
-                    <div id="user-avatar-initial" class="avatar-placeholder">J</div>
-                    <div>
-                        <span id="user-email-display" style="font-weight: bold; font-size: 14px; display: block;">Zap Leve ⚡</span>
-                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">Comunidade</span>
-                    </div>
-                </div>
-                <div class="header-actions-right">
-                    <button id="btn-open-admin-panel" class="hidden" style="background: #ea0938; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">🛡️ Admin</button>
-                    <button id="btn-theme-toggle" class="btn-theme">🌓</button>
-                    <button id="btn-install" class="btn-install-app hidden">📲 Baixar App</button>
-                    <button id="btn-logout" class="btn-action-top limpar">Sair</button>
-                </div>
-            </div>
-
-            <div style="padding: 10px 16px; background: #f0f2f5; font-size: 13px; font-weight: bold; color: #54656f; display: flex; justify-content: space-between; align-items: center;">
-                <span>Escolha um Nicho:</span>
-                <button id="btn-open-privacy-page" style="background: none; border: none; color: #0066cc; font-size: 11px; cursor: pointer; text-decoration: underline;">📄 Privacidade / Termos</button>
-            </div>
-
-            <div class="niches-container" id="niches-grid-container"></div>
-
-            <div class="contacts-footer">
-                <button class="btn-convidar" onclick="alert('Link de convite copiado para a área de transferência!')">📢 Convidar para o Zap Leve</button>
-            </div>
-
-            <!-- Botão flutuante verde com borda e ícone em branco -->
-            <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
+    <!-- TELA DE CHAMADA -->
+    <div id="call-screen" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="call-status" style="margin: 0; color: white;">A ligar...</h3>
+            <button class="btn-danger" style="width: auto; padding: 6px 12px; font-size: 12px; border-radius: 4px;" onclick="encerrarChamada()">Desligar</button>
         </div>
-
-        <!-- TELA DE UTILIZADORES DENTRO DE UM NICHO -->
-        <div id="nicho-users-screen" class="screen-content hidden">
-            <div class="app-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btn-back-to-niches" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
-                    <h3 id="nicho-screen-title" style="margin: 0; font-size: 16px;">Nicho</h3>
-                </div>
-                <button id="btn-logout-nicho" class="btn-action-top limpar">Sair</button>
+        <div class="call-videos">
+            <div id="call-placeholder-info">
+                <div id="call-active-avatar" class="call-avatar-grande">?</div>
+                <h2 id="call-active-name" style="margin: 0; color: white; font-size: 22px;">Nome</h2>
+                <p style="margin: 0; color: #aaa; font-size: 13px;">A aguardar resposta...</p>
             </div>
-            <div style="padding: 8px 16px; background: #f0f2f5; font-size: 12px; color: #555;">Utilizadores registados neste nicho (e-mails ocultos por privacidade):</div>
-            <div class="contacts-list" id="nicho-users-list-container"></div>
+            <video id="remote-video" autoplay playsinline></video>
+            <video id="local-video" autoplay playsinline muted></video>
         </div>
-
-        <!-- PAINEL ADMINISTRATIVO -->
-        <div id="admin-panel-modal" class="modal-overlay hidden">
-            <div class="modal-card" style="max-width: 540px; max-height: 85vh;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 style="margin: 0; color: #075e54;">🛡️ Painel Administrativo Completo</h3>
-                    <button id="btn-close-admin-panel" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px;">
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Criar Novo Nicho / Grupo</h4>
-                        <input type="text" id="new-niche-name" placeholder="Nome do Nicho (ex: Esportes)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
-                        <input type="text" id="new-niche-icon" placeholder="Emoji (ex: ⚽)" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
-                        <button id="btn-save-new-niche" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Adicionar Nicho</button>
-                    </div>
-
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">📄 Criar / Editar Página de Privacidade e Termos</h4>
-                        <input type="text" id="admin-page-title" placeholder="Título da Página" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
-                        <textarea id="admin-page-content" placeholder="Escreva o conteúdo..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 70px; outline: none; margin-bottom: 8px;"></textarea>
-                        <button id="btn-save-admin-page" style="background: #0066cc; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;">Salvar e Publicar Página</button>
-                    </div>
-
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">👥 Gerir Utilizadores (Excluir Contas)</h4>
-                        <div id="admin-users-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
-                    </div>
-                </div>
-            </div>
+        <div class="call-controls">
+            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙</button>
+            <button class="call-btn btn-cam" onclick="alternarCamera()" id="btn-toggle-cam">📷</button>
+            <button class="call-btn btn-hangup" onclick="encerrarChamada()">📞</button>
         </div>
+    </div>
 
-        <!-- MODAL DA PÁGINA DE PRIVACIDADE -->
-        <div id="privacy-page-modal" class="modal-overlay hidden">
-            <div class="modal-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 id="privacy-modal-title" style="margin: 0; color: #075e54;">Política de Privacidade</h3>
-                    <button id="btn-close-privacy" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
-                </div>
-                <div id="privacy-modal-content" style="font-size: 13px; color: #333; line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
-                    Nenhum conteúdo publicado ainda.
-                </div>
-            </div>
-        </div>
-
-        <!-- MODAL DO CATÁLOGO -->
-        <div id="catalog-modal" class="modal-overlay hidden">
-            <div class="modal-card" style="max-width: 520px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 style="margin: 0; color: #075e54;">🛍️ Catálogo de Produtos (Loja)</h3>
-                    <button id="btn-close-catalog" style="background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold;">&times;</button>
-                </div>
-
-                <div id="admin-product-form" style="background: #f4f6f8; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #075e54;">➕ Adicionar / Editar Produto</h4>
-                    <input type="text" id="prod-nome" placeholder="Nome do Produto..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                    <textarea id="prod-desc" placeholder="Descrição..." style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; height: 40px; outline: none;"></textarea>
-                    <input type="text" id="prod-link" placeholder="Link (ex: https://...)" style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
-                    <button id="btn-save-product" style="background: #00a884; color: white; border: none; padding: 7px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; width: 100%;">Salvar Produto</button>
-                </div>
-
-                <div style="font-weight: bold; font-size: 13px; color: #333; margin-top: 4px;">Produtos Disponíveis:</div>
-                <div id="product-grid-container" class="product-grid"></div>
-            </div>
-        </div>
-
-        <!-- MODAL DE PERFIL -->
-        <div id="profile-modal" class="modal-overlay hidden">
-            <div class="modal-card">
-                <div style="text-align: center; position: relative;">
-                    <div id="modal-avatar-preview" class="avatar-placeholder" style="width: 80px; height: 80px; margin: 0 auto; font-size: 28px;">J</div>
-                </div>
-                <div style="text-align: center;">
-                    <h3 id="modal-user-username" style="margin: 5px 0 2px 0; color: #075e54;">utilizador</h3>
-                    <span id="modal-user-email" style="font-size: 11px; color: #888;">(E-mail privado)</span>
-                </div>
-
-                <div style="background: #f0f2f5; padding: 10px; border-radius: 6px; font-size: 12px;">
-                    <div style="font-weight: bold; color: #075e54; margin-bottom: 4px;">🌐 Bio:</div>
-                    <div id="display-bio-text" style="color: #333;">Nenhuma bio configurada.</div>
-                    <div style="font-weight: bold; color: #075e54; margin-top: 6px; margin-bottom: 2px;">🏷️ Nicho Atual:</div>
-                    <div id="display-nicho-text" style="color: #00a884; font-weight: bold;">Negócio</div>
-                    <div style="font-weight: bold; color: #075e54; margin-top: 6px; margin-bottom: 2px;">🔗 Link Pessoal:</div>
-                    <div id="display-link-text" style="color: #0066cc; word-break: break-all;">Nenhum link configurado.</div>
-                </div>
-
-                <hr style="border: none; border-top: 1px solid #ddd; margin: 4px 0;">
-
-                <div id="profile-edit-section">
-                    <div style="font-weight: bold; font-size: 13px; color: #333; margin-bottom: 6px;">Editar Meu Perfil:</div>
-                    <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555;">Nome de Utilizador:</label>
-                        <input type="text" id="profile-name-input" placeholder="Seu nome visível..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                        <label style="font-size: 11px; color: #555;">Nicho:</label>
-                        <select id="profile-nicho-select" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; background:#fff;">
-                            <option value="Negócio">💼 Negócio</option>
-                            <option value="Namoro">❤️ Namoro</option>
-                            <option value="Religião">⛪ Religião</option>
-                            <option value="Pets">🐾 Pets</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom: 6px;">
-                        <textarea id="profile-bio-input" placeholder="Sua biografia..." style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; height: 45px; outline: none;"></textarea>
-                    </div>
-                    <div style="margin-bottom: 8px;">
-                        <input type="text" id="profile-link-input" placeholder="Seu link pessoal (https://...)" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none;">
-                    </div>
-                    <button id="btn-save-profile" style="background: #00a884; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px;">Guardar Perfil</button>
-                </div>
-
-                <button id="btn-close-profile" style="background: #ccc; color: #333; border: none; padding: 6px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 4px;">Fechar</button>
-            </div>
-        </div>
-
-        <!-- TELA DE CHAT -->
-        <div id="chat-screen" class="screen-content hidden">
-            <div class="chat-header">
-                <div class="chat-header-user-info" id="open-chat-profile">
-                    <div id="chat-avatar-placeholder" class="avatar-placeholder" style="width: 32px; height: 32px; font-size: 12px;">C</div>
-                    <div>
-                        <span id="chat-header-name" style="font-weight: bold; font-size: 13px; display: block;">Nome do Contacto</span>
-                        <span id="chat-header-status" style="font-size: 10px; color: #d1fae5;">online (Privado)</span>
-                    </div>
-                </div>
-                <div class="chat-header-actions">
-                    <button class="btn-action-top video" id="btn-video-call" title="Vídeo Chamada">📹</button>
-                    <button class="btn-action-top audio" id="btn-audio-call" title="Áudio Chamada">📞</button>
-                    <button class="btn-action-top limpar" id="btn-clear-chat" title="Limpar Chat">🗑️</button>
-                    <button class="btn-action-top" id="btn-voltar-chat" style="background: #54656f;">Voltar</button>
-                </div>
-            </div>
-
-            <!-- BARRA DE PESQUISA COM LUPA -->
-            <div class="product-tag-bar">
-                <div style="display: flex; align-items: center; background: #ffffff; border-radius: 4px; padding: 2px 8px; border: 1px solid #ddd; width: 100%;">
-                    <span style="color: #666; margin-right: 6px; font-size: 14px;">🔍</span>
-                    <input type="text" id="product-tag-input" placeholder="Busca..." style="border: none; outline: none; width: 100%; font-size: 12px; background: transparent; padding: 4px 0;">
-                </div>
-            </div>
-
-            <div class="chat-messages" id="chat-messages-container"></div>
-
-            <div class="chat-input-container">
-                <input type="text" id="chat-message-input" placeholder="Mensagem ou link...">
-                <button class="btn-send" id="btn-send-message">➤</button>
+    <!-- MODAL DE CHAMADA ENTRANTE -->
+    <div id="modal-incoming-call" class="modal">
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 25px;">
+            <div id="incoming-caller-avatar" class="avatar" style="width: 75px; height: 75px; font-size: 26px;">?</div>
+            <h3 id="incoming-caller-name" style="margin: 0; font-size: 18px;">Chamada Entrante...</h3>
+            <p style="margin: 0; font-size: 12px; opacity: 0.7;">A receber chamada de voz/vídeo</p>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px; width: 100%;">
+                <button class="btn-danger" style="flex: 1; padding: 10px; border-radius: 6px; margin: 0;" onclick="recusarChamada()">Recusar</button>
+                <button class="btn-alt" style="flex: 1; padding: 10px; border-radius: 6px; background: #00a884; margin: 0;" onclick="aceitarChamada()">Atender</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT COMPLETO DE FUNCIONALIDADES -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const loggedUser = localStorage.getItem('zap_logged_user');
-            if (loggedUser) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                carregarAmbientePrincipal();
-            }
+    <!-- MODAL VITRINE -->
+    <div id="modal-vitrine" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin:0;">🛍️ Vitrine de Produtos</h3>
+            </div>
+            <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
+            <div id="lista-produtos-vitrine" style="max-height: 220px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                <p style="text-align:center; font-size:12px;">A carregar...</p>
+            </div>
+            <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
+        </div>
+    </div>
 
-            // Entrar
-            document.getElementById('btn-login-action').addEventListener('click', () => {
-                const email = document.getElementById('email').value.trim();
-                const senha = document.getElementById('senha').value.trim();
-                if(!email || !senha) return alert('Insira o e-mail e a senha.');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let user = users.find(u => u.email === email);
-                if(!user) return alert('E-mail não encontrado. Clique em Criar Conta.');
-                if(user.senha !== senha) return alert('Senha incorreta!');
-                localStorage.setItem('zap_logged_user', email);
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                carregarAmbientePrincipal();
-            });
+    <!-- TELA DE LOGIN -->
+    <div id="auth-screen" class="screen-content" style="justify-content: center; max-width: 380px; margin: 0 auto;">
+        <div class="logo-area" style="margin-bottom: 25px;">
+            <span>⚡💬</span>
+            <h1 style="margin: 5px 0 0 0;">Zap Leve</h1>
+            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e canais de nicho</p>
+        </div>
+        
+        <input type="email" id="email" placeholder="Seu e-mail">
+        <input type="password" id="password" placeholder="Sua senha">
+        
+        <div style="display: flex; gap: 8px; margin: 6px 0;">
+            <button class="btn-alt" style="flex: 1; margin: 0; background: #0275d8;" onclick="entrar()">Entrar</button>
+            <button style="flex: 1; margin: 0; background: #28a745;" onclick="cadastrar()">Abrir Conta</button>
+        </div>
 
-            // Criar Conta
-            document.getElementById('btn-register-action').addEventListener('click', () => {
-                const email = document.getElementById('email').value.trim();
-                const senha = document.getElementById('senha').value.trim();
-                const nicho = document.getElementById('auth-nicho').value;
-                if(!email || !senha) return alert('Preencha e-mail e senha.');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                if(users.find(u => u.email === email)) return alert('E-mail já registado. Clique em Entrar.');
-                users.push({
-                    email: email, senha: senha, nome: email.split('@')[0],
-                    nicho: nicho, bio: 'Olá! Estou a usar o Zap Leve.', link: ''
-                });
-                localStorage.setItem('zap_users', JSON.stringify(users));
-                localStorage.setItem('zap_logged_user', email);
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                carregarAmbientePrincipal();
-            });
+        <button class="btn-alt" style="background: #333; margin-top: 10px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
+    </div>
 
-            // Redefinir Senha
-            document.getElementById('link-forgot-password').addEventListener('click', (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value.trim();
-                if(!email) return alert('Digite o e-mail no campo acima primeiro.');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let user = users.find(u => u.email === email);
-                if(!user) return alert('E-mail não encontrado.');
-                const novaSenha = prompt('Nova senha:');
-                if(novaSenha) {
-                    user.senha = novaSenha.trim();
-                    localStorage.setItem('zap_users', JSON.stringify(users));
-                    alert('Senha redefinida com sucesso!');
-                }
-            });
+    <!-- MODAL INSTALAÇÃO -->
+    <div id="modal-instalar" class="modal">
+        <div class="modal-content">
+            <h3>📲 Instalar o Zap Leve</h3>
+            <p id="instrucoes-texto" style="text-align: left; font-size: 13px; line-height: 1.4;"></p>
+            <div class="close-modal" onclick="fecharInstalacao()">Fechar</div>
+        </div>
+    </div>
 
-            // Logout
-            document.getElementById('btn-logout').addEventListener('click', () => {
-                localStorage.removeItem('zap_logged_user');
-                location.reload();
-            });
+    <!-- MODAL RESPOSTAS RÁPIDAS -->
+    <div id="modal-quick-config" class="modal">
+        <div class="modal-content">
+            <h3>⚡ Gerir Respostas Rápidas</h3>
+            <div style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid var(--border-color);">
+                <input type="text" id="qr-titulo" placeholder="Nome do Atalho (ex: Olá)" style="font-size: 12px; padding: 8px;">
+                <textarea id="qr-texto" placeholder="Mensagem..." style="font-size: 12px; padding: 8px; height: 50px; resize: vertical;"></textarea>
+                <input type="text" id="qr-img" placeholder="URL da Imagem (Opcional)" style="font-size: 12px; padding: 8px;">
+                <input type="text" id="qr-link" placeholder="Link de Afiliado (Opcional)" style="font-size: 12px; padding: 8px;">
+                <button class="btn-alt" style="padding: 8px; font-size: 12px; margin-top: 4px;" onclick="salvarNovaRespostaRapida()">➕ Salvar Atalho</button>
+            </div>
+            <div id="lista-qr-config" style="max-height: 140px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-app); border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 6px;"></div>
+            <div class="close-modal" onclick="fecharModalQuick()">Concluir</div>
+        </div>
+    </div>
 
-            // Abrir Modal de Perfil do Próprio Utilizador
-            document.getElementById('open-profile-btn').addEventListener('click', () => {
-                const emailAtivo = localStorage.getItem('zap_logged_user');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let u = users.find(x => x.email === emailAtivo);
-                if(u) {
-                    document.getElementById('modal-user-username').textContent = u.nome;
-                    document.getElementById('modal-avatar-preview').textContent = u.nome.charAt(0).toUpperCase();
-                    document.getElementById('display-bio-text').textContent = u.bio || 'Nenhuma bio configurada.';
-                    document.getElementById('display-nicho-text').textContent = u.nicho || 'Negócio';
-                    document.getElementById('display-link-text').textContent = u.link || 'Nenhum link configurado.';
-                    
-                    document.getElementById('profile-name-input').value = u.nome;
-                    document.getElementById('profile-bio-input').value = u.bio || '';
-                    document.getElementById('profile-link-input').value = u.link || '';
-                    document.getElementById('profile-nicho-select').value = u.nicho || 'Negócio';
-                }
-                document.getElementById('profile-modal').classList.remove('hidden');
-            });
+    <!-- TELA DE CONTACTOS -->
+    <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
+        <div class="header-top">
+            <div class="user-info-area" onclick="abrirMeuPerfil()" style="width: 100%;">
+                <div id="meu-avatar-topo-container" style="position:relative;">
+                    <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                    <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
+                    <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
+                </div>
+            </div>
+            <div style="display:flex; gap:6px; align-items: center;">
+                <button class="btn-topo-padrao" style="background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
+                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()">Sair</button>
+            </div>
+        </div>
+        <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8;">Conversas e Contactos:</p>
+            <div class="contact-list" id="lista-contatos">
+                <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
+            </div>
+            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📢 Convidar Amigo</button>
+        </div>
+    </div>
 
-            document.getElementById('btn-close-profile').addEventListener('click', () => {
-                document.getElementById('profile-modal').classList.add('hidden');
-            });
+    <!-- TELA DE CHAT -->
+    <div id="chat-screen" class="hidden screen-content" style="padding: 0;">
+        <div class="header-top">
+            <div class="user-info-area">
+                <span class="texto-voltar" onclick="voltarParaContatos()" title="Voltar para Contactos">voltar</span>
+                <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="abrirPerfilContatoSelecionado()">
+                    <div id="chat-avatar-topo-container" style="position:relative;">
+                        <div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                        <img id="chat-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                    </div>
+                    <div>
+                        <h3 id="chat-title" style="margin:0; font-size: 15px; color: white;">Conversando...</h3>
+                        <span style="font-size: 11px; color: #e0f2f1;">ver perfil 👤</span>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:5px; align-items: center;">
+                <button class="btn-topo-padrao btn-topo-limpar" onclick="limparConversaAtual()" title="Limpar Conversa">Limpar</button>
+                <button class="btn-topo-padrao btn-topo-video" onclick="iniciarChamada(true)" title="Vídeo Chamada">📹 Vídeo</button>
+                <button class="btn-topo-padrao btn-topo-telefone" onclick="iniciarChamada(false)" title="Chamada de Áudio">📞 Áudio</button>
+                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()" title="Sair">Sair</button>
+            </div>
+        </div>
 
-            // Salvar Perfil
-            document.getElementById('btn-save-profile').addEventListener('click', () => {
-                const emailAtivo = localStorage.getItem('zap_logged_user');
-                let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-                let u = users.find(x => x.email === emailAtivo);
-                if(u) {
-                    u.nome = document.getElementById('profile-name-input').value.trim() || u.nome;
-                    u.bio = document.getElementById('profile-bio-input').value.trim();
-                    u.link = document.getElementById('profile-link-input').value.trim();
-                    u.nicho = document.getElementById('profile-nicho-select').value;
-                    localStorage.setItem('zap_users', JSON.stringify(users));
-                    alert('Perfil guardado com sucesso!');
-                    document.getElementById('profile-modal').classList.add('hidden');
-                    carregarAmbientePrincipal();
-                }
-            });
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="padding: 6px 12px; background: var(--input-bg); border-bottom: 1px solid var(--border-color);">
+                <input type="text" id="input-busca-msg" placeholder="🔍 Pesquisar nas mensagens..." oninput="filtrarMensagensLocais()" style="margin:0; padding:6px 10px; font-size:12px; border-radius:12px;">
+            </div>
 
-            // Painel Admin
-            document.getElementById('btn-open-admin-panel').addEventListener('click', () => {
-                carregarListaAdminUtilizadores();
-                document.getElementById('admin-panel-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-close-admin-panel').addEventListener('click', () => {
-                document.getElementById('admin-panel-modal').classList.add('hidden');
-            });
+            <div class="chat-box" id="mensagens"></div>
+            
+            <div class="chat-input-area">
+                <div class="quick-replies" id="barra-atalhos-rapidos">
+                    <button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>
+                </div>
+                <div class="input-group">
+                    <button class="clip-btn" onclick="toggleMenuAnexos(event)" title="Anexar Mídia">📎</button>
 
-            // Exibir Página Privacidade
-            document.getElementById('btn-open-privacy-page').addEventListener('click', () => {
-                const savedPage = localStorage.getItem('zap_custom_privacy_page');
-                if(savedPage) {
-                    const data = JSON.parse(savedPage);
-                    document.getElementById('privacy-modal-title').textContent = data.title;
-                    document.getElementById('privacy-modal-content').textContent = data.content;
-                }
-                document.getElementById('privacy-page-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-close-privacy').addEventListener('click', () => {
-                document.getElementById('privacy-page-modal').classList.add('hidden');
-            });
+                    <div id="menu-anexos">
+                        <label class="anexo-opcao">
+                            📷 Enviar Imagem
+                            <input type="file" id="imagem-input" accept="image/*" style="display: none;" onchange="enviarImagemGlobal(this); fecharMenuAnexos();">
+                        </label>
+                        <label class="anexo-opcao">
+                            📹 Enviar Vídeo
+                            <input type="file" id="video-input" accept="video/*" style="display: none;" onchange="enviarVideoGlobal(this); fecharMenuAnexos();">
+                        </label>
+                    </div>
 
-            // Admin salvar página
-            document.getElementById('btn-save-admin-page').addEventListener('click', () => {
-                const title = document.getElementById('admin-page-title').value.trim();
-                const content = document.getElementById('admin-page-content').value.trim();
-                if(!title || !content) return alert('Preencha o título e o conteúdo.');
-                localStorage.setItem('zap_custom_privacy_page', JSON.stringify({ title, content }));
-                alert('Página publicada com sucesso!');
-            });
+                    <input type="text" id="mensagem-texto" placeholder="Mensagem ou link (www..., https://...)" onkeypress="if(event.key === 'Enter') enviarMensagemPrivada()">
+                    <button id="btn-gravar-audio" class="action-btn mic-rec-btn" onclick="toggleGravarAudio()" title="Gravar Áudio Global">🎙️</button>
+                </div>
+                <button onclick="enviarMensagemPrivada()" style="padding: 8px; font-size: 13px; border-radius: 20px; background: #00a884;">Enviar Mensagem / Link</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            // Catálogo
-            document.getElementById('btn-open-catalog').addEventListener('click', () => {
-                document.getElementById('catalog-modal').classList.remove('hidden');
-            });
-            document.getElementById('btn-close-catalog').addEventListener('click', () => {
-                document.getElementById('catalog-modal').classList.add('hidden');
-            });
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    let audioCtx = null;
+    let ringInterval = null;
+    let cacheProdutosVitrine = [];
+    let meuNomeAtual = "";
+    
+    const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
+
+    const nichosPadrao = [
+        "✝️ Religião",
+        "💼 Negócios",
+        "❤️ Namoro",
+        "🐾 Pet",
+        "🏗️ Construção Civil",
+        "👷 Engenheiros",
+        "🧠 Psicólogos",
+        "🧹 Faxineiros"
+    ];
+
+    window.abrirMenuLateral = () => {
+        document.getElementById('side-menu-drawer').classList.add('open');
+        document.getElementById('menu-overlay-bg').style.display = 'block';
+        carregarNichosNoMenu();
+    };
+
+    window.fecharMenuLateral = () => {
+        document.getElementById('side-menu-drawer').classList.remove('open');
+        document.getElementById('menu-overlay-bg').style.display = 'none';
+    };
+
+    function carregarNichosNoMenu() {
+        const div = document.getElementById('lista-nichos-lateral');
+        div.innerHTML = "";
+        nichosPadrao.forEach(nicho => {
+            div.innerHTML += `<button style="background:var(--input-bg); color:var(--text-app); border:1px solid var(--border-color); text-align:left; padding:10px; border-radius:6px; font-size:13px; cursor:pointer;" onclick="filtrarContatosPorNicho('${nicho}')">${nicho}</button>`;
         });
+        
+        if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) {
+            document.getElementById('admin-menu-section').classList.remove('hidden');
+        } else {
+            document.getElementById('admin-menu-section').classList.add('hidden');
+        }
+    }
 
-        function carregarAmbientePrincipal() {
-            const emailAtivo = localStorage.getItem('zap_logged_user');
-            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-            let currentUser = users.find(u => u.email === emailAtivo);
-            if (currentUser) {
-                document.getElementById('user-email-display').textContent = currentUser.nome || emailAtivo.split('@')[0];
-                document.getElementById('user-avatar-initial').textContent = (currentUser.nome || emailAtivo).charAt(0).toUpperCase();
-                
-                if(emailAtivo.includes('admin') || emailAtivo === 'admin@zapleve.com') {
-                    document.getElementById('btn-open-admin-panel').classList.remove('hidden');
+    window.filtrarContatosPorNicho = async (nicho) => {
+        fecharMenuLateral();
+        document.getElementById('titulo-modal-nicho').innerText = `Contatos do Canal: ${nicho}`;
+        const listaContatosDiv = document.getElementById('lista-contatos-nicho');
+        listaContatosDiv.innerHTML = "<p style='text-align:center; font-size:12px;'>A procurar utilizadores...</p>";
+        document.getElementById('modal-nicho-contatos').style.display = 'flex';
+
+        try {
+            const snapshot = await getDocs(collection(db, "usuarios"));
+            listaContatosDiv.innerHTML = "";
+            let encontrados = 0;
+            snapshot.forEach(docItem => {
+                const u = docItem.data();
+                if (u.nicho === nicho && u.email !== usuarioAtual.email) {
+                    encontrados++;
+                    const nome = u.nome || u.email.split('@')[0];
+                    const foto = u.fotoUrl ? `<img src="${u.fotoUrl}" class="avatar" style="width:32px;height:32px;">` : `<div class="avatar" style="width:32px;height:32px;font-size:12px;">${nome.charAt(0)}</div>`;
+                    listaContatosDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px; border-radius:6px;">
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                ${foto}
+                                <span style="font-size:13px; font-weight:bold;">${nome}</span>
+                            </div>
+                            <button class="btn-alt" style="width:auto; padding:5px 10px; font-size:11px; margin:0;" onclick="fecharModalNicho(); abrirChat('${docItem.id}', '${nome}', '${u.fotoUrl || ''}')">Conversar 💬</button>
+                        </div>`;
+                }
+            });
+            if (encontrados === 0) {
+                listaContatosDiv.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum utilizador cadastrado neste nicho ainda.</p>";
+            }
+        } catch(e) {
+            listaContatosDiv.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar contatos do nicho.</p>";
+        }
+    };
+
+    window.fecharModalNicho = () => {
+        document.getElementById('modal-nicho-contatos').style.display = 'none';
+    };
+
+    window.abrirPainelAdminGeral = () => {
+        fecharMenuLateral();
+        document.getElementById('modal-painel-admin').style.display = 'flex';
+        carregarTabelaUsuariosAdmin();
+    };
+
+    window.fecharPainelAdminGeral = () => {
+        document.getElementById('modal-painel-admin').style.display = 'none';
+    };
+
+    window.mudarAbaAdminMaster = (aba) => {
+        if (aba === 'usuarios') {
+            document.getElementById('admin-aba-usuarios').classList.remove('hidden');
+            document.getElementById('admin-aba-nichos').classList.add('hidden');
+        } else {
+            document.getElementById('admin-aba-usuarios').classList.add('hidden');
+            document.getElementById('admin-aba-nichos').classList.remove('hidden');
+        }
+    };
+
+    async function carregarTabelaUsuariosAdmin() {
+        const div = document.getElementById('tabela-usuarios-admin');
+        div.innerHTML = "<p style='font-size:11px; text-align:center;'>A carregar...</p>";
+        try {
+            const snapshot = await getDocs(collection(db, "usuarios"));
+            div.innerHTML = "";
+            snapshot.forEach(docItem => {
+                const u = docItem.data();
+                div.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-app); padding:6px; border-radius:4px; font-size:11px; border:1px solid var(--border-color);">
+                        <div>
+                            <b>${u.nome || u.email}</b><br>
+                            <span style="opacity:0.7;">Canal: ${u.nicho || 'Não definido'}</span>
+                        </div>
+                        <button class="btn-danger" style="width:auto; padding:4px 8px; font-size:10px; margin:0;" onclick="apagarUsuarioAdmin('${docItem.id}')">Excluir</button>
+                    </div>`;
+            });
+        } catch(e) {
+            div.innerHTML = "<p style='font-size:11px; color:red;'>Erro ao carregar lista.</p>";
+        }
+    }
+
+    window.apagarUsuarioAdmin = async (uidUser) => {
+        if (!confirm("Deseja apagar este utilizador do sistema?")) return;
+        try {
+            await deleteDoc(doc(db, "usuarios", uidUser));
+            alert("Utilizador removido!");
+            carregarTabelaUsuariosAdmin();
+        } catch(e) {
+            alert("Erro ao excluir: " + e.message);
+        }
+    };
+
+    window.criarNovoNicho = () => {
+        const nomeNicho = document.getElementById('novo-nicho-nome').value.trim();
+        if (!nomeNicho) return alert("Digite o nome do novo nicho.");
+        nichosPadrao.push("📌 " + nomeNicho);
+        alert("Novo canal/nicho adicionado com sucesso!");
+        document.getElementById('novo-nicho-nome').value = '';
+        fecharPainelAdminGeral();
+    };
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        atualizarVisibilidadeBotaoInstalacao();
+    });
+
+    function verificarSeEstaInstalado() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function atualizarVisibilidadeBotaoInstalacao() {
+        const btnInstalar = document.getElementById('btn-instalar-no-perfil');
+        if (!btnInstalar) return;
+        if (!verificarSeEstaInstalado()) {
+            btnInstalar.classList.remove('hidden');
+        } else {
+            btnInstalar.classList.add('hidden');
+        }
+    }
+
+    window.abrirInstalacaoDoPerfil = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                deferredPrompt = null;
+                document.getElementById('btn-instalar-no-perfil').classList.add('hidden');
+            }
+        } else {
+            const instrucoes = document.getElementById('instrucoes-texto');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                instrucoes.innerHTML = "Para instalar no seu iPhone/iPad:<br>1. Toque no botão de <b>Partilha</b> (quadrado com seta para cima) no Safari.<br>2. Role para baixo e escolha <b>'Adicionar ao Ecrã Principal'</b>.";
+            } else {
+                instrucoes.innerHTML = "Para instalar diretamente:<br>1. Toque nos <b>três pontinhos</b> no canto superior direito do navegador.<br>2. Selecione <b>'Instalar aplicativo'</b> ou <b>'Adicionar à tela inicial'</b>.";
+            }
+            document.getElementById('modal-instalar').style.display = 'flex';
+        }
+    };
+
+    window.fecharInstalacao = () => {
+        document.getElementById('modal-instalar').style.display = 'none';
+    };
+
+    window.ampliarImagem = (src) => {
+        document.getElementById('imagem-zoom-src').src = src;
+        document.getElementById('modal-zoom-imagem').style.display = 'flex';
+    };
+
+    window.fecharZoomImagem = () => {
+        document.getElementById('modal-zoom-imagem').style.display = 'none';
+    };
+
+    window.toggleMenuAnexos = (e) => {
+        e.stopPropagation();
+        const menu = document.getElementById('menu-anexos');
+        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.fecharMenuAnexos = () => {
+        document.getElementById('menu-anexos').style.display = 'none';
+    };
+
+    window.addEventListener('click', () => {
+        fecharMenuAnexos();
+    });
+
+    window.abrirMeuPerfil = async () => {
+        if (!usuarioAtual) return;
+        const userDoc = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+        const dados = userDoc.exists() ? userDoc.data() : {};
+        
+        const avatarGrande = document.getElementById('perfil-avatar-grande');
+        const imgGrande = document.getElementById('perfil-img-grande');
+
+        if (dados.fotoUrl) {
+            imgGrande.src = dados.fotoUrl;
+            imgGrande.classList.remove('hidden');
+            avatarGrande.classList.add('hidden');
+        } else {
+            avatarGrande.innerText = (dados.nome || usuarioAtual.email).charAt(0).toUpperCase();
+            avatarGrande.classList.remove('hidden');
+            imgGrande.classList.add('hidden');
+        }
+
+        const nomeDoUser = dados.nome || usuarioAtual.email.split('@')[0];
+        document.getElementById('perfil-nome-exibicao').innerText = nomeDoUser;
+        document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
+        
+        document.getElementById('input-meu-nome').value = nomeDoUser;
+        if (dados.nicho) {
+            document.getElementById('select-meu-nicho').value = dados.nicho;
+        }
+        
+        const alertaBio = document.getElementById('alerta-perfil-bio');
+        if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal || !dados.nicho) {
+            alertaBio.classList.remove('hidden');
+        } else {
+            alertaBio.classList.add('hidden');
+        }
+
+        const linkSalvo = dados.linkPessoal || "";
+        const linkContainer = document.getElementById('perfil-link-container');
+        if (linkSalvo) {
+            linkContainer.innerHTML = `<a href="${linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo}" target="_blank" style="color: #0275d8; text-decoration: underline;">${linkSalvo}</a>`;
+        } else {
+            linkContainer.innerText = "Nenhum link ou vídeo configurado.";
+        }
+
+        document.getElementById('input-meu-link').value = linkSalvo;
+        document.getElementById('input-foto-perfil').value = "";
+        document.getElementById('meu-painel-edicao-link').classList.remove('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
+        document.getElementById('modal-perfil-usuario').style.display = 'flex';
+    };
+
+    window.abrirPerfilContatoSelecionado = async () => {
+        if (!contatoSelecionado) return;
+        const userDoc = await getDoc(doc(db, "usuarios", contatoSelecionado.uid));
+        const dados = userDoc.exists() ? userDoc.data() : {};
+
+        const avatarGrande = document.getElementById('perfil-avatar-grande');
+        const imgGrande = document.getElementById('perfil-img-grande');
+
+        if (dados.fotoUrl) {
+            imgGrande.src = dados.fotoUrl;
+            imgGrande.classList.remove('hidden');
+            avatarGrande.classList.add('hidden');
+        } else {
+            avatarGrande.innerText = contatoSelecionado.nome.charAt(0).toUpperCase();
+            avatarGrande.classList.remove('hidden');
+            imgGrande.classList.add('hidden');
+        }
+
+        document.getElementById('perfil-nome-exibicao').innerText = contatoSelecionado.nome;
+        document.getElementById('perfil-email-exibicao').innerText = dados.email || "Utilizador Zap Leve";
+        document.getElementById('alerta-perfil-bio').classList.add('hidden');
+
+        const linkSalvo = dados.linkPessoal || "";
+        const linkContainer = document.getElementById('perfil-link-container');
+        if (linkSalvo) {
+            linkContainer.innerHTML = `<a href="${linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo}" target="_blank" style="color: #0275d8; text-decoration: underline;">${linkSalvo}</a>`;
+        } else {
+            linkContainer.innerText = "Este usuário ainda não adicionou nenhum link.";
+        }
+
+        document.getElementById('meu-painel-edicao-link').classList.add('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
+        document.getElementById('modal-perfil-usuario').style.display = 'flex';
+    };
+
+    window.fecharPerfilUsuario = () => {
+        document.getElementById('modal-perfil-usuario').style.display = 'none';
+    };
+
+    window.salvarMeuPerfilCompleto = async () => {
+        if (!usuarioAtual) return;
+        const novoNome = document.getElementById('input-meu-nome').value.trim();
+        const novoNicho = document.getElementById('select-meu-nicho').value;
+        const novoLink = document.getElementById('input-meu-link').value.trim();
+        const fileInput = document.getElementById('input-foto-perfil');
+        
+        if (!novoNome) return alert("O nome de usuário não pode estar vazio.");
+
+        try {
+            let dadosAtualizacao = { nome: novoNome, nicho: novoNicho, linkPessoal: novoLink };
+            meuNomeAtual = novoNome;
+            document.getElementById('user-display-contacts').innerText = novoNome;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Image = e.target.result;
+                    dadosAtualizacao.fotoUrl = base64Image;
+                    await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
+                    
+                    document.getElementById('meu-img-topo').src = base64Image;
+                    document.getElementById('meu-img-topo').classList.remove('hidden');
+                    document.getElementById('meu-avatar-topo').classList.add('hidden');
+
+                    alert("Perfil e canal salvos com sucesso!");
+                    fecharPerfilUsuario();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
+                alert("Perfil e canal salvos com sucesso!");
+                fecharPerfilUsuario();
+            }
+        } catch (e) {
+            alert("Erro ao atualizar perfil: " + e.message);
+        }
+    };
+
+    function iniciarSomCampainha(tipo = 'tocar') {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (ringInterval) clearInterval(ringInterval);
+
+        const tocarToqueRealista = () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const freq1 = tipo === 'tocar' ? 950 : 440;
+            const freq2 = tipo === 'tocar' ? 1400 : 480;
+            const volumeMaximo = 0.8;
+            const agora = audioCtx.currentTime;
+
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'square';
+            osc1.frequency.setValueAtTime(freq1, agora);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            gain1.gain.setValueAtTime(volumeMaximo, agora);
+            gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.25);
+            osc1.start(agora);
+            osc1.stop(agora + 0.25);
+
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(freq2, agora + 0.28);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            gain2.gain.setValueAtTime(volumeMaximo, agora + 0.28);
+            gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.53);
+            osc2.start(agora + 0.28);
+            osc2.stop(agora + 0.53);
+        };
+
+        tocarToqueRealista();
+        ringInterval = setInterval(tocarToqueRealista, 1500);
+    }
+
+    function pararSomCampainha() {
+        if (ringInterval) {
+            clearInterval(ringInterval);
+            ringInterval = null;
+        }
+    }
+
+    window.alternarModoEscuro = () => {
+        document.body.classList.toggle('dark-mode');
+        const escuroLigado = document.body.classList.contains('dark-mode');
+        localStorage.setItem('zapleve_dark', escuroLigado ? '1' : '0');
+    };
+    if (localStorage.getItem('zapleve_dark') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+
+    window.abrirVitrineAfiliado = async () => {
+        document.getElementById('modal-vitrine').style.display = 'flex';
+        await carregarVitrineSegregada();
+    };
+
+    window.fecharVitrineAfiliado = () => {
+        document.getElementById('modal-vitrine').style.display = 'none';
+    };
+
+    async function carregarVitrineSegregada() {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar vitrine...</p>";
+        try {
+            let limiteUsuario = 10;
+            if (usuarioAtual) {
+                const userSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+                if (userSnap.exists() && userSnap.data().limiteProdutos) {
+                    limiteUsuario = Number(userSnap.data().limiteProdutos);
                 }
             }
-            renderizarNichos();
-        }
-
-        function renderizarNichos() {
-            const container = document.getElementById('niches-grid-container');
-            if(!container) return;
-            const lista = [
-                { nome: 'Negócio', icone: '💼', desc: 'Loja e Parcerias' },
-                { nome: 'Namoro', icone: '❤️', desc: 'Conexões' },
-                { nome: 'Religião', icone: '⛪', desc: 'Fé e Comunhão' },
-                { nome: 'Pets', icone: '🐾', desc: 'Amigos de 4 patas' }
-            ];
-            container.innerHTML = '';
-            lista.forEach(n => {
-                const card = document.createElement('div');
-                card.className = 'niche-card';
-                card.innerHTML = `
-                    <div class="niche-icon">${n.icone}</div>
-                    <div class="niche-title">${n.nome}</div>
-                    <div class="niche-count">${n.desc}</div>
-                `;
-                card.addEventListener('click', () => abrirNicho(n.nome));
-                container.appendChild(card);
+            const querySnapshot = await getDocs(collection(db, "produtos"));
+            cacheProdutosVitrine = [];
+            querySnapshot.forEach((docItem) => {
+                cacheProdutosVitrine.push({ id: docItem.id, ...docItem.data() });
             });
+            const produtosLimitados = cacheProdutosVitrine.slice(0, limiteUsuario);
+            renderizarProdutosVitrine(produtosLimitados);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
+        }
+    }
+
+    function renderizarProdutosVitrine(lista) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "";
+        if (lista.length === 0) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
+            return;
+        }
+        lista.forEach((prod) => {
+            container.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:8px; border-radius:6px; font-size:12px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; gap:8px; align-items:center; overflow:hidden;">
+                        ${prod.imagem ? `<img src="${prod.imagem}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦'}
+                        <div>
+                            <b>${prod.titulo || 'Produto'}</b><br>
+                            <span style="opacity:0.7;">R$ ${prod.preco || '0.00'}</span>
+                        </div>
+                    </div>
+                    <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoVitrine('${encodeURIComponent(prod.titulo || '')}', '${prod.imagem || ''}', '${prod.link || ''}')">Enviar 🛒</button>
+                </div>`;
+        });
+    }
+
+    window.filtrarProdutosLocais = () => {
+        const termo = document.getElementById('filtro-vitrine').value.toLowerCase();
+        const filtrados = cacheProdutosVitrine.filter(p => (p.titulo || '').toLowerCase().includes(termo));
+        renderizarProdutosVitrine(filtrados);
+    };
+
+    window.enviarProdutoVitrine = async (tituloEnc, imagem, link) => {
+        const titulo = decodeURIComponent(tituloEnc);
+        if (!contatoSelecionado) return alert("Abra uma conversa primeiro!");
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: `Oferta imperdível: ${titulo}`,
+            imagemUrlProduto: imagem,
+            linkAfiliado: link,
+            remetente: usuarioAtual.email,
+            tipo: "produto",
+            criadoEm: serverTimestamp()
+        });
+        alert("Produto enviado para o chat!");
+        fecharVitrineAfiliado();
+    };
+
+    let atalhosRapidos = JSON.parse(localStorage.getItem('zapleve_atalhos')) || [
+        { titulo: "👋 Olá", texto: "Olá! Tudo bem?", imagem: "", link: "" }
+    ];
+
+    window.atualizarBarraAtalhos = () => {
+        const barra = document.getElementById('barra-atalhos-rapidos');
+        let html = `<button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>`;
+        atalhosRapidos.forEach((item, index) => {
+            html += `<button class="quick-chip" onclick="usarAtalhosRapidos(${index})">${item.titulo}</button>`;
+        });
+        barra.innerHTML = html;
+    };
+
+    window.abrirModalQuick = () => {
+        renderizarListaConfigQuick();
+        document.getElementById('modal-quick-config').style.display = 'flex';
+    };
+
+    window.fecharModalQuick = () => {
+        document.getElementById('modal-quick-config').style.display = 'none';
+        atualizarBarraAtalhos();
+    };
+
+    window.renderizarListaConfigQuick = () => {
+        const div = document.getElementById('lista-qr-config');
+        div.innerHTML = "";
+        atalhosRapidos.forEach((item, index) => {
+            div.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:6px; border-radius:4px; font-size:12px;">
+                    <div><b>${item.titulo}</b></div>
+                    <button class="btn-danger" style="width:auto; padding:2px 6px; font-size:10px;" onclick="apagarAtalho(${index})">Apagar</button>
+                </div>`;
+        });
+    };
+
+    window.salvarNovaRespostaRapida = () => {
+        const titulo = document.getElementById('qr-titulo').value.trim();
+        const texto = document.getElementById('qr-texto').value.trim();
+        const imagem = document.getElementById('qr-img').value.trim();
+        const link = document.getElementById('qr-link').value.trim();
+        if (!titulo || !texto) return alert("Preencha Título e Mensagem.");
+        atalhosRapidos.push({ titulo, texto, imagem, link });
+        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
+        document.getElementById('qr-titulo').value = '';
+        document.getElementById('qr-texto').value = '';
+        document.getElementById('qr-img').value = '';
+        document.getElementById('qr-link').value = '';
+        renderizarListaConfigQuick();
+        atualizarBarraAtalhos();
+        alert("Atalho salvo!");
+    };
+
+    window.apagarAtalho = (index) => {
+        atalhosRapidos.splice(index, 1);
+        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
+        renderizarListaConfigQuick();
+        atualizarBarraAtalhos();
+    };
+
+    window.usarAtalhosRapidos = async (index) => {
+        const item = atalhosRapidos[index];
+        if (!contatoSelecionado) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: item.texto,
+            imagemUrlProduto: item.imagem || "",
+            linkAfiliado: item.link || "",
+            remetente: usuarioAtual.email,
+            tipo: item.imagem || item.link ? "produto" : "texto",
+            criadoEm: serverTimestamp()
+        });
+    };
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
+        authDomain: "zapleve.firebaseapp.com",
+        projectId: "zapleve",
+        storageBucket: "zapleve.firebasestorage.app",
+        messagingSenderId: "426242600158",
+        appId: "1:426242600158:web:c2427064b5702948fc264f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let usuarioAtual = null;
+    let contatoSelecionado = null;
+    let unsubscribeChat = null;
+
+    let peerConnection = null;
+    let localStream = null;
+    let unsubscribeCall = null;
+    const serversConfig = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
+
+    window.iniciarChamada = async (comVideo) => {
+        if (!contatoSelecionado) return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("O seu navegador não suporta chamadas de áudio/vídeo P2P.");
+            return;
         }
 
-        function abrirNicho(nomeNicho) {
-            document.getElementById('contacts-screen').classList.add('hidden');
-            document.getElementById('nicho-users-screen').classList.remove('hidden');
-            document.getElementById('nicho-screen-title').textContent = 'Nicho: ' + nomeNicho;
-            
-            const container = document.getElementById('nicho-users-list-container');
-            container.innerHTML = '';
-            
-            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-            let filtrados = users.filter(u => u.nicho === nomeNicho);
-            
-            if(filtrados.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">Nenhum utilizador neste nicho ainda.</div>';
+        document.getElementById('call-screen').classList.remove('hidden');
+        document.getElementById('call-status').innerText = `A ligar para ${contatoSelecionado.nome}...`;
+        document.getElementById('call-active-name').innerText = contatoSelecionado.nome;
+        document.getElementById('call-active-avatar').innerText = contatoSelecionado.nome.charAt(0).toUpperCase();
+        document.getElementById('call-placeholder-info').style.display = 'flex';
+        iniciarSomCampainha('chamando');
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: comVideo });
+            document.getElementById('local-video').srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection(serversConfig);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = (event) => {
+                pararSomCampainha();
+                document.getElementById('call-placeholder-info').style.display = 'none';
+                document.getElementById('remote-video').srcObject = event.streams[0];
+            };
+
+            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const callDoc = doc(db, "chamadas", idChamada);
+            const offerCandidates = collection(callDoc, "offerCandidates");
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    addDoc(offerCandidates, event.candidate.toJSON());
+                }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            await setDoc(callDoc, {
+                oferta: { type: offer.type, sdp: offer.sdp },
+                remetente: usuarioAtual.email,
+                remetenteNome: meuNomeAtual || usuarioAtual.email.split('@')[0],
+                destinatario: contatoSelecionado.uid,
+                comVideo: comVideo,
+                status: 'pendente'
+            });
+
+            escutarRespostaChamada(callDoc);
+        } catch (err) {
+            pararSomCampainha();
+            alert("Erro ao aceder à câmara/microfone: " + err.message);
+            encerrarChamadaLocal();
+        }
+    };
+
+    function escutarRespostaChamada(callDoc) {
+        unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
+            const data = snapshot.data();
+            if (!data) {
+                fecharTelaChamadaUI();
                 return;
             }
 
-            filtrados.forEach(u => {
-                const item = document.createElement('div');
-                item.className = 'contact-item';
-                item.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="avatar-placeholder" style="width: 38px; height: 38px; font-size: 14px;">${u.nome.charAt(0).toUpperCase()}</div>
-                        <div>
-                            <div style="font-weight: bold; font-size: 14px; color: #333;">${u.nome}</div>
-                            <div style="font-size: 11px; color: #666;">${u.bio || 'Disponível'}</div>
-                        </div>
-                    </div>
-                    <button class="btn-conversar">Ver Bio 👤</button>
-                `;
-                item.addEventListener('click', () => {
-                    alert('Utilizador: ' + u.nome + '\nBio: ' + (u.bio || 'Sem bio') + '\nLink: ' + (u.link || 'Nenhum'));
-                });
-                container.appendChild(item);
+            if (data.resposta && peerConnection && !peerConnection.currentRemoteDescription) {
+                pararSomCampainha();
+                const answer = new RTCSessionDescription(data.resposta);
+                await peerConnection.setRemoteDescription(answer);
+                document.getElementById('call-status').innerText = "Em chamada";
+                document.getElementById('call-placeholder-info').style.display = 'none';
+            }
+        });
+
+        onSnapshot(collection(callDoc, "answerCandidates"), (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added' && peerConnection) {
+                    const candidate = new RTCIceCandidate(change.doc.data());
+                    peerConnection.addIceCandidate(candidate).catch(() => {});
+                }
             });
-        }
-
-        document.getElementById('btn-back-to-niches').addEventListener('click', () => {
-            document.getElementById('nicho-users-screen').classList.add('hidden');
-            document.getElementById('contacts-screen').classList.remove('hidden');
         });
+    }
 
-        document.getElementById('btn-logout-nicho').addEventListener('click', () => {
-            localStorage.removeItem('zap_logged_user');
-            location.reload();
+    function escutarChamadasEntrantes(uidUsuario) {
+        const q = query(collection(db, "chamadas"));
+        onSnapshot(q, (snapshot) => {
+            let chamouAinda = false;
+            snapshot.forEach((docItem) => {
+                const data = docItem.data();
+                if (data.destinatario === uidUsuario && data.status === 'pendente') {
+                    chamouAinda = true;
+                    if (window.chamadaEntranteDocId !== docItem.id) {
+                        window.chamadaEntranteDocId = docItem.id;
+                        const nomeChamada = data.remetenteNome || data.remetente.split('@')[0];
+                        document.getElementById('incoming-caller-name').innerText = `📞 ${nomeChamada}`;
+                        document.getElementById('incoming-caller-avatar').innerText = nomeChamada.charAt(0).toUpperCase();
+                        document.getElementById('modal-incoming-call').style.display = 'flex';
+                        iniciarSomCampainha('tocar');
+                    }
+                }
+            });
+            if (!chamouAinda && window.chamadaEntranteDocId) {
+                document.getElementById('modal-incoming-call').style.display = 'none';
+                pararSomCampainha();
+                window.chamadaEntranteDocId = null;
+            }
         });
+    }
 
-        function carregarListaAdminUtilizadores() {
-            const listDiv = document.getElementById('admin-users-list');
-            listDiv.innerHTML = '';
-            let users = JSON.parse(localStorage.getItem('zap_users') || '[]');
-            users.forEach(u => {
-                const row = document.createElement('div');
-                row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 12px;';
-                row.innerHTML = `
-                    <span><b>${u.nome}</b> (${u.email})</span>
-                    <button style="background: #ea0938; color: white; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">Excluir</button>
-                `;
-                row.querySelector('button').addEventListener('click', () => {
-                    if(confirm('Tem certeza que deseja excluir o utilizador ' + u.nome + '?')) {
-                        let atualizados = users.filter(x => x.email !== u.email);
-                        localStorage.setItem('zap_users', JSON.stringify(atualizados));
-                        carregarListaAdminUtilizadores();
+    window.aceitarChamada = async () => {
+        pararSomCampainha();
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('call-screen').classList.remove('hidden');
+        document.getElementById('call-status').innerText = "A conectar...";
+        document.getElementById('call-placeholder-info').style.display = 'none';
+
+        const callDoc = doc(db, "chamadas", window.chamadaEntranteDocId);
+        const callSnap = await getDoc(callDoc);
+        if (!callSnap.exists()) return;
+        const data = callSnap.data();
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
+            document.getElementById('local-video').srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection(serversConfig);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('call-placeholder-info').style.display = 'none';
+                document.getElementById('remote-video').srcObject = event.streams[0];
+            };
+
+            const answerCandidates = collection(callDoc, "answerCandidates");
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    addDoc(answerCandidates, event.candidate.toJSON());
+                }
+            };
+
+            const offer = data.oferta;
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            await updateDoc(callDoc, {
+                resposta: { type: answer.type, sdp: answer.sdp },
+                status: 'aceita'
+            });
+
+            unsubscribeCall = onSnapshot(callDoc, (snapshot) => {
+                if (!snapshot.exists()) {
+                    fecharTelaChamadaUI();
+                }
+            });
+
+            onSnapshot(collection(callDoc, "offerCandidates"), (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added' && peerConnection) {
+                        const candidate = new RTCIceCandidate(change.doc.data());
+                        peerConnection.addIceCandidate(candidate).catch(() => {});
                     }
                 });
-                listDiv.appendChild(row);
             });
+
+            document.getElementById('call-status').innerText = "Em chamada";
+        } catch (err) {
+            alert("Erro ao atender chamada: " + err.message);
+            encerrarChamada();
         }
-    </script>
+    };
+
+    window.recusarChamada = async () => {
+        pararSomCampainha();
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+    };
+
+    window.encerrarChamada = async () => {
+        pararSomCampainha();
+        if (contatoSelecionado && usuarioAtual) {
+            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            try { await deleteDoc(doc(db, "chamadas", idChamada)); } catch(e){}
+        }
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+        fecharTelaChamadaUI();
+    };
+
+    function fecharTelaChamadaUI() {
+        pararSomCampainha();
+        if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+        if (peerConnection) { peerConnection.close(); peerConnection = null; }
+        if (unsubscribeCall) { unsubscribeCall(); unsubscribeCall = null; }
+        document.getElementById('call-screen').classList.add('hidden');
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('remote-video').srcObject = null;
+        document.getElementById('local-video').srcObject = null;
+    }
+
+    window.alternarMicrofone = () => {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            document.getElementById('btn-toggle-mic').style.background = audioTrack.enabled ? '#333' : '#ea0038';
+        }
+    };
+
+    window.alternarCamera = () => {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('btn-toggle-cam').style.background = videoTrack.enabled ? '#333' : '#ea0038';
+            }
+        }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            usuarioAtual = user;
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+            document.getElementById('contacts-screen').classList.remove('hidden');
+            
+            const userDocRef = doc(db, "usuarios", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            let nomeExibicao = user.email.split('@')[0];
+            let fotoUrl = "";
+            if (userSnap.exists()) {
+                if (userSnap.data().nome) nomeExibicao = userSnap.data().nome;
+                if (userSnap.data().fotoUrl) fotoUrl = userSnap.data().fotoUrl;
+            }
+            meuNomeAtual = nomeExibicao;
+            document.getElementById('user-display-contacts').innerText = nomeExibicao;
+            
+            if (fotoUrl) {
+                document.getElementById('meu-img-topo').src = fotoUrl;
+                document.getElementById('meu-img-topo').classList.remove('hidden');
+                document.getElementById('meu-avatar-topo').classList.add('hidden');
+            } else {
+                document.getElementById('meu-avatar-topo').innerText = nomeExibicao.charAt(0).toUpperCase();
+                document.getElementById('meu-avatar-topo').classList.remove('hidden');
+                document.getElementById('meu-img-topo').classList.add('hidden');
+            }
+
+            escutarChamadasEntrantes(user.uid);
+            carregarContatos();
+            atualizarBarraAtalhos();
+        } else {
+            usuarioAtual = null;
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('contacts-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+        }
+    });
+
+    window.cadastrar = async () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('password').value;
+        if (!email || !senha) return alert("Preencha e-mail e senha.");
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, senha);
+            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: email.split('@')[0], nicho: "Negócios", bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "" });
+            alert("Conta criada!");
+        } catch (e) { alert(e.message); }
+    };
+
+    window.entrar = async () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('password').value;
+        if (!email || !senha) return alert("Preencha e-mail e senha.");
+        try { await signInWithEmailAndPassword(auth, email, senha); } catch (e) { alert(e.message); }
+    };
+
+    window.sair = async () => { await signOut(auth); };
+
+    function carregarContatos() {
+        onSnapshot(collection(db, "usuarios"), (snapshot) => {
+            const listaDiv = document.getElementById('lista-contatos');
+            listaDiv.innerHTML = "";
+            snapshot.forEach((docItem) => {
+                const dados = docItem.data();
+                if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
+                    const avatarHtml = dados.fotoUrl ? 
+                        `<img src="${dados.fotoUrl}" class="avatar">` : 
+                        `<div class="avatar">${(dados.nome || dados.email).charAt(0).toUpperCase()}</div>`;
+
+                    listaDiv.innerHTML += `
+                        <div class="contact-item" onclick="abrirChat('${docItem.id}', '${dados.nome || dados.email.split('@')[0]}', '${dados.fotoUrl || ''}')">
+                            <div class="contact-info">
+                                ${avatarHtml}
+                                <div>
+                                    <span class="contact-name">${dados.nome || dados.email.split('@')[0]}</span><br>
+                                    <span style="font-size:10px; opacity:0.6;">Canal: ${dados.nicho || 'Geral'}</span>
+                                </div>
+                            </div>
+                            <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
+                        </div>`;
+                }
+            });
+        });
+    }
+
+    window.abrirChat = (uidContato, nomeContato, fotoContato) => {
+        contatoSelecionado = { uid: uidContato, nome: nomeContato, fotoUrl: fotoContato };
+        document.getElementById('chat-title').innerText = nomeContato;
+        
+        const chatAvatar = document.getElementById('chat-avatar-topo');
+        const chatImg = document.getElementById('chat-img-topo');
+        if (fotoContato) {
+            chatImg.src = fotoContato;
+            chatImg.classList.remove('hidden');
+            chatAvatar.classList.add('hidden');
+        } else {
+            chatAvatar.innerText = nomeContato.charAt(0).toUpperCase();
+            chatAvatar.classList.remove('hidden');
+            chatImg.classList.add('hidden');
+        }
+
+        document.getElementById('contacts-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.remove('hidden');
+        escutarMensagensPrivadas();
+    };
+
+    window.voltarParaContatos = () => {
+        if (unsubscribeChat) unsubscribeChat();
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('contacts-screen').classList.remove('hidden');
+    };
+
+    function obterIdSala(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
+
+    window.limparConversaAtual = async () => {
+        if (!contatoSelecionado || !usuarioAtual) return;
+        if (!confirm("Tem certeza que deseja apagar todas as mensagens desta conversa?")) return;
+        try {
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const mensagensRef = collection(db, "conversas", idSala, "mensagens");
+            const snapshot = await getDocs(mensagensRef);
+            const promessasDeDelete = [];
+            snapshot.forEach((documento) => {
+                promessasDeDelete.push(deleteDoc(doc(db, "conversas", idSala, "mensagens", documento.id)));
+            });
+            await Promise.all(promessasDeDelete);
+            alert("Conversa limpa com sucesso!");
+        } catch (err) {
+            alert("Erro ao limpar conversa: " + err.message);
+        }
+    };
+
+    function escutarMensagensPrivadas() {
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "asc"));
+        if (unsubscribeChat) unsubscribeChat();
+        unsubscribeChat = onSnapshot(q, (snapshot) => {
+            let cacheMensagensAtuais = [];
+            snapshot.forEach((docItem) => { cacheMensagensAtuais.push({ id: docItem.id, ...docItem.data() }); });
+            renderizarListaMensagens(cacheMensagensAtuais);
+        });
+    }
+
+    function formatarTextoComMidia(texto) {
+        if (!texto) return '';
+        const padraoUrl = /((https?:\/\/[^\s]+)|(www\.[^\s]+))/g;
+        let textoFormatado = texto.replace(padraoUrl, (url) => {
+            let urlCompleta = url;
+            if (url.startsWith('www.')) { urlCompleta = 'https://' + url; }
+            return `<a href="${urlCompleta}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+
+        let embedHtml = '';
+        const matchYoutube = texto.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (matchYoutube && matchYoutube[1]) {
+            const videoId = matchYoutube[1];
+            embedHtml += `<div class="embed-container"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`;
+        }
+
+        const matchTiktok = texto.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@[\w.-]+\/video\/(\d+)/);
+        if (matchTiktok && matchTiktok[1]) {
+            const tiktokId = matchTiktok[1];
+            embedHtml += `<div class="embed-container" style="aspect-ratio: 9/16;"><iframe src="https://www.tiktok.com/embed/v2/${tiktokId}" allowfullscreen></iframe></div>`;
+        }
+
+        return textoFormatado + embedHtml;
+    }
+
+    function renderizarListaMensagens(lista) {
+        const box = document.getElementById('mensagens');
+        box.innerHTML = "";
+        lista.forEach((data) => {
+            const eMinha = data.remetente === usuarioAtual.email;
+            let conteudoHtml = `<div style="font-size: 14px;">${formatarTextoComMidia(data.texto)}</div>`;
+            
+            if (data.tipo === 'produto') {
+                let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
+                if (data.imagemUrlProduto) cartaoHtml += `<img src="${data.imagemUrlProduto}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem('${data.imagemUrlProduto}')">`;
+                if (data.linkAfiliado) cartaoHtml += `<a href="${data.linkAfiliado}" target="_blank" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
+                conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
+            } else if (data.tipo === 'imagem') {
+                let imgSrc = data.imagemUrlLocal || data.imagemBase64 || '';
+                conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem('${imgSrc}')" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
+            } else if (data.tipo === 'video') {
+                let vidSrc = data.videoUrlLocal || data.videoBase64 || '';
+                conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar Vídeo</a>`;
+            } else if (data.tipo === 'audio') {
+                const audioId = "audio_" + data.id;
+                let audSrc = data.audioUrlLocal || data.audioBase64 || '';
+                conteudoHtml += `
+                    <div class="wa-audio-player">
+                        <button class="wa-play-btn" id="btn_${audioId}" onclick="tocarAudioLocal('${audioId}')">▶</button>
+                        <div class="wa-audio-info">
+                            <div class="wa-audio-bar" onclick="seekAudio(event, '${audioId}')"><div class="wa-audio-progress" id="prog_${audioId}"></div></div>
+                            <span class="wa-audio-time" id="time_${audioId}">0:00</span>
+                        </div>
+                        <audio id="${audioId}" src="${audSrc}" preload="metadata" ontimeupdate="atualizarProgressoAudio('${audioId}')" onended="audioTerminou('${audioId}')"></audio>
+                    </div>`;
+            }
+            box.innerHTML += `<div class="${eMinha ? 'msg msg-minha' : 'msg'}"><div class="msg-content">${conteudoHtml}</div></div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    window.tocarAudioLocal = (id) => {
+        const audio = document.getElementById(id);
+        const btn = document.getElementById('btn_' + id);
+        if (audio.paused) { 
+            audio.play().catch(e => alert("Erro ao reproduzir áudio: " + e.message)); 
+            btn.innerText = "⏸"; 
+        } else { 
+            audio.pause(); 
+            btn.innerText = "▶"; 
+        }
+    };
+
+    window.seekAudio = (event, id) => {
+        const audio = document.getElementById(id);
+        const bar = event.currentTarget;
+        const rect = bar.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const width = bar.offsetWidth;
+        if (audio.duration) { audio.currentTime = (clickX / width) * audio.duration; }
+    };
+
+    window.atualizarProgressoAudio = (id) => {
+        const audio = document.getElementById(id);
+        const prog = document.getElementById('prog_' + id);
+        const time = document.getElementById('time_' + id);
+        if (audio.duration) {
+            prog.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+            const min = Math.floor(audio.currentTime / 60);
+            const sec = Math.floor(audio.currentTime % 60);
+            time.innerText = min + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+    };
+
+    window.audioTerminou = (id) => {
+        const btn = document.getElementById('btn_' + id);
+        const prog = document.getElementById('prog_' + id);
+        if(btn) btn.innerText = "▶";
+        if(prog) prog.style.width = '0%';
+    };
+
+    window.enviarMensagemPrivada = async () => {
+        const inputEl = document.getElementById('mensagem-texto');
+        if (!inputEl.value.trim() || !contatoSelecionado) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: inputEl.value, remetente: usuarioAtual.email, tipo: "texto", criadoEm: serverTimestamp()
+        });
+        inputEl.value = "";
+    };
+
+    window.enviarImagemGlobal = async (inputElement) => {
+        const file = inputElement.files[0];
+        if (!file || !contatoSelecionado) return;
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const base64Data = e.target.result;
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+                texto: "📷 Imagem", imagemBase64: base64Data, remetente: usuarioAtual.email, tipo: "imagem", criadoEm: serverTimestamp()
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.enviarVideoGlobal = async (inputElement) => {
+        const file = inputElement.files[0];
+        if (!file || !contatoSelecionado) return;
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const base64Data = e.target.result;
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+                texto: "📹 Vídeo", videoBase64: base64Data, remetente: usuarioAtual.email, tipo: "video", criadoEm: serverTimestamp()
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    let mediaRecorder = null, audioChunks = [];
+    window.toggleGravarAudio = async () => {
+        const btnAudio = document.getElementById('btn-gravar-audio');
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("O seu navegador não permite gravação de áudio.");
+                    return;
+                }
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const base64Audio = e.target.result;
+                        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+                        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+                            texto: "🎙️ Áudio", audioBase64: base64Audio, remetente: usuarioAtual.email, tipo: "audio", criadoEm: serverTimestamp()
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                };
+                mediaRecorder.start();
+                btnAudio.classList.add('gravando');
+                btnAudio.innerText = "⏹️";
+            } catch (err) {
+                alert("Erro ao aceder ao microfone: " + err.message);
+            }
+        } else {
+            mediaRecorder.stop();
+            if(mediaRecorder.stream) { mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
+            btnAudio.classList.remove('gravando');
+            btnAudio.innerText = "🎙️";
+        }
+    };
+    window.indicarAmigo = () => { prompt("Copie o link:", window.location.href); };
+</script>
+
 </body>
 </html>
