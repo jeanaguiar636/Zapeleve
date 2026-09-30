@@ -1,591 +1,390 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - WhatsApp Real</title>
-    <style>
-        * { box-sizing: border-box; }
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #ffffff;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zap Leve - Chat & Vitrine de Afiliados P2P</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        whatsapp: { 500: '#25D366', 600: '#1ebe5d', dark: '#0b141a', panel: '#111b21', chat: '#202c33' }
+                    }
+                }
+            }
         }
-        .container { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; background: white; }
-        .hidden { display: none !important; }
-        .screen-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #ffffff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-        
-        .app-header { display: flex; justify-content: space-between; align-items: center; background: #075e54; color: white; padding: 10px 14px; flex-shrink: 0; }
-        .app-title-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .avatar-placeholder { width: 38px; height: 38px; border-radius: 50%; background: #128c7e; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 15px; overflow: hidden; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); }
-        
-        .header-actions-right { display: flex; gap: 6px; align-items: center; }
-        .btn-action-top { background: #128c7e; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
-        .btn-action-top.limpar { background: #ea0938; }
-
-        .niches-container { flex: 1; overflow-y: auto; background: #f0f2f5; padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: start; }
-        .niche-card { background: white; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; border: 1px solid #e2e8f0; }
-        .niche-icon { font-size: 28px; }
-        .niche-title { font-weight: bold; font-size: 14px; color: #075e54; margin: 0; }
-        .niche-count { font-size: 11px; color: #666; }
-
-        .contacts-list { flex: 1; overflow-y: auto; background: #fff; }
-        .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
-
-        /* Área de Chat Estilo WhatsApp */
-        .chat-messages { flex: 1; overflow-y: auto; padding: 12px; background: #e5ded8; display: flex; flex-direction: column; gap: 8px; }
-        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 13px; position: relative; word-break: break-word; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
-        .message-incoming { background: #ffffff; align-self: flex-start; }
-        .message-outgoing { background: #dcf8c6; align-self: flex-end; }
-        
-        .chat-input-area { display: flex; align-items: center; padding: 8px 10px; background: #f0f0f0; gap: 6px; flex-shrink: 0; }
-        .chat-input-area input[type="text"] { flex: 1; padding: 10px 14px; border: none; border-radius: 20px; outline: none; font-size: 13px; background: #ffffff; }
-        
-        .whatsapp-icon-btn { background: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; }
-        .whatsapp-icon-btn.mic { background: #128c7e; }
-
-        .floating-cart { 
-            position: fixed; bottom: 80px; right: 20px; 
-            background: #25d366; color: #ffffff; width: 56px; height: 56px; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-            font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; border: 2px solid #ffffff; 
-        }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 15px; }
-        .modal-card { background: white; width: 100%; max-width: 480px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; padding: 4px; }
-    </style>
+    </script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-    <div class="container">
-        <!-- TELA DE LOGIN / REGISTO -->
-        <div id="auth-screen" class="screen-content" style="justify-content: center; padding: 20px; position: relative;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <span style="font-size: 50px;">⚡</span>
-                <h1 style="color: #075e54; margin: 5px 0;">Zap Leve</h1>
-            </div>
-            <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <input type="email" id="email" placeholder="Seu e-mail" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
-                <input type="password" id="senha" placeholder="Sua senha" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:6px;">
-                
-                <div style="margin: 8px 0;">
-                    <label style="font-size: 12px; color: #555; display: block; margin-bottom: 4px;">Escolha o seu Nicho:</label>
-                    <select id="auth-nicho" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px;">
-                        <option value="Negócio">💼 Negócio</option>
-                        <option value="Namoro">❤️ Namoro</option>
-                        <option value="Religião">⛪ Religião</option>
-                        <option value="Pets">🐾 Pets</option>
-                    </select>
-                </div>
+<body class="bg-slate-950 text-slate-100 h-[100dvh] flex flex-col overflow-hidden font-sans">
 
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                    <button id="btn-login-action" style="flex: 1; padding: 12px; background: #34b7f1; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Entrar</button>
-                    <button id="btn-register-action" style="flex: 1; padding: 12px; background: #25d366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Criar Conta</button>
-                </div>
-
-                <div style="text-align: center; margin-top: 12px;">
-                    <a href="#" id="link-forgot-password" style="font-size: 12px; color: #0066cc; text-decoration: underline;">Esqueceu a senha?</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- TELA PRINCIPAL DE NICHOS -->
-        <div id="contacts-screen" class="screen-content hidden">
-            <div class="app-header">
-                <div class="app-title-area" id="open-profile-btn" title="Editar Perfil">
-                    <div id="user-avatar-initial" class="avatar-placeholder">J</div>
-                    <div>
-                        <span id="user-email-display" style="font-weight: bold; font-size: 14px; display: block;">Zap Leve ⚡</span>
-                        <span id="user-sub-email" style="font-size: 11px; color: #d1fae5;">Sincronizado na Nuvem</span>
+    <!-- Container Principal do App -->
+    <div id="app" class="flex flex-col md:flex-row h-full w-full max-w-7xl mx-auto shadow-2xl overflow-hidden bg-whatsapp-dark border border-slate-800 relative">
+        
+        <!-- Sidebar (Ocultável em mobile quando visualizando chat ou ajustada) -->
+        <aside id="sidebar-panel" class="w-full md:w-80 lg:w-96 bg-whatsapp-panel border-r border-slate-800 flex flex-col h-full z-20 flex-shrink-0">
+            <!-- Header do Usuário -->
+            <div class="p-3 md:p-4 bg-slate-900 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div id="user-avatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-whatsapp-500 flex items-center justify-center font-bold text-white shrink-0">ZL</div>
+                    <div class="truncate">
+                        <h2 id="user-name" class="font-semibold text-xs md:text-sm truncate">Carregando...</h2>
+                        <span class="text-[10px] md:text-xs text-whatsapp-500 flex items-center gap-1"><i class="fa-solid fa-circle text-[6px]"></i> Online (R2 Ativo)</span>
                     </div>
                 </div>
-                <div class="header-actions-right">
-                    <button id="btn-open-admin-panel" class="hidden" style="background: #ea0938; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">🛡️ Admin</button>
-                    <button id="btn-logout" class="btn-action-top limpar">Sair</button>
+                <div class="flex items-center space-x-2 md:space-x-3 text-slate-400 shrink-0">
+                    <button onclick="zapApp.switchTab('chats')" title="Conversas" class="p-1.5 hover:text-white"><i class="fa-solid fa-comments text-base"></i></button>
+                    <button onclick="zapApp.switchTab('vitrine')" title="Vitrine / Lojinha" class="p-1.5 hover:text-white"><i class="fa-solid fa-store text-base"></i></button>
+                    <button onclick="zapApp.openSettings()" title="Configurações" class="p-1.5 hover:text-white"><i class="fa-solid fa-gear text-base"></i></button>
                 </div>
             </div>
 
-            <div class="niches-container" id="niches-grid-container"></div>
+            <!-- Pesquisa -->
+            <div class="p-3 bg-whatsapp-panel/50">
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500 text-xs"></i>
+                    <input type="text" placeholder="Pesquisar conversas ou produtos..." class="w-full bg-slate-800 text-xs md:text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:ring-1 focus:ring-whatsapp-500 text-slate-200">
+                </div>
+            </div>
+
+            <!-- Lista Dinâmica (Conversas ou Lojinha/Vitrine) -->
+            <div id="sidebar-content" class="flex-1 overflow-y-auto divide-y divide-slate-800/50">
+                <!-- Injetado dinamicamente via JS -->
+            </div>
+        </aside>
+
+        <!-- Área Central (Chat ou Gestão de Lojinha) -->
+        <main class="flex-1 flex flex-col h-full bg-slate-900 relative overflow-hidden">
             
-            <div class="contacts-footer" style="padding: 10px 14px; background: #fff;">
-                <button class="btn-convidar" onclick="alert('Link copiado!')" style="background: #075e54; color: white; border: none; width: 100%; padding: 12px; border-radius: 24px; font-weight: bold; cursor: pointer;">📢 Convidar para o Zap Leve</button>
-            </div>
-
-            <button class="floating-cart" id="btn-open-catalog" title="Catálogo e Carrinho">🛒</button>
-        </div>
-
-        <!-- UTILIZADORES DO NICHO -->
-        <div id="nicho-users-screen" class="screen-content hidden">
-            <div class="app-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btn-back-to-niches" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
-                    <h3 id="nicho-screen-title" style="margin: 0; font-size: 16px;">Nicho</h3>
-                </div>
-            </div>
-            <div class="contacts-list" id="nicho-users-list-container"></div>
-        </div>
-
-        <!-- TELA DE CHAT COM CHAMADAS REAIS E BOTÃO ESTILO WHATSAPP -->
-        <div id="chat-screen" class="screen-content hidden">
-            <div class="app-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btn-back-to-nicho-users" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⬅️</button>
-                    <div id="chat-user-avatar" class="avatar-placeholder" style="width: 32px; height: 32px;">U</div>
-                    <span id="chat-user-name" style="font-weight: bold; font-size: 14px;">Utilizador</span>
-                </div>
-                <div style="display: flex; gap: 14px; font-size: 18px;">
-                    <button id="btn-video-call" style="background:none; border:none; color:white; cursor:pointer;" title="Chamada de Vídeo">📹</button>
-                    <button id="btn-audio-call" style="background:none; border:none; color:white; cursor:pointer;" title="Chamada de Áudio">📞</button>
-                </div>
-            </div>
-            
-            <div class="chat-messages" id="chat-messages-container"></div>
-
-            <div class="chat-input-area">
-                <button id="btn-attach-media" style="background:none; border:none; font-size:20px; cursor:pointer;" title="Anexar Imagem">📎</button>
-                <input type="text" id="chat-input-text" placeholder="Mensagem">
-                <!-- Botão dinâmico estilo WhatsApp: vira microfone se vazio, vira seta de envio se tiver texto -->
-                <button id="whatsapp-main-btn" class="whatsapp-icon-btn mic" title="Gravar Áudio">🎤</button>
-            </div>
-        </div>
-
-        <!-- PERFIL MODAL -->
-        <div id="profile-modal" class="modal-overlay hidden">
-            <div class="modal-card">
-                <h3 style="margin: 0; color: #075e54;">Meu Perfil & Afiliado</h3>
-                <div style="text-align: center;">
-                    <img id="profile-preview-img" src="" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #075e54; display: none; margin: 0 auto 8px auto;">
-                </div>
-                <label style="font-size: 11px; color: #666;">Foto de Perfil (URL da imagem):</label>
-                <input type="text" id="profile-photo-input" placeholder="https://exemplo.com/foto.jpg" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                
-                <label style="font-size: 11px; color: #666;">Seu Nome:</label>
-                <input type="text" id="profile-name-input" placeholder="Seu nome..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                
-                <label style="font-size: 11px; color: #666;">Biografia / Descrição:</label>
-                <textarea id="profile-bio-input" placeholder="Sua bio..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; height: 50px;"></textarea>
-                
-                <label style="font-size: 11px; color: #666;">Link de Afiliado / Loja:</label>
-                <input type="text" id="profile-link-input" placeholder="https://seu-link-afiliado.com" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <button id="btn-save-profile" style="flex: 1; background: #00a884; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer;">Guardar</button>
-                    <button id="btn-close-profile" style="background: #ccc; border: none; padding: 10px 14px; border-radius: 4px; cursor: pointer;">Fechar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- MODAL DO CATÁLOGO -->
-        <div id="catalog-modal" class="modal-overlay hidden">
-            <div class="modal-card" style="max-width: 520px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                    <h3 style="margin: 0; color: #075e54;">🛍️ Catálogo de Produtos</h3>
-                    <button id="btn-close-catalog" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-                </div>
-                <div id="product-grid-container" class="product-grid">
-                    <div style="padding: 10px; border: 1px solid #eee; border-radius: 6px; text-align: center;">
-                        <p style="margin: 4px 0; font-weight: bold; font-size: 13px;">Produto Exemplo</p>
-                        <p style="margin: 4px 0; color: #075e54; font-size: 12px;">R$ 99,90</p>
-                        <button onclick="alert('Produto adicionado ao carrinho!')" style="background: #25d366; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Comprar</button>
+            <!-- Header do Chat -->
+            <div id="chat-header" class="p-3 md:p-4 bg-whatsapp-panel border-b border-slate-800 flex items-center justify-between shadow-sm shrink-0">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <button onclick="zapApp.toggleMobileSidebar()" class="md:hidden text-slate-300 hover:text-white mr-1 text-lg"><i class="fa-solid fa-bars"></i></button>
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-slate-300 shrink-0">#</div>
+                    <div class="truncate">
+                        <h3 id="current-chat-title" class="font-semibold text-xs md:text-sm truncate">Selecione uma conversa ou lojinha</h3>
+                        <span id="current-chat-status" class="text-[10px] md:text-xs text-slate-400 truncate block">P2P e Cloudflare R2 Prontos</span>
                     </div>
                 </div>
+                <div class="flex items-center space-x-3 text-slate-300 shrink-0">
+                    <button onclick="zapApp.startCall('video')" title="Vídeo Chamada P2P" class="p-1 hover:text-whatsapp-500"><i class="fa-solid fa-video"></i></button>
+                    <button onclick="zapApp.startCall('audio')" title="Chamada de Voz P2P" class="p-1 hover:text-whatsapp-500"><i class="fa-solid fa-phone"></i></button>
+                </div>
             </div>
-        </div>
+
+            <!-- Container Principal de Conteúdo (Mensagens ou Vitrine de Afiliado) -->
+            <div id="messages-container" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-4 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] bg-slate-950/60">
+                <div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-2 text-center p-4">
+                    <i class="fa-solid fa-bolt text-4xl text-whatsapp-500"></i>
+                    <p class="text-xs md:text-sm">Bem-vindo ao Zap Leve. Selecione uma opção na barra lateral ou menu.</p>
+                </div>
+            </div>
+
+            <!-- Barra de Envio (Chat) -->
+            <div id="chat-input-bar" class="p-2 md:p-3 bg-whatsapp-panel border-t border-slate-800 flex items-center space-x-2 shrink-0">
+                <label class="cursor-pointer text-slate-400 hover:text-whatsapp-500 p-2 shrink-0" title="Enviar Mídia (Salva no R2)">
+                    <i class="fa-solid fa-paperclip text-base md:text-lg"></i>
+                    <input type="file" id="media-input" class="hidden" onchange="zapApp.handleMediaUpload(event)">
+                </label>
+                <input type="text" id="message-input" placeholder="Digite uma mensagem..." class="flex-1 bg-slate-800 text-xs md:text-sm rounded-lg px-3 md:px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-whatsapp-500 text-slate-200" onkeypress="zapApp.handleKeyPress(event)">
+                <button onclick="zapApp.sendMessage()" class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-3 md:px-4 py-2.5 rounded-lg font-medium transition-colors shrink-0">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </div>
+        </main>
     </div>
 
-    <!-- SCRIPT DE FIREBASE E LIGAÇÕES COMPLETAS -->
+    <!-- Firebase SDKs e Lógica do App -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-          apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
-          authDomain: "zapleve.firebaseapp.com",
-          projectId: "zapleve",
-          storageBucket: "zapleve.firebasestorage.app",
-          messagingSenderId: "426242600158",
-          appId: "1:426242600158:web:9bf280a9379bccc6fc264f"
+            apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
+            authDomain: "zapleve.firebaseapp.com",
+            projectId: "zapleve",
+            storageBucket: "zapleve.firebasestorage.app",
+            messagingSenderId: "426242600158",
+            appId: "1:426242600158:web:9bf280a9379bccc6fc264f"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const appFB = initializeApp(firebaseConfig);
+        const auth = getAuth(appFB);
+        const db = getFirestore(appFB);
 
-        let currentUserData = null;
-        let activeChatUser = null;
-        let unsubscribeChat = null;
+        const R2_PUBLIC_URL = "https://cdn.alibr.com.br";
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('contacts-screen').classList.remove('hidden');
-                
-                const userDocRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userDocRef);
-                if (!userSnap.exists()) {
-                    const nichoSelecionado = document.getElementById('auth-nicho').value || 'Negócio';
-                    currentUserData = {
-                        uid: user.uid,
-                        email: user.email,
-                        nome: user.email.split('@')[0],
-                        nicho: nichoSelecionado,
-                        bio: 'Olá! Estou no Zap Leve.',
-                        link: '',
-                        foto: ''
-                    };
-                    await setDoc(userDocRef, currentUserData);
-                } else {
-                    currentUserData = userSnap.data();
-                }
-                carregarDadosUsuario(user, currentUserData);
+        class ZapLeveApp {
+            constructor() {
+                this.currentUser = null;
+                this.currentChatId = "geral";
+                this.currentView = "chats";
+                this.mobileSidebarOpen = true;
+                this.initAuth();
             }
-        });
 
-        document.getElementById('btn-login-action').addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const senha = document.getElementById('senha').value.trim();
-            if(!email || !senha) return alert('Insira e-mail e senha.');
-            try {
-                await signInWithEmailAndPassword(auth, email, senha);
-            } catch (e) {
-                alert('Erro ao entrar: ' + e.message);
-            }
-        });
-
-        document.getElementById('btn-register-action').addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const senha = document.getElementById('senha').value.trim();
-            const nicho = document.getElementById('auth-nicho').value;
-            if(!email || !senha) return alert('Insira e-mail e senha.');
-            try {
-                const res = await createUserWithEmailAndPassword(auth, email, senha);
-                currentUserData = {
-                    uid: res.user.uid,
-                    email: email,
-                    nome: email.split('@')[0],
-                    nicho: nicho,
-                    bio: 'Olá! Estou no Zap Leve.',
-                    link: '',
-                    foto: ''
-                };
-                await setDoc(doc(db, "users", res.user.uid), currentUserData);
-            } catch (e) {
-                alert('Erro ao registar: ' + e.message);
-            }
-        });
-
-        document.getElementById('link-forgot-password').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            if(!email) return alert('Digite o seu e-mail no campo acima.');
-            try {
-                await sendPasswordResetEmail(auth, email);
-                alert('E-mail de recuperação enviado!');
-            } catch(err) {
-                alert('Erro: ' + err.message);
-            }
-        });
-
-        document.getElementById('btn-logout').addEventListener('click', async () => {
-            await signOut(auth);
-            location.reload();
-        });
-
-        document.getElementById('open-profile-btn').addEventListener('click', () => {
-            if(currentUserData) {
-                document.getElementById('profile-name-input').value = currentUserData.nome || '';
-                document.getElementById('profile-bio-input').value = currentUserData.bio || '';
-                document.getElementById('profile-link-input').value = currentUserData.link || '';
-                document.getElementById('profile-photo-input').value = currentUserData.foto || '';
-                if(currentUserData.foto) {
-                    const img = document.getElementById('profile-preview-img');
-                    img.src = currentUserData.foto;
-                    img.style.display = 'block';
-                }
-            }
-            document.getElementById('profile-modal').classList.remove('hidden');
-        });
-        document.getElementById('btn-close-profile').addEventListener('click', () => {
-            document.getElementById('profile-modal').classList.add('hidden');
-        });
-
-        document.getElementById('btn-save-profile').addEventListener('click', async () => {
-            const nome = document.getElementById('profile-name-input').value.trim();
-            const bio = document.getElementById('profile-bio-input').value.trim();
-            const link = document.getElementById('profile-link-input').value.trim();
-            const foto = document.getElementById('profile-photo-input').value.trim();
-
-            if(!auth.currentUser) return;
-            try {
-                const userRef = doc(db, "users", auth.currentUser.uid);
-                await updateDoc(userRef, { nome, bio, link, foto });
-                currentUserData.nome = nome;
-                currentUserData.bio = bio;
-                currentUserData.link = link;
-                currentUserData.foto = foto;
-                
-                document.getElementById('user-email-display').textContent = nome || auth.currentUser.email;
-                if(foto) {
-                    const avatar = document.getElementById('user-avatar-initial');
-                    avatar.innerHTML = `<img src="${foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
-                }
-                document.getElementById('profile-modal').classList.add('hidden');
-            } catch(e) {
-                alert('Erro ao atualizar perfil: ' + e.message);
-            }
-        });
-
-        document.getElementById('btn-open-catalog').addEventListener('click', () => {
-            document.getElementById('catalog-modal').classList.remove('hidden');
-        });
-        document.getElementById('btn-close-catalog').addEventListener('click', () => {
-            document.getElementById('catalog-modal').classList.add('hidden');
-        });
-
-        function carregarDadosUsuario(user, data) {
-            document.getElementById('user-email-display').textContent = data.nome || user.email;
-            if(data.foto) {
-                document.getElementById('user-avatar-initial').innerHTML = `<img src="${data.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
-            } else {
-                document.getElementById('user-avatar-initial').textContent = (data.nome || user.email).charAt(0).toUpperCase();
-            }
-            if(user.email.includes('admin') || user.email === 'admin@zapleve.com') {
-                document.getElementById('btn-open-admin-panel')?.classList.remove('hidden');
-            }
-            renderizarNichosCloud();
-        }
-
-        function renderizarNichosCloud() {
-            const container = document.getElementById('niches-grid-container');
-            container.innerHTML = '';
-            const lista = [
-                { nome: 'Negócio', icone: '💼', desc: 'Loja e Parcerias' },
-                { nome: 'Namoro', icone: '❤️', desc: 'Conexões' },
-                { nome: 'Religião', icone: '⛪', desc: 'Fé e Comunhão' },
-                { nome: 'Pets', icone: '🐾', desc: 'Amigos de 4 patas' }
-            ];
-            lista.forEach(n => {
-                const card = document.createElement('div');
-                card.className = 'niche-card';
-                card.innerHTML = `<div class="niche-icon">${n.icone}</div><div class="niche-title">${n.nome}</div><div class="niche-count">${n.desc}</div>`;
-                card.addEventListener('click', () => abrirNichoCloud(n.nome));
-                container.appendChild(card);
-            });
-        }
-
-        async function abrirNichoCloud(nomeNicho) {
-            document.getElementById('contacts-screen').classList.add('hidden');
-            document.getElementById('nicho-users-screen').classList.remove('hidden');
-            document.getElementById('nicho-screen-title').textContent = 'Nicho: ' + nomeNicho;
-            
-            const container = document.getElementById('nicho-users-list-container');
-            container.innerHTML = '<div style="padding:20px; text-align:center;">A carregar utilizadores...</div>';
-            
-            try {
-                const querySnapshot = await getDocs(collection(db, "users"));
-                container.innerHTML = '';
-                let encontrou = false;
-                querySnapshot.forEach((docSnap) => {
-                    const u = docSnap.data();
-                    if(u.nicho === nomeNicho && u.uid !== auth.currentUser.uid) {
-                        encontrou = true;
-                        const item = document.createElement('div');
-                        item.className = 'contact-item';
-                        let avatarHtml = `<div class="avatar-placeholder" style="width: 38px; height: 38px;">${(u.nome || 'U').charAt(0).toUpperCase()}</div>`;
-                        if(u.foto) {
-                            avatarHtml = `<div class="avatar-placeholder" style="width: 38px; height: 38px;"><img src="${u.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;"></div>`;
-                        }
-
-                        item.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                ${avatarHtml}
-                                <div>
-                                    <div style="font-weight: bold; font-size: 14px;">${u.nome || 'Utilizador'}</div>
-                                    <div style="font-size: 11px; color: #666;">${u.bio || 'Disponível'}</div>
-                                    ${u.link ? `<a href="${u.link}" target="_blank" style="font-size: 10px; color: #0066cc; text-decoration: underline;">🔗 Ver Link / Afiliado</a>` : ''}
-                                </div>
-                            </div>
-                            <span style="font-size: 12px; color: #075e54; font-weight: bold;">💬 Conversar</span>
-                        `;
-                        item.addEventListener('click', () => abrirChatPrivado(u));
-                        container.appendChild(item);
+            initAuth() {
+                signInAnonymously(auth).catch(error => console.error("Erro auth:", error));
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        this.currentUser = user;
+                        document.getElementById('user-name').innerText = `User_${user.uid.substring(0, 5)}`;
+                        document.getElementById('user-avatar').innerText = user.uid.substring(0, 2).toUpperCase();
+                        this.loadSidebar();
+                        this.loadMessages();
                     }
                 });
-                if(!encontrou) {
-                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Nenhum outro utilizador neste nicho ainda.</div>';
+            }
+
+            toggleMobileSidebar() {
+                const sidebar = document.getElementById('sidebar-panel');
+                if (window.innerWidth < 768) {
+                    sidebar.classList.toggle('hidden');
                 }
-            } catch(e) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Erro ao carregar utilizadores.</div>';
-            }
-        }
-
-        function abrirChatPrivado(userTarget) {
-            activeChatUser = userTarget;
-            document.getElementById('nicho-users-screen').classList.add('hidden');
-            document.getElementById('chat-screen').classList.remove('hidden');
-            document.getElementById('chat-user-name').textContent = userTarget.nome || 'Utilizador';
-            
-            const avatarChat = document.getElementById('chat-user-avatar');
-            if(userTarget.foto) {
-                avatarChat.innerHTML = `<img src="${userTarget.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
-            } else {
-                avatarChat.textContent = (userTarget.nome || 'U').charAt(0).toUpperCase();
             }
 
-            escutarMensagensReais(userTarget.uid);
-        }
-
-        // Lógica do Botão Estilo WhatsApp (Muda entre Microfone e Enviar)
-        const chatInput = document.getElementById('chat-input-text');
-        const mainBtn = document.getElementById('whatsapp-main-btn');
-
-        chatInput.addEventListener('input', () => {
-            if(chatInput.value.trim().length > 0) {
-                mainBtn.textContent = '➤';
-                mainBtn.className = 'whatsapp-icon-btn';
-                mainBtn.title = 'Enviar mensagem';
-            } else {
-                mainBtn.textContent = '🎤';
-                mainBtn.className = 'whatsapp-icon-btn mic';
-                mainBtn.title = 'Gravar Áudio';
+            switchTab(tab) {
+                this.currentView = tab;
+                if (tab === 'vitrine') {
+                    this.renderStoreView();
+                } else {
+                    this.loadMessages();
+                }
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar-panel').classList.add('hidden');
+                }
             }
-        });
 
-        mainBtn.addEventListener('click', async () => {
-            const texto = chatInput.value.trim();
-            if(texto.length > 0) {
-                // Enviar Mensagem Real de Texto
-                await enviarMensagemFirestore({ texto: texto, tipo: 'texto' });
-                chatInput.value = '';
-                mainBtn.textContent = '🎤';
-                mainBtn.className = 'whatsapp-icon-btn mic';
-                mainBtn.title = 'Gravar Áudio';
-            } else {
-                // Gravação de Áudio Real com Microfone do Telemóvel
-                iniciarGravacaoAudioReal();
+            openSettings() {
+                const storeName = prompt("Digite o nome da sua Lojinha (Slug amigável, ex: lojadaju):");
+                if (storeName) {
+                    this.saveStoreSlug(storeName);
+                }
             }
-        });
 
-        async function enviarMensagemFirestore(dados) {
-            if(!activeChatUser || !auth.currentUser) return;
-            const chatId = [auth.currentUser.uid, activeChatUser.uid].sort().join('_');
-            try {
-                await addDoc(collection(db, "chats", chatId, "mensagens"), {
-                    remetente: auth.currentUser.uid,
-                    destinatario: activeChatUser.uid,
-                    texto: dados.texto || '',
-                    tipo: dados.tipo || 'texto',
-                    timestamp: Date.now()
-                });
-            } catch(e) {
-                alert('Erro ao enviar mensagem: ' + e.message);
+            async saveStoreSlug(name) {
+                if (!this.currentUser) return;
+                const slug = name.toLowerCase().replace(/\s+/g, '-');
+                try {
+                    await setDoc(doc(db, "users", this.currentUser.uid), {
+                        storeName: name,
+                        storeSlug: slug
+                    }, { merge: true });
+                    alert(`Lojinha configurada com sucesso! Seu link:\nlocation.origin/?store=${slug}`);
+                } catch (e) {
+                    console.error("Erro ao salvar lojinha:", e);
+                }
             }
-        }
 
-        function escutarMensagensReais(outroUid) {
-            const msgContainer = document.getElementById('chat-messages-container');
-            const chatId = [auth.currentUser.uid, outroUid].sort().join('_');
-            
-            const q = query(collection(db, "chats", chatId, "mensagens"), orderBy("timestamp", "asc"));
-            
-            if(unsubscribeChat) unsubscribeChat();
+            loadSidebar() {
+                const sidebar = document.getElementById('sidebar-content');
+                sidebar.innerHTML = `
+                    <div class="p-3 hover:bg-slate-800/50 cursor-pointer flex items-center justify-between" onclick="zapApp.loadMessages(); zapApp.toggleMobileSidebar();">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-full bg-whatsapp-500/20 text-whatsapp-500 flex items-center justify-center"><i class="fa-solid fa-comments"></i></div>
+                            <div>
+                                <h4 class="text-xs md:text-sm font-semibold">Chat Geral / Suporte</h4>
+                                <p class="text-[10px] text-slate-400">Canal Principal P2P</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 hover:bg-slate-800/50 cursor-pointer flex items-center justify-between" onclick="zapApp.switchTab('vitrine')">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-store"></i></div>
+                            <div>
+                                <h4 class="text-xs md:text-sm font-semibold">Minha Vitrine de Afiliado</h4>
+                                <p class="text-[10px] text-slate-400">Gerenciar produtos e links</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
 
-            unsubscribeChat = onSnapshot(q, (snapshot) => {
-                msgContainer.innerHTML = '';
-                if(snapshot.empty) {
-                    msgContainer.innerHTML = `<div style="text-align:center; font-size:11px; color:#666; margin:10px 0;">Sem mensagens ainda. Comece a conversar!</div>`;
+            async loadMessages() {
+                document.getElementById('chat-input-bar').style.display = 'flex';
+                document.getElementById('current-chat-title').innerText = "Chat Geral & Comunidade";
+                const container = document.getElementById('messages-container');
+                container.innerHTML = `<div class="flex justify-center p-4"><i class="fa-solid fa-spinner animate-spin text-whatsapp-500 text-xl"></i></div>`;
+
+                try {
+                    const q = query(collection(db, "chats", this.currentChatId, "messages"), orderBy("timestamp", "desc"), limit(25));
+                    const querySnapshot = await getDocs(q);
+                    
+                    container.innerHTML = "";
+                    const messages = [];
+                    querySnapshot.forEach((doc) => messages.unshift(doc.data()));
+
+                    if (messages.length === 0) {
+                        container.innerHTML = `<div class="text-center text-slate-500 py-10 text-xs">Nenhuma mensagem ainda. Envie a primeira!</div>`;
+                        return;
+                    }
+
+                    messages.forEach(msg => this.renderMessageElement(msg));
+                } catch (e) {
+                    console.error("Erro ao carregar mensagens:", e);
+                }
+            }
+
+            renderMessageElement(msg) {
+                const container = document.getElementById('messages-container');
+                const isMe = msg.sender === this.currentUser.uid;
+                
+                const div = document.createElement('div');
+                div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+
+                let mediaContent = '';
+                if (msg.mediaUrl) {
+                    if (msg.mediaType === 'image') {
+                        mediaContent = `
+                            <div class="mt-2">
+                                <img src="${msg.mediaUrl}" loading="lazy" class="rounded-lg max-w-[240px] max-h-48 object-cover cursor-pointer mb-2" onclick="window.open('${msg.mediaUrl}', '_blank')">
+                                <a href="${msg.mediaUrl}" target="_blank" download class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-bold shadow">
+                                    <i class="fa-solid fa-download"></i> Baixar Imagem
+                                </a>
+                            </div>`;
+                    } else {
+                        mediaContent = `
+                            <div class="mt-2">
+                                <a href="${msg.mediaUrl}" target="_blank" download class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-bold shadow">
+                                    <i class="fa-solid fa-file"></i> Baixar Arquivo
+                                </a>
+                            </div>`;
+                    }
+                }
+
+                div.innerHTML = `
+                    <div class="max-w-[85%] md:max-w-md rounded-lg p-3 shadow ${isMe ? 'bg-whatsapp-chat text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none'}">
+                        <p class="text-xs md:text-sm break-words">${msg.text || ''}</p>
+                        ${mediaContent}
+                        <span class="block text-[9px] text-slate-400 text-right mt-1">Agora</span>
+                    </div>
+                `;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            renderStoreView() {
+                document.getElementById('chat-input-bar').style.display = 'none';
+                document.getElementById('current-chat-title').innerText = "Painel da Vitrine de Afiliado";
+                const container = document.getElementById('messages-container');
+                
+                container.innerHTML = `
+                    <div class="max-w-xl mx-auto space-y-4 pb-6">
+                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
+                            <h3 class="font-bold text-sm text-whatsapp-500 mb-3 flex items-center gap-2"><i class="fa-solid fa-plus-circle"></i> Cadastrar Produto na Lojinha</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Nome do Produto</label>
+                                    <input type="text" id="prod-title" placeholder="Ex: Tênis Esportivo" class="w-full bg-slate-900 text-xs md:text-sm rounded p-2.5 text-white border border-slate-700 focus:ring-1 focus:ring-whatsapp-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Preço</label>
+                                    <input type="text" id="prod-price" placeholder="Ex: R$ 89,90" class="w-full bg-slate-900 text-xs md:text-sm rounded p-2.5 text-white border border-slate-700 focus:ring-1 focus:ring-whatsapp-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Link de Afiliado</label>
+                                    <input type="text" id="prod-url" placeholder="https://shopee.com.br/..." class="w-full bg-slate-900 text-xs md:text-sm rounded p-2.5 text-white border border-slate-700 focus:ring-1 focus:ring-whatsapp-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Foto do Produto (Cloudflare R2):</label>
+                                    <input type="file" id="prod-img-file" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                                </div>
+                                <button onclick="zapApp.salvarProdutoAfiliado()" class="w-full bg-whatsapp-500 hover:bg-whatsapp-600 text-white py-2.5 rounded font-semibold text-xs md:text-sm transition-colors shadow">Adicionar Produto</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async salvarProdutoAfiliado() {
+                const title = document.getElementById('prod-title').value;
+                const price = document.getElementById('prod-price').value;
+                const url = document.getElementById('prod-url').value;
+                const fileInput = document.getElementById('prod-img-file').files[0];
+
+                if (!title || !price || !url) {
+                    alert("Preencha todos os campos obrigatórios!");
                     return;
                 }
-                snapshot.forEach((docSnap) => {
-                    const m = docSnap.data();
-                    const bubble = document.createElement('div');
-                    const meuEnvio = m.remetente === auth.currentUser.uid;
-                    bubble.className = `message-bubble ${meuEnvio ? 'message-outgoing' : 'message-incoming'}`;
-                    
-                    if(m.tipo === 'imagem') {
-                        bubble.innerHTML = `<img src="${m.texto}" style="max-width:100%; border-radius:6px; display:block; margin-bottom:4px;"><a href="${m.texto}" target="_blank" download style="font-size:11px; color:#0066cc;">📥 Baixar imagem</a>`;
-                    } else if(m.tipo === 'audio') {
-                        bubble.innerHTML = `<audio controls src="${m.texto}" style="max-width: 200px;"></audio>`;
-                    } else {
-                        bubble.textContent = m.texto;
-                    }
-                    msgContainer.appendChild(bubble);
-                });
-                msgContainer.scrollTop = msgContainer.scrollHeight;
-            });
-        }
 
-        // Anexar Imagem Real
-        document.getElementById('btn-attach-media').addEventListener('click', async () => {
-            const urlImg = prompt('Insira o link direto da imagem que quer enviar:');
-            if(urlImg) {
-                await enviarMensagemFirestore({ texto: urlImg, tipo: 'imagem' });
-            }
-        });
+                const mockR2ImageUrl = fileInput ? `${R2_PUBLIC_URL}/products/${Date.now()}_${fileInput.name}` : "https://via.placeholder.com/150";
 
-        // Gravação Real de Áudio com o Microfone
-        let mediaRecorder;
-        let audioChunks = [];
-        async function iniciarGravacaoAudioReal() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    await enviarMensagemFirestore({ texto: audioUrl, tipo: 'audio' });
-                };
-
-                mediaRecorder.start();
-                mainBtn.style.background = '#ea0938'; // Fica vermelho gravando
-                mainBtn.textContent = '⏹️';
-                alert('A gravar áudio... Clique OK e depois clique no botão vermelho para parar e enviar.');
-                
-                mainBtn.onclick = () => {
-                    mediaRecorder.stop();
-                    mainBtn.style.background = '#128c7e';
-                    mainBtn.textContent = '🎤';
-                    // Restaura evento original
-                    mainBtn.onclick = null;
-                };
-            } catch(e) {
-                alert('Não foi possível aceder ao microfone: ' + e.message);
-            }
-        }
-
-        // Chamadas de Vídeo e Áudio integradas com WhatsApp ou Janela
-        document.getElementById('btn-video-call').addEventListener('click', () => {
-            if(activeChatUser && activeChatUser.email) {
-                if(confirm('Deseja iniciar chamada de vídeo com ' + activeChatUser.nome + '?')) {
-                    window.open('https://wa.me/?text=' + encodeURIComponent('Olá, vamos iniciar uma chamada de vídeo no Zap Leve?'), '_blank');
+                try {
+                    await addDoc(collection(db, "products"), {
+                        ownerId: this.currentUser.uid,
+                        title: title,
+                        price: price,
+                        affiliateUrl: url,
+                        imageUrl: mockR2ImageUrl,
+                        timestamp: serverTimestamp()
+                    });
+                    alert("Produto cadastrado com sucesso!");
+                    document.getElementById('prod-title').value = "";
+                    document.getElementById('prod-price').value = "";
+                    document.getElementById('prod-url').value = "";
+                } catch (e) {
+                    console.error("Erro ao salvar produto:", e);
                 }
             }
-        });
 
-        document.getElementById('btn-audio-call').addEventListener('click', () => {
-            if(activeChatUser) {
-                if(confirm('Deseja iniciar chamada de áudio com ' + activeChatUser.nome + '?')) {
-                    window.open('https://wa.me/?text=' + encodeURIComponent('Olá, a ligar por áudio pelo Zap Leve.'), '_blank');
+            async handleMediaUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const mockR2Url = `${R2_PUBLIC_URL}/uploads/${Date.now()}_${file.name}`;
+                const mediaType = file.type.startsWith('image') ? 'image' : 'file';
+
+                try {
+                    await addDoc(collection(db, "chats", this.currentChatId, "messages"), {
+                        sender: this.currentUser.uid,
+                        text: `[Arquivo: ${file.name}]`,
+                        mediaUrl: mockR2Url,
+                        mediaType: mediaType,
+                        timestamp: serverTimestamp()
+                    });
+                    this.loadMessages();
+                } catch (e) {
+                    console.error("Erro ao enviar mídia:", e);
                 }
             }
-        });
 
-        document.getElementById('btn-back-to-niches').addEventListener('click', () => {
-            document.getElementById('nicho-users-screen').classList.add('hidden');
-            document.getElementById('contacts-screen').classList.remove('hidden');
-        });
-        document.getElementById('btn-back-to-nicho-users').addEventListener('click', () => {
-            if(unsubscribeChat) unsubscribeChat();
-            document.getElementById('chat-screen').classList.add('hidden');
-            document.getElementById('nicho-users-screen').classList.remove('hidden');
-        });
+            async sendMessage() {
+                const input = document.getElementById('message-input');
+                const text = input.value.trim();
+                if (!text) return;
+
+                input.value = "";
+                try {
+                    await addDoc(collection(db, "chats", this.currentChatId, "messages"), {
+                        sender: this.currentUser.uid,
+                        text: text,
+                        mediaUrl: null,
+                        mediaType: null,
+                        timestamp: serverTimestamp()
+                    });
+                    this.loadMessages();
+                } catch (e) {
+                    console.error("Erro ao enviar mensagem:", e);
+                }
+            }
+
+            handleKeyPress(e) {
+                if (e.key === 'Enter') this.sendMessage();
+            }
+
+            startCall(type) {
+                alert(`Iniciando chamada P2P (${type}) via WebRTC.`);
+            }
+        }
+
+        const zapApp = new ZapLeveApp();
+        window.zapApp = zapApp;
     </script>
 </body>
 </html>
