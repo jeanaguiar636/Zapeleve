@@ -1,390 +1,3071 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zap Leve - Chat & Vitrine de Afiliados P2P</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        whatsapp: { 500: '#25D366', 600: '#1ebe5d', dark: '#0b141a', panel: '#111b21', chat: '#202c33' }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome para Ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Viralize — Rede Social de Afiliados</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff5c35">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --accent:#ff5c35; --accent2:#ffb347;
+    --text:#f2f2f2; --muted:#9aa0ab; --border:#262a33;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+  header{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:10;}
+  header h1{font-size:20px;margin:0;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #userBox{font-size:13px;color:var(--muted);}
+  main{max-width:520px;margin:0 auto;padding:12px;padding-bottom:90px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;}
+  .card .top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;}
+  .autor{font-weight:600;font-size:14px;}
+  .badge{font-size:10px;padding:2px 8px;border-radius:20px;background:#262a33;color:var(--muted);margin-left:auto;}
+  .conteudo{font-size:14px;line-height:1.4;margin-bottom:10px;white-space:pre-wrap;}
+  .embed-wrap{border-radius:10px;overflow:hidden;background:#000;margin-bottom:10px;}
+  .embed-wrap iframe{width:100%;aspect-ratio:9/16;border:0;display:block;}
+  .embed-wrap.wide iframe{aspect-ratio:16/9;}
+  .produto-card{display:flex;gap:10px;background:#1e222b;border-radius:10px;padding:10px;margin-bottom:10px;}
+  @keyframes brilhoFogo{0%,100%{box-shadow:0 0 8px 2px rgba(255,92,53,.55),0 0 18px 4px rgba(255,179,71,.35);}50%{box-shadow:0 0 14px 4px rgba(255,92,53,.85),0 0 26px 8px rgba(255,179,71,.5);}}
+  .produto-campeao{border:2px solid var(--accent);animation:brilhoFogo 2s ease-in-out infinite;}
+  .campeao-selo{display:inline-block;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;margin-bottom:4px;}
+  .produto-card img{width:70px;height:70px;border-radius:8px;object-fit:cover;background:#333;}
+  .produto-info{flex:1;}
+  .produto-info .preco{color:var(--accent2);font-weight:700;font-size:16px;}
+  .link-generico{display:block;background:#1e222b;border-radius:10px;padding:12px;color:var(--accent2);text-decoration:none;font-size:13px;margin-bottom:10px;word-break:break-all;}
+  .acoes{display:flex;gap:16px;font-size:13px;color:var(--muted);align-items:center;}
+  .acoes button{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:6px 4px;}
+  .acoes button.ativo{color:var(--accent);}
+  .fab{position:fixed;bottom:calc(74px + env(safe-area-inset-bottom, 0px));right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;font-size:26px;color:#fff;box-shadow:0 6px 20px rgba(255,92,53,.4);cursor:pointer;z-index:20;}
+  #fabInstalar{position:fixed;bottom:calc(74px + env(safe-area-inset-bottom, 0px));left:20px;z-index:20;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:30px;padding:12px 16px;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer;}
+  #fabChatGeral{position:fixed;bottom:calc(140px + env(safe-area-inset-bottom, 0px));right:20px;width:50px;height:50px;border-radius:50%;background:var(--card);border:1px solid var(--border);color:var(--accent2);font-size:22px;box-shadow:0 6px 16px rgba(0,0,0,.4);cursor:pointer;z-index:20;display:none;align-items:center;justify-content:center;}
+  #fabChatGeral .badge-chat{position:absolute;top:-2px;right:-2px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:14px;}
+  #fabCTA{position:fixed;bottom:calc(140px + env(safe-area-inset-bottom, 0px));left:20px;z-index:20;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:30px;padding:12px 16px;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(255,92,53,.4);cursor:pointer;max-width:220px;text-align:left;}
+  #fabInstalar.mostrar{display:flex;}
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:20;min-height:58px;padding-bottom:env(safe-area-inset-bottom, 0px);}
+  nav.tabs button{flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:11px;cursor:pointer;}
+  nav.tabs button.ativo{color:var(--accent);}
+
+  #viralView{position:fixed;top:0;left:0;right:0;bottom:0;z-index:5;background:#000;}
+  .viral-scroll{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
+  .viral-slide{height:100%;width:100%;scroll-snap-align:start;position:relative;overflow:hidden;background:#000;}
+  .viral-slide .fundo-blur{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(28px) brightness(.55);transform:scale(1.15);}
+  .viral-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;}
+  .viral-info{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:20px 16px 110px;color:#fff;width:100%;background:linear-gradient(transparent,rgba(0,0,0,.75) 60%);}
+  .viral-selo{display:inline-block;background:var(--accent);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+  .viral-nome{font-size:18px;font-weight:800;line-height:1.3;margin-bottom:6px;text-shadow:0 2px 6px rgba(0,0,0,.6);}
+  .viral-preco{font-size:22px;font-weight:800;color:var(--accent2);margin-bottom:14px;text-shadow:0 2px 6px rgba(0,0,0,.6);}
+  .viral-btn{display:inline-block;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;text-decoration:none;font-weight:700;padding:12px 16px;border-radius:24px;font-size:13px;flex:1;text-align:center;border:none;cursor:pointer;white-space:nowrap;}
+  .viral-fechar{position:fixed;top:16px;right:16px;z-index:6;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;}
+  .viral-ponto-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:700;font-size:13px;padding:8px 18px;border-radius:20px;z-index:9;box-shadow:0 4px 14px rgba(0,0,0,.4);opacity:0;transition:opacity .3s;pointer-events:none;}
+  .viral-ponto-toast.mostrar{opacity:1;}
+  #modalPost,#modalLogin,#modalCompartilhar,#modalMenu,#modalPagina,#modalPerfil,#modalNotificacoes,#modalAssinatura,#modalGaleria,#modalPainel,#modalEditarProduto,#modalImportar{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:30;}
+  #modalPost .box,#modalLogin .box,#modalCompartilhar .box,#modalMenu .box,#modalPagina .box,#modalPerfil .box,#modalNotificacoes .box,#modalAssinatura .box,#modalGaleria .box,#modalPainel .box,#modalEditarProduto .box,#modalImportar .box{background:var(--card);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:18px;max-height:85vh;overflow:auto;}
+  #modalLogin .box{border-radius:16px;margin:auto;}
+  label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px;}
+  input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0f1115;color:var(--text);font-size:14px;}
+  textarea{resize:vertical;min-height:60px;}
+  .tipos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .tipos button{flex:none;padding:8px 12px;border-radius:20px;border:1px solid var(--border);background:#0f1115;color:var(--muted);font-size:12px;cursor:pointer;}
+  .tipos button.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-principal{width:100%;margin-top:16px;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:700;font-size:15px;cursor:pointer;}
+  .fechar{float:right;color:var(--muted);background:none;border:none;font-size:18px;cursor:pointer;}
+  #ranking{padding:12px 0;}
+  .rank-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border-radius:10px;margin-bottom:8px;border:1px solid var(--border);}
+  .rank-pos{font-weight:800;color:var(--accent2);width:22px;}
+  .oculto{display:none!important;}
+  .vazio{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;}
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-[100dvh] flex flex-col overflow-hidden font-sans">
+<body>
 
-    <!-- Container Principal do App -->
-    <div id="app" class="flex flex-col md:flex-row h-full w-full max-w-7xl mx-auto shadow-2xl overflow-hidden bg-whatsapp-dark border border-slate-800 relative">
-        
-        <!-- Sidebar (Ocultável em mobile quando visualizando chat ou ajustada) -->
-        <aside id="sidebar-panel" class="w-full md:w-80 lg:w-96 bg-whatsapp-panel border-r border-slate-800 flex flex-col h-full z-20 flex-shrink-0">
-            <!-- Header do Usuário -->
-            <div class="p-3 md:p-4 bg-slate-900 flex items-center justify-between border-b border-slate-800">
-                <div class="flex items-center space-x-3 overflow-hidden">
-                    <div id="user-avatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-whatsapp-500 flex items-center justify-center font-bold text-white shrink-0">ZL</div>
-                    <div class="truncate">
-                        <h2 id="user-name" class="font-semibold text-xs md:text-sm truncate">Carregando...</h2>
-                        <span class="text-[10px] md:text-xs text-whatsapp-500 flex items-center gap-1"><i class="fa-solid fa-circle text-[6px]"></i> Online (R2 Ativo)</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2 md:space-x-3 text-slate-400 shrink-0">
-                    <button onclick="zapApp.switchTab('chats')" title="Conversas" class="p-1.5 hover:text-white"><i class="fa-solid fa-comments text-base"></i></button>
-                    <button onclick="zapApp.switchTab('vitrine')" title="Vitrine / Lojinha" class="p-1.5 hover:text-white"><i class="fa-solid fa-store text-base"></i></button>
-                    <button onclick="zapApp.openSettings()" title="Configurações" class="p-1.5 hover:text-white"><i class="fa-solid fa-gear text-base"></i></button>
-                </div>
-            </div>
+<header>
+  <button onclick="abrirModalMenu()" style="background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;">☰</button>
+  <h1>🔥 Viralize</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button onclick="abrirModalNotificacoes()" style="position:relative;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px;">
+      🔔<span id="badgeNotificacoes" class="oculto" style="position:absolute;top:0;right:0;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:14px;"></span>
+    </button>
+    <div id="userBox">carregando...</div>
+  </div>
+</header>
 
-            <!-- Pesquisa -->
-            <div class="p-3 bg-whatsapp-panel/50">
-                <div class="relative">
-                    <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500 text-xs"></i>
-                    <input type="text" placeholder="Pesquisar conversas ou produtos..." class="w-full bg-slate-800 text-xs md:text-sm rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:ring-1 focus:ring-whatsapp-500 text-slate-200">
-                </div>
-            </div>
+<main>
+  <div id="feedView"></div>
+  <div id="rankingView" class="oculto"><div id="ranking"></div></div>
+  <div id="catalogoView" class="oculto">
+    <div class="card" style="margin-top:12px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">🔗 Sua loja pública (sem precisar de login pra quem visitar)</div>
+      <button onclick="copiarLinkLoja()" style="width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;padding:12px 0;font-weight:700;font-size:14px;">📋 Copiar link da minha loja</button>
+      <p style="font-size:11px;color:var(--muted);margin:8px 0 0;">Cole esse link na bio do seu TikTok/Instagram/Shopee.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">📥 Cadastrar vários produtos de uma vez <span style="background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:4px;">⭐ Pro</span></div>
+      <button onclick="abrirModalImportar()" style="width:100%;background:#1e222b;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 0;font-weight:700;font-size:14px;">📥 Importar planilha de produtos</button>
+      <p style="font-size:11px;color:var(--muted);margin:8px 0 0;">Suba um Excel (.xlsx) ou .csv e todos os produtos entram no catálogo de uma vez.</p>
+    </div>
+    <div id="catalogoLista"></div>
+  </div>
+  <div id="viralView" class="oculto">
+    <button class="viral-fechar" onclick="fecharViral()">✕</button>
+    <div id="viralPontoToast" class="viral-ponto-toast">+1 ponto! 🔥</div>
+    <div class="viral-scroll" id="viralScroll"></div>
+  </div>
+  <div id="adminView" class="oculto">
+    <h3 style="margin-top:16px;">⚙️ Painel do Administrador</h3>
+    <div id="adminStats" style="display:flex;gap:8px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button onclick="mudarSubAbaAdmin('aprovacoes')" id="subTabAprovacoes" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:var(--accent);color:#fff;">Aprovações</button>
+      <button onclick="mudarSubAbaAdmin('posts')" id="subTabPosts" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Posts</button>
+      <button onclick="mudarSubAbaAdmin('usuarios')" id="subTabUsuarios" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Usuários</button>
+      <button onclick="mudarSubAbaAdmin('paginas')" id="subTabPaginas" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Páginas</button>
+      <button onclick="mudarSubAbaAdmin('cores')" id="subTabCores" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Cores</button>
+      <button onclick="mudarSubAbaAdmin('catalogos')" id="subTabCatalogos" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Catálogos</button>
+      <button onclick="mudarSubAbaAdmin('assinaturas')" id="subTabAssinaturas" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Assinaturas</button>
+      <button onclick="mudarSubAbaAdmin('galeria')" id="subTabGaleria" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Galeria</button>
+      <button onclick="mudarSubAbaAdmin('chat')" id="subTabChat" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Chat</button>
+      <button onclick="mudarSubAbaAdmin('ajustes')" id="subTabAjustes" style="border-radius:20px;padding:8px 14px;border:1px solid var(--border);background:#1e222b;color:var(--muted);">Ajustes</button>
+    </div>
+    <div id="adminAprovacoes"></div>
+    <div id="adminPosts" class="oculto"></div>
+    <div id="adminUsuarios" class="oculto"></div>
+    <div id="adminPaginas" class="oculto">
+      <div class="card">
+        <label>Título da página</label>
+        <input type="text" id="novaPaginaTitulo" placeholder="Ex: Termos de Uso, Sobre nós...">
+        <label>Conteúdo</label>
+        <textarea id="novaPaginaConteudo" style="min-height:120px;" placeholder="Escreva o conteúdo completo da página..."></textarea>
+        <button class="btn-principal" onclick="criarPaginaAdmin()">Criar página 📄</button>
+      </div>
+      <div id="adminListaPaginas"></div>
+    </div>
+    <div id="adminCores" class="oculto">
+      <div class="card">
+        <h3 style="margin-top:0;">🎨 Paleta de cores do app</h3>
+        <p style="font-size:12px;color:var(--muted);">Mude e veja o resultado na hora. Clique em "Salvar" pra valer pra todo mundo.</p>
+        <div id="camposCores"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn-principal" style="margin-top:0;" onclick="salvarCoresAdmin()">💾 Salvar cores</button>
+          <button onclick="restaurarCoresPadrao()" style="background:#1e222b;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:0 16px;">Restaurar padrão</button>
+        </div>
+      </div>
+    </div>
+    <div id="adminCatalogos" class="oculto"><div id="listaCatalogosAdmin"></div></div>
+    <div id="adminAssinaturas" class="oculto">
+      <div class="card">
+        <h3 style="margin-top:0;">💳 Configuração da assinatura mensal</h3>
+        <label>Chave Pix</label>
+        <input type="text" id="configChavePix" placeholder="CPF, e-mail, telefone ou chave aleatória">
+        <label>Preço mensal (R$)</label>
+        <input type="text" id="configPrecoAssinatura" placeholder="Ex: 15">
+        <button class="btn-principal" onclick="salvarConfigAssinatura()">💾 Salvar configuração</button>
+      </div>
+      <h3>📋 Solicitações pendentes</h3>
+      <div id="listaAssinaturasPendentes"></div>
+      <h3>⭐ Assinantes ativos</h3>
+      <div id="listaAssinantesAtivos"></div>
+    </div>
+    <div id="adminGaleria" class="oculto">
+      <div class="card">
+        <h3 style="margin-top:0;">🖼️ Galeria de capas</h3>
+        <p style="font-size:12px;color:var(--muted);">Imagens que os afiliados assinantes podem escolher como capa da loja, com um clique.</p>
+        <input type="file" id="inputGaleriaCapa" accept="image/*">
+        <div id="statusUploadGaleria" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+        <button class="btn-principal" onclick="enviarImagemGaleria()">📤 Enviar pra galeria</button>
+      </div>
+      <div id="listaGaleriaAdmin" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;"></div>
+    </div>
+    <div id="adminChat" class="oculto"><div id="listaConversasAdmin"></div></div>
+    <div id="adminAjustes" class="oculto">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">💬 Chat da Comunidade</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">Se desativado, a bolinha de chat some pra todo mundo.</div>
+          </div>
+          <button id="btnToggleChatGeral" onclick="alternarChatGeralAdmin()" style="border:none;border-radius:20px;padding:8px 16px;font-size:12px;font-weight:700;white-space:nowrap;">...</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">💳 Pagamentos / Assinaturas</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">Se desativado, ninguém consegue abrir a tela de assinar o Pro.</div>
+          </div>
+          <button id="btnTogglePagamento" onclick="alternarPagamentoAdmin()" style="border:none;border-radius:20px;padding:8px 16px;font-size:12px;font-weight:700;white-space:nowrap;">...</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;">📣 Botão flutuante (chamada pra ação)</div>
+          <button id="btnToggleCTA" onclick="alternarCTAAdmin()" style="border:none;border-radius:20px;padding:8px 16px;font-size:12px;font-weight:700;white-space:nowrap;">...</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Aparece flutuando na tela pra todo mundo, ao lado do botão de instalar.</div>
+        <label>Texto do botão</label>
+        <input type="text" id="inputCTATexto" maxlength="40" placeholder="Ex: Promoção especial!">
+        <label>Link (pra onde vai ao tocar)</label>
+        <input type="text" id="inputCTALink" placeholder="https://...">
+        <button class="btn-principal" onclick="salvarCTAAdmin()">💾 Salvar chamada pra ação</button>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">👑 Produto Campeão</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Esse produto ganha um brilho laranja de destaque no Feed e na aba Viral.</div>
+        <div id="produtoCampeaoAtual" style="margin-bottom:12px;"></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Escolha um novo campeão na lista:</div>
+        <div id="listaEscolherCampeao"></div>
+      </div>
+    </div>
+  </div>
+</main>
 
-            <!-- Lista Dinâmica (Conversas ou Lojinha/Vitrine) -->
-            <div id="sidebar-content" class="flex-1 overflow-y-auto divide-y divide-slate-800/50">
-                <!-- Injetado dinamicamente via JS -->
-            </div>
-        </aside>
+<button class="fab" onclick="abrirModalPost()">+</button>
+<button id="fabInstalar" onclick="clicouInstalar()">📲 <span id="textoFabInstalar">Baixar o Viralize</span></button>
+<button id="fabChatGeral" onclick="abrirChatGeral()">
+  💬<span id="badgeChatGeral" class="badge-chat oculto"></span>
+</button>
+<button id="fabCTA" onclick="clicouBotaoCTA()">📣 <span id="textoFabCTA"></span></button>
 
-        <!-- Área Central (Chat ou Gestão de Lojinha) -->
-        <main class="flex-1 flex flex-col h-full bg-slate-900 relative overflow-hidden">
-            
-            <!-- Header do Chat -->
-            <div id="chat-header" class="p-3 md:p-4 bg-whatsapp-panel border-b border-slate-800 flex items-center justify-between shadow-sm shrink-0">
-                <div class="flex items-center space-x-3 overflow-hidden">
-                    <button onclick="zapApp.toggleMobileSidebar()" class="md:hidden text-slate-300 hover:text-white mr-1 text-lg"><i class="fa-solid fa-bars"></i></button>
-                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-slate-300 shrink-0">#</div>
-                    <div class="truncate">
-                        <h3 id="current-chat-title" class="font-semibold text-xs md:text-sm truncate">Selecione uma conversa ou lojinha</h3>
-                        <span id="current-chat-status" class="text-[10px] md:text-xs text-slate-400 truncate block">P2P e Cloudflare R2 Prontos</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3 text-slate-300 shrink-0">
-                    <button onclick="zapApp.startCall('video')" title="Vídeo Chamada P2P" class="p-1 hover:text-whatsapp-500"><i class="fa-solid fa-video"></i></button>
-                    <button onclick="zapApp.startCall('audio')" title="Chamada de Voz P2P" class="p-1 hover:text-whatsapp-500"><i class="fa-solid fa-phone"></i></button>
-                </div>
-            </div>
+<nav class="tabs">
+  <button id="tabFeed" class="ativo" onclick="mudarAba('feed')">📱<br>Feed</button>
+  <button id="tabRanking" onclick="mudarAba('ranking')">🏆<br>Ranking</button>
+  <button id="tabCatalogo" onclick="mudarAba('catalogo')">🛍️<br>Catálogo</button>
+  <button id="tabViral" onclick="mudarAba('viral')">🔥<br>Viral</button>
+  <button id="tabAdmin" class="oculto" onclick="mudarAba('admin')">⚙️<br>Admin</button>
+</nav>
 
-            <!-- Container Principal de Conteúdo (Mensagens ou Vitrine de Afiliado) -->
-            <div id="messages-container" class="flex-1 overflow-y-auto p-3 md:p-4 space-y-4 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] bg-slate-950/60">
-                <div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-2 text-center p-4">
-                    <i class="fa-solid fa-bolt text-4xl text-whatsapp-500"></i>
-                    <p class="text-xs md:text-sm">Bem-vindo ao Zap Leve. Selecione uma opção na barra lateral ou menu.</p>
-                </div>
-            </div>
-
-            <!-- Barra de Envio (Chat) -->
-            <div id="chat-input-bar" class="p-2 md:p-3 bg-whatsapp-panel border-t border-slate-800 flex items-center space-x-2 shrink-0">
-                <label class="cursor-pointer text-slate-400 hover:text-whatsapp-500 p-2 shrink-0" title="Enviar Mídia (Salva no R2)">
-                    <i class="fa-solid fa-paperclip text-base md:text-lg"></i>
-                    <input type="file" id="media-input" class="hidden" onchange="zapApp.handleMediaUpload(event)">
-                </label>
-                <input type="text" id="message-input" placeholder="Digite uma mensagem..." class="flex-1 bg-slate-800 text-xs md:text-sm rounded-lg px-3 md:px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-whatsapp-500 text-slate-200" onkeypress="zapApp.handleKeyPress(event)">
-                <button onclick="zapApp.sendMessage()" class="bg-whatsapp-500 hover:bg-whatsapp-600 text-white px-3 md:px-4 py-2.5 rounded-lg font-medium transition-colors shrink-0">
-                    <i class="fa-solid fa-paper-plane text-sm"></i>
-                </button>
-            </div>
-        </main>
+<!-- Modal novo post -->
+<div id="modalPost">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalPost()">✕</button>
+    <h3 style="margin-top:0;">Criar publicação</h3>
+    <label>Tipo de conteúdo</label>
+    <div class="tipos" id="tiposBtns">
+      <button data-t="texto" class="sel">📝 Texto</button>
+      <button data-t="video_youtube">▶️ YouTube</button>
+      <button data-t="video_tiktok">🎵 TikTok</button>
+      <button data-t="video_facebook">📘 Facebook</button>
+      <button data-t="video_shopee">🛒 Shopee (vídeo)</button>
+      <button data-t="produto">🏷️ Produto/Afiliado</button>
+      <button data-t="midia_propria">🎬 Vídeo/Áudio/Foto próprio</button>
     </div>
 
-    <!-- Firebase SDKs e Lógica do App -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <div id="campoLink" class="oculto">
+      <label>Link do vídeo</label>
+      <input type="text" id="inputLink" placeholder="Cole aqui o link">
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
-            authDomain: "zapleve.firebaseapp.com",
-            projectId: "zapleve",
-            storageBucket: "zapleve.firebasestorage.app",
-            messagingSenderId: "426242600158",
-            appId: "1:426242600158:web:9bf280a9379bccc6fc264f"
-        };
+    <div id="campoMidia" class="oculto">
+      <label>Selecione o arquivo (vídeo, áudio ou imagem)</label>
+      <input type="file" id="inputArquivo" accept="video/*,audio/*,image/*">
+      <div id="statusUpload" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
+    </div>
 
-        const appFB = initializeApp(firebaseConfig);
-        const auth = getAuth(appFB);
-        const db = getFirestore(appFB);
+    <div id="campoProduto" class="oculto">
+      <label>Plataforma</label>
+      <select id="prodPlataforma">
+        <option value="Shopee">🛒 Shopee</option>
+        <option value="Amazon">📦 Amazon</option>
+        <option value="Mercado Livre">🟡 Mercado Livre</option>
+        <option value="Shein">👗 Shein</option>
+        <option value="Dridália Modas">👚 Dridália Modas</option>
+        <option value="Outro">🔗 Outro</option>
+      </select>
+      <label>Nome do produto</label>
+      <input type="text" id="prodNome" placeholder="Ex: Fone Bluetooth X10">
+      <label>Preço (R$)</label>
+      <input type="text" id="prodPreco" placeholder="Ex: 79,90">
+      <label>Imagem do produto (URL)</label>
+      <input type="text" id="prodImg" placeholder="https://...">
 
-        const R2_PUBLIC_URL = "https://cdn.alibr.com.br";
+      <div id="blocoImagensExtras" class="oculto">
+        <label>Imagem 2 (opcional)</label>
+        <input type="text" id="prodImg2" placeholder="https://...">
+        <label>Imagem 3 (opcional)</label>
+        <input type="text" id="prodImg3" placeholder="https://...">
+        <label>Imagem 4 (opcional)</label>
+        <input type="text" id="prodImg4" placeholder="https://...">
+      </div>
+      <div id="upsellImagensExtras" class="oculto" style="background:#241a10;border:1px solid #4a3520;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:var(--accent2);">
+        ⭐ Assine o Viralize Pro pra colocar até 4 fotos no mesmo produto, com efeito de arrastar (igual TikTok/Instagram).
+      </div>
 
-        class ZapLeveApp {
-            constructor() {
-                this.currentUser = null;
-                this.currentChatId = "geral";
-                this.currentView = "chats";
-                this.mobileSidebarOpen = true;
-                this.initAuth();
-            }
+      <label>Link de afiliado</label>
+      <input type="text" id="prodLink" placeholder="https://shopee.com.br/... ou outro">
+      <a href="https://www.dridalia.com.br/afiliados" target="_blank" rel="noopener" style="display:block;text-align:center;background:#1e222b;border:1px solid var(--border);color:var(--accent2);text-decoration:none;font-size:13px;font-weight:700;padding:12px;border-radius:10px;margin-top:10px;">👚 Ainda não é afiliado? Afilie-se à Dridália Modas</a>
+    </div>
 
-            initAuth() {
-                signInAnonymously(auth).catch(error => console.error("Erro auth:", error));
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        this.currentUser = user;
-                        document.getElementById('user-name').innerText = `User_${user.uid.substring(0, 5)}`;
-                        document.getElementById('user-avatar').innerText = user.uid.substring(0, 2).toUpperCase();
-                        this.loadSidebar();
-                        this.loadMessages();
-                    }
-                });
-            }
+    <label>Descrição / legenda</label>
+    <textarea id="inputTexto" placeholder="Escreva algo sobre essa publicação..."></textarea>
 
-            toggleMobileSidebar() {
-                const sidebar = document.getElementById('sidebar-panel');
-                if (window.innerWidth < 768) {
-                    sidebar.classList.toggle('hidden');
-                }
-            }
+    <button class="btn-principal" onclick="publicar()">Publicar 🚀</button>
+  </div>
+</div>
 
-            switchTab(tab) {
-                this.currentView = tab;
-                if (tab === 'vitrine') {
-                    this.renderStoreView();
-                } else {
-                    this.loadMessages();
-                }
-                if (window.innerWidth < 768) {
-                    document.getElementById('sidebar-panel').classList.add('hidden');
-                }
-            }
+<!-- Tela de espera / recusado -->
+<div id="telaEspera" style="position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;z-index:40;">
+  <div style="font-size:48px;margin-bottom:16px;" id="iconeEspera">⏳</div>
+  <h2 id="tituloEspera" style="margin:0 0 8px;">Sua conta está em análise</h2>
+  <p id="textoEspera" style="color:var(--muted);font-size:14px;max-width:320px;">O Viralize é uma comunidade fechada de afiliados. Assim que o administrador aprovar seu cadastro, você poderá usar a plataforma normalmente.</p>
+  <button onclick="auth.signOut()" style="margin-top:20px;background:none;border:1px solid var(--border);color:var(--muted);padding:10px 20px;border-radius:8px;">Sair</button>
+</div>
 
-            openSettings() {
-                const storeName = prompt("Digite o nome da sua Lojinha (Slug amigável, ex: lojadaju):");
-                if (storeName) {
-                    this.saveStoreSlug(storeName);
-                }
-            }
+<!-- Modal compartilhar com link próprio (produto ou vídeo) -->
+<div id="modalCompartilhar">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalCompartilhar()">✕</button>
+    <h3 style="margin-top:0;" id="tituloModalCompartilhar">Compartilhar com meu link</h3>
+    <p style="font-size:13px;color:var(--muted);" id="textoModalCompartilhar">Cole seu link de afiliado. Ele vai aparecer no seu perfil — quem clicar, compra pelo seu link.</p>
+    <div id="previewProdutoCompartilhar" style="margin-bottom:10px;"></div>
+    <label>Seu link de afiliado</label>
+    <input type="text" id="meuLinkAfiliado" placeholder="https://shopee.com.br/... (ou outro)">
+    <button class="btn-principal" onclick="confirmarAcaoCompartilhar()">Compartilhar 🚀</button>
+  </div>
+</div>
 
-            async saveStoreSlug(name) {
-                if (!this.currentUser) return;
-                const slug = name.toLowerCase().replace(/\s+/g, '-');
-                try {
-                    await setDoc(doc(db, "users", this.currentUser.uid), {
-                        storeName: name,
-                        storeSlug: slug
-                    }, { merge: true });
-                    alert(`Lojinha configurada com sucesso! Seu link:\nlocation.origin/?store=${slug}`);
-                } catch (e) {
-                    console.error("Erro ao salvar lojinha:", e);
-                }
-            }
+<!-- Modal Aviso (substitui o aviso() feio do navegador) -->
+<div id="modalAviso" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;">
+  <div style="background:#ffffff;color:#1a1a1a;border-radius:18px;padding:26px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;">
+    <div id="iconeAviso" style="font-size:38px;margin-bottom:10px;">🔥</div>
+    <p id="textoAviso" style="font-size:15.5px;line-height:1.5;margin:0 0 16px;color:#2b2b2b;font-weight:500;white-space:pre-wrap;word-break:break-word;"></p>
+    <button id="btnAvisoAcao" class="oculto" style="background:#1a1a1a;color:#fff;border:none;border-radius:12px;padding:12px 0;width:100%;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;"></button>
+    <button onclick="fecharAviso()" style="background:linear-gradient(90deg,#ff5c35,#ffb347);color:#fff;border:none;border-radius:12px;padding:12px 0;width:100%;font-size:15px;font-weight:700;cursor:pointer;">OK</button>
+  </div>
+</div>
 
-            loadSidebar() {
-                const sidebar = document.getElementById('sidebar-content');
-                sidebar.innerHTML = `
-                    <div class="p-3 hover:bg-slate-800/50 cursor-pointer flex items-center justify-between" onclick="zapApp.loadMessages(); zapApp.toggleMobileSidebar();">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 rounded-full bg-whatsapp-500/20 text-whatsapp-500 flex items-center justify-center"><i class="fa-solid fa-comments"></i></div>
-                            <div>
-                                <h4 class="text-xs md:text-sm font-semibold">Chat Geral / Suporte</h4>
-                                <p class="text-[10px] text-slate-400">Canal Principal P2P</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-3 hover:bg-slate-800/50 cursor-pointer flex items-center justify-between" onclick="zapApp.switchTab('vitrine')">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-store"></i></div>
-                            <div>
-                                <h4 class="text-xs md:text-sm font-semibold">Minha Vitrine de Afiliado</h4>
-                                <p class="text-[10px] text-slate-400">Gerenciar produtos e links</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+<!-- Modal Meu Painel (métricas do afiliado) -->
+<div id="modalPainel">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalPainel()">✕</button>
+    <h3 style="margin-top:0;">📊 Meu Painel</h3>
+    <div id="conteudoPainel"><div class="vazio">Carregando...</div></div>
+  </div>
+</div>
 
-            async loadMessages() {
-                document.getElementById('chat-input-bar').style.display = 'flex';
-                document.getElementById('current-chat-title').innerText = "Chat Geral & Comunidade";
-                const container = document.getElementById('messages-container');
-                container.innerHTML = `<div class="flex justify-center p-4"><i class="fa-solid fa-spinner animate-spin text-whatsapp-500 text-xl"></i></div>`;
+<!-- Modal Editar Perfil (loja: nome, descrição, foto e capa) -->
+<div id="modalPerfil">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalPerfil()">✕</button>
+    <h3 style="margin-top:0;">🏪 Editar minha loja</h3>
+    <p style="font-size:13px;color:var(--muted);">Isso aparece pra quem visitar sua loja pública.</p>
 
-                try {
-                    const q = query(collection(db, "chats", this.currentChatId, "messages"), orderBy("timestamp", "desc"), limit(25));
-                    const querySnapshot = await getDocs(q);
-                    
-                    container.innerHTML = "";
-                    const messages = [];
-                    querySnapshot.forEach((doc) => messages.unshift(doc.data()));
+    <label>Foto de perfil</label>
+    <input type="file" id="inputFotoPerfil" accept="image/*">
+    <div id="previewFotoPerfil" style="margin-top:8px;"></div>
 
-                    if (messages.length === 0) {
-                        container.innerHTML = `<div class="text-center text-slate-500 py-10 text-xs">Nenhuma mensagem ainda. Envie a primeira!</div>`;
-                        return;
-                    }
+    <div id="blocoProLoja"></div>
+  </div>
+</div>
 
-                    messages.forEach(msg => this.renderMessageElement(msg));
-                } catch (e) {
-                    console.error("Erro ao carregar mensagens:", e);
-                }
-            }
+<!-- Modal Editar Produto (catálogo, só Pro) -->
+<div id="modalEditarProduto">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalEditarProduto()">✕</button>
+    <h3 style="margin-top:0;">✏️ Editar produto</h3>
+    <label>Plataforma</label>
+    <select id="editProdPlataforma">
+      <option value="Shopee">🛒 Shopee</option>
+      <option value="Amazon">📦 Amazon</option>
+      <option value="Mercado Livre">🟡 Mercado Livre</option>
+      <option value="Shein">👗 Shein</option>
+      <option value="Dridália Modas">👚 Dridália Modas</option>
+      <option value="Outro">🔗 Outro</option>
+    </select>
+    <label>Nome do produto</label>
+    <input type="text" id="editProdNome">
+    <label>Preço (R$)</label>
+    <input type="text" id="editProdPreco">
+    <label>Imagem 1</label>
+    <input type="text" id="editProdImg1" placeholder="https://...">
+    <label>Imagem 2 (opcional)</label>
+    <input type="text" id="editProdImg2" placeholder="https://...">
+    <label>Imagem 3 (opcional)</label>
+    <input type="text" id="editProdImg3" placeholder="https://...">
+    <label>Imagem 4 (opcional)</label>
+    <input type="text" id="editProdImg4" placeholder="https://...">
+    <label>Link de afiliado</label>
+    <input type="text" id="editProdLink" placeholder="https://...">
+    <button class="btn-principal" onclick="salvarEdicaoProduto()">💾 Salvar alterações</button>
+  </div>
+</div>
 
-            renderMessageElement(msg) {
-                const container = document.getElementById('messages-container');
-                const isMe = msg.sender === this.currentUser.uid;
-                
-                const div = document.createElement('div');
-                div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+<!-- Modal Importar Planilha (só Pro/admin) -->
+<div id="modalImportar">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalImportar()">✕</button>
+    <h3 style="margin-top:0;">📥 Importar planilha</h3>
+    <p style="font-size:13px;color:var(--muted);">Suba uma planilha (Excel .xlsx ou .csv) e os produtos entram de uma vez no seu catálogo. Até 300 produtos por planilha.</p>
+    <button onclick="baixarModeloPlanilha()" style="width:100%;background:#1e2a3a;color:#7ec6ff;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:13px;">⬇️ Baixar planilha modelo</button>
+    <p style="font-size:11px;color:var(--muted);margin:8px 0 0;">Colunas: <b>nome</b>, preco, plataforma, <b>link</b>, imagem1, imagem2, imagem3, imagem4. Só nome e link são obrigatórios. Produto sem imagem não aparece na aba Viral.</p>
+    <label>Escolha o arquivo da planilha</label>
+    <input type="file" id="inputPlanilha" accept=".xlsx,.xls,.csv">
+    <div id="statusImportacao" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+    <button class="btn-principal" id="btnImportar" onclick="importarPlanilha()">Importar produtos</button>
+    <div id="resultadoImportacao" style="margin-top:12px;"></div>
+  </div>
+</div>
 
-                let mediaContent = '';
-                if (msg.mediaUrl) {
-                    if (msg.mediaType === 'image') {
-                        mediaContent = `
-                            <div class="mt-2">
-                                <img src="${msg.mediaUrl}" loading="lazy" class="rounded-lg max-w-[240px] max-h-48 object-cover cursor-pointer mb-2" onclick="window.open('${msg.mediaUrl}', '_blank')">
-                                <a href="${msg.mediaUrl}" target="_blank" download class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-bold shadow">
-                                    <i class="fa-solid fa-download"></i> Baixar Imagem
-                                </a>
-                            </div>`;
-                    } else {
-                        mediaContent = `
-                            <div class="mt-2">
-                                <a href="${msg.mediaUrl}" target="_blank" download class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-bold shadow">
-                                    <i class="fa-solid fa-file"></i> Baixar Arquivo
-                                </a>
-                            </div>`;
-                    }
-                }
+<!-- Modal seletor da galeria de capas -->
+<div id="modalGaleria">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalGaleria()">✕</button>
+    <h3 style="margin-top:0;">🖼️ Escolher capa da galeria</h3>
+    <div id="listaGaleriaSelecao" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+  </div>
+</div>
 
-                div.innerHTML = `
-                    <div class="max-w-[85%] md:max-w-md rounded-lg p-3 shadow ${isMe ? 'bg-whatsapp-chat text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none'}">
-                        <p class="text-xs md:text-sm break-words">${msg.text || ''}</p>
-                        ${mediaContent}
-                        <span class="block text-[9px] text-slate-400 text-right mt-1">Agora</span>
-                    </div>
-                `;
-                container.appendChild(div);
-                container.scrollTop = container.scrollHeight;
-            }
+<!-- Modal Chat de Suporte (ao vivo) -->
+<div id="modalChatSuporte" style="position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:36;">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);">
+    <h3 style="margin:0;flex:1;font-size:16px;" id="tituloChatSuporte">💬 Chat com o suporte</h3>
+    <button onclick="fecharChatSuporte()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;">✕</button>
+  </div>
+  <div id="listaChatSuporte" style="flex:1;overflow-y:auto;padding:14px 16px;"></div>
+  <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--card);">
+    <input type="text" id="inputChatSuporte" placeholder="Escreva sua mensagem..." style="flex:1;" onkeydown="if(event.key==='Enter') enviarMensagemChatSuporte()">
+    <button onclick="enviarMensagemChatSuporte()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:14px;">Enviar</button>
+  </div>
+</div>
 
-            renderStoreView() {
-                document.getElementById('chat-input-bar').style.display = 'none';
-                document.getElementById('current-chat-title').innerText = "Painel da Vitrine de Afiliado";
-                const container = document.getElementById('messages-container');
-                
-                container.innerHTML = `
-                    <div class="max-w-xl mx-auto space-y-4 pb-6">
-                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
-                            <h3 class="font-bold text-sm text-whatsapp-500 mb-3 flex items-center gap-2"><i class="fa-solid fa-plus-circle"></i> Cadastrar Produto na Lojinha</h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-[11px] text-slate-400 mb-1">Nome do Produto</label>
-                                    <input type="text" id="prod-title" placeholder="Ex: Tênis Esportivo" class="w-full bg-slate-900 text-xs md:text-sm rounded p-2.5 text-white border border-slate-700 focus:ring-1 focus:ring-whatsapp-500 focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] text-slate-400 mb-1">Preço</label>
-                                    <input type="text" id="prod-price" placeholder="Ex: R$ 89,90" class="w-full bg-slate-900 text-xs md:text-sm rounded p-2.5 text-white border border-slate-700 focus:ring-1 focus:ring-whatsapp-500 focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] text-slate-400 mb-1">Link de Afiliado</label>
-                                    <input type="text" id="prod-url" placeholder="https://shopee.com.br/..." class="w-full bg-slate-900 text-xs md:text-sm rounded p-2.5 text-white border border-slate-700 focus:ring-1 focus:ring-whatsapp-500 focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] text-slate-400 mb-1">Foto do Produto (Cloudflare R2):</label>
-                                    <input type="file" id="prod-img-file" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
-                                </div>
-                                <button onclick="zapApp.salvarProdutoAfiliado()" class="w-full bg-whatsapp-500 hover:bg-whatsapp-600 text-white py-2.5 rounded font-semibold text-xs md:text-sm transition-colors shadow">Adicionar Produto</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+<!-- Modal Chat Geral (ao vivo, todo mundo conversa junto) -->
+<div id="modalChatGeral" style="position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:36;">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);">
+    <h3 style="margin:0;flex:1;font-size:16px;">💬 Chat da Comunidade</h3>
+    <button onclick="fecharChatGeral()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;">✕</button>
+  </div>
+  <div id="listaChatGeral" style="flex:1;overflow-y:auto;padding:14px 16px;"></div>
+  <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--card);">
+    <input type="text" id="inputChatGeral" placeholder="Escreva sua mensagem..." style="flex:1;" onkeydown="if(event.key==='Enter') enviarMensagemChatGeral()">
+    <button onclick="enviarMensagemChatGeral()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:14px;">Enviar</button>
+  </div>
+</div>
 
-            async salvarProdutoAfiliado() {
-                const title = document.getElementById('prod-title').value;
-                const price = document.getElementById('prod-price').value;
-                const url = document.getElementById('prod-url').value;
-                const fileInput = document.getElementById('prod-img-file').files[0];
+<!-- Modal Assinatura (Viralize Pro) -->
+<div id="modalAssinatura">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalAssinatura()">✕</button>
+    <h3 style="margin-top:0;">⭐ Viralize Pro</h3>
+    <div id="infoAssinatura"></div>
+    <button class="btn-principal" onclick="confirmarPagamentoAssinatura()">Já paguei ✅</button>
+  </div>
+</div>
 
-                if (!title || !price || !url) {
-                    alert("Preencha todos os campos obrigatórios!");
-                    return;
-                }
+<!-- Modal Notificações -->
+<div id="modalNotificacoes">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalNotificacoes()">✕</button>
+    <h3 style="margin-top:0;">🔔 Notificações</h3>
+    <div id="listaNotificacoes"></div>
+  </div>
+</div>
 
-                const mockR2ImageUrl = fileInput ? `${R2_PUBLIC_URL}/products/${Date.now()}_${fileInput.name}` : "https://via.placeholder.com/150";
+<!-- Modal Menu -->
+<div id="modalMenu">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalMenu()">✕</button>
+    <h3 style="margin-top:0;">Menu</h3>
+    <div id="listaPaginasMenu"></div>
+    <button onclick="fecharModalMenu();abrirModalPainel()" style="width:100%;text-align:left;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;margin-top:8px;">📊 Meu Painel</button>
+    <button onclick="fecharModalMenu();abrirModalPerfil()" style="width:100%;text-align:left;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;margin-top:8px;">🏪 Editar minha loja</button>
+    <button onclick="copiarLinkConvite()" style="width:100%;text-align:left;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;margin-top:8px;">🎁 Convide e ganhe pontos</button>
+    <button onclick="fecharModalMenu();abrirChatSuporte()" style="width:100%;text-align:left;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;margin-top:8px;">💬 Falar com o suporte</button>
+    <button onclick="abrirPagina('privacidade')" style="width:100%;text-align:left;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;margin-top:8px;">🔒 Política de Privacidade</button>
+    <button onclick="sairDaConta()" style="width:100%;text-align:left;background:#2a1616;border:1px solid #4a2020;color:#ff8080;padding:14px;border-radius:10px;margin-top:8px;">🚪 Sair</button>
+  </div>
+</div>
 
-                try {
-                    await addDoc(collection(db, "products"), {
-                        ownerId: this.currentUser.uid,
-                        title: title,
-                        price: price,
-                        affiliateUrl: url,
-                        imageUrl: mockR2ImageUrl,
-                        timestamp: serverTimestamp()
-                    });
-                    alert("Produto cadastrado com sucesso!");
-                    document.getElementById('prod-title').value = "";
-                    document.getElementById('prod-price').value = "";
-                    document.getElementById('prod-url').value = "";
-                } catch (e) {
-                    console.error("Erro ao salvar produto:", e);
-                }
-            }
+<!-- Modal Página (conteúdo estático ou criado pelo admin) -->
+<div id="modalPagina">
+  <div class="box">
+    <button class="fechar" onclick="fecharModalPagina()">✕</button>
+    <h3 id="tituloPagina" style="margin-top:0;"></h3>
+    <div id="conteudoPagina" style="font-size:14px;line-height:1.6;color:var(--text);white-space:pre-wrap;"></div>
+  </div>
+</div>
 
-            async handleMediaUpload(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+<!-- Modal Comentários (formato chat) -->
+<div id="modalComentarios" style="position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:35;">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);">
+    <h3 style="margin:0;flex:1;font-size:16px;">💬 Comentários</h3>
+    <button onclick="fecharModalComentarios()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;">✕</button>
+  </div>
+  <div id="listaComentarios" style="flex:1;overflow-y:auto;padding:14px 16px;"></div>
+  <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--card);">
+    <input type="text" id="inputComentario" placeholder="Escreva um comentário..." style="flex:1;" onkeydown="if(event.key==='Enter') enviarComentario()">
+    <button onclick="enviarComentario()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:14px;">Enviar</button>
+  </div>
+</div>
 
-                const mockR2Url = `${R2_PUBLIC_URL}/uploads/${Date.now()}_${file.name}`;
-                const mediaType = file.type.startsWith('image') ? 'image' : 'file';
+<!-- Modal login -->
+<div id="modalLogin" style="display:flex;">
+  <div class="box">
+    <h3 style="margin-top:0;">Entrar no Viralize</h3>
+    <label>Nome de exibição</label>
+    <input type="text" id="loginNome" placeholder="Como quer ser chamado?">
+    <label>E-mail</label>
+    <input type="email" id="loginEmail" placeholder="seu@email.com">
+    <label>Senha</label>
+    <input type="password" id="loginSenha" placeholder="mínimo 6 caracteres">
+    <button class="btn-principal" onclick="entrarOuCriar()">Entrar / Criar conta</button>
+    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;">
+      Ao continuar, sua conta é criada automaticamente se ainda não existir.
+    </p>
+  </div>
+</div>
 
-                try {
-                    await addDoc(collection(db, "chats", this.currentChatId, "messages"), {
-                        sender: this.currentUser.uid,
-                        text: `[Arquivo: ${file.name}]`,
-                        mediaUrl: mockR2Url,
-                        mediaType: mediaType,
-                        timestamp: serverTimestamp()
-                    });
-                    this.loadMessages();
-                } catch (e) {
-                    console.error("Erro ao enviar mídia:", e);
-                }
-            }
+<script>
+/* ======================= CONFIGURAÇÃO FIREBASE =======================
+   Troque pelos dados do SEU projeto Firebase (Configurações do projeto > Config do app)
+======================================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCbfAv1pw1mO0OiajQZ8_LZUIZ_u2zZIXo",
+  authDomain: "viralize-ef54c.firebaseapp.com",
+  projectId: "viralize-ef54c",
+  storageBucket: "viralize-ef54c.firebasestorage.app",
+  messagingSenderId: "52430116190",
+  appId: "1:52430116190:web:081c1a40c94e21cd79ebcf"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-            async sendMessage() {
-                const input = document.getElementById('message-input');
-                const text = input.value.trim();
-                if (!text) return;
+/* ---------------- DOMÍNIO PERSONALIZADO (loja com domínio próprio do afiliado) ----------------
+   Quando o admin cadastra um domínio (Admin > Usuários > 🌐 Domínio) E esse mesmo domínio
+   é adicionado manualmente no painel da Vercel apontando pra este projeto, quem acessar esse
+   domínio cai aqui no index.html normalmente — e este trecho detecta que não é o domínio
+   principal e manda direto pra loja pública do afiliado dono do domínio. */
+const DOMINIOS_PRINCIPAIS = ['viralize.alibr.com.br', 'localhost', '127.0.0.1'];
+(function verificarDominioPersonalizado(){
+  const host = window.location.hostname;
+  const ehDominioPrincipal = DOMINIOS_PRINCIPAIS.includes(host) || host.endsWith('.vercel.app');
+  if(ehDominioPrincipal) return;
 
-                input.value = "";
-                try {
-                    await addDoc(collection(db, "chats", this.currentChatId, "messages"), {
-                        sender: this.currentUser.uid,
-                        text: text,
-                        mediaUrl: null,
-                        mediaType: null,
-                        timestamp: serverTimestamp()
-                    });
-                    this.loadMessages();
-                } catch (e) {
-                    console.error("Erro ao enviar mensagem:", e);
-                }
-            }
+  db.collection('usuarios').where('dominioPersonalizado','==', host).limit(1).get()
+    .then(snap => {
+      if(!snap.empty){
+        window.location.replace('/loja.html?uid=' + snap.docs[0].id);
+      }
+      // se não achar dono pra esse domínio, deixa o app normal carregar mesmo assim
+    })
+    .catch(() => {});
+})();
 
-            handleKeyPress(e) {
-                if (e.key === 'Enter') this.sendMessage();
-            }
+let usuarioAtual = null;
+let tipoSelecionado = "texto";
+const ADMIN_EMAIL = "jeanaguiar636@gmail.com";
+const uidConvite = new URLSearchParams(window.location.search).get('convite');
+let configRecursos = { chatAtivo: true, pagamentoAtivo: true, ctaAtivo: false, ctaTexto: '', ctaLink: '', produtoCampeaoDono: null, produtoCampeaoId: null };
+carregarCoresSalvas();
 
-            startCall(type) {
-                alert(`Iniciando chamada P2P (${type}) via WebRTC.`);
-            }
+/* ---------------- INSTALAR APP (PWA) ---------------- */
+let promptInstalacaoAdiado = null;
+const rodandoInstalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+}
+
+function atualizarBotaoInstalar(){
+  const btn = document.getElementById('fabInstalar');
+  const texto = document.getElementById('textoFabInstalar');
+  if(rodandoInstalado){
+    btn.classList.remove('mostrar'); // já está usando o app instalado, não faz sentido mostrar o botão
+    return;
+  }
+  if(localStorage.getItem('viralizeInstalado') === '1'){
+    texto.textContent = 'Abrir o Viralize';
+    btn.classList.add('mostrar');
+  } else if(promptInstalacaoAdiado){
+    texto.textContent = 'Baixar o Viralize';
+    btn.classList.add('mostrar');
+  }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  promptInstalacaoAdiado = e;
+  atualizarBotaoInstalar();
+});
+
+window.addEventListener('appinstalled', () => {
+  localStorage.setItem('viralizeInstalado', '1');
+  promptInstalacaoAdiado = null;
+  atualizarBotaoInstalar();
+});
+
+async function clicouInstalar(){
+  if(localStorage.getItem('viralizeInstalado') === '1' && !promptInstalacaoAdiado){
+    aviso('Você já tem o Viralize instalado! 📲\n\nProcure o ícone 🔥 na tela inicial do seu celular pra abrir.', '📲');
+    return;
+  }
+  if(!promptInstalacaoAdiado){
+    aviso('Pra instalar: toque nos 3 pontinhos do navegador e escolha "Adicionar à tela inicial" ou "Instalar app".', '📲');
+    return;
+  }
+  promptInstalacaoAdiado.prompt();
+  const { outcome } = await promptInstalacaoAdiado.userChoice;
+  if(outcome === 'accepted'){
+    localStorage.setItem('viralizeInstalado', '1');
+  }
+  promptInstalacaoAdiado = null;
+  atualizarBotaoInstalar();
+}
+
+atualizarBotaoInstalar();
+
+function aviso(mensagem, icone, textoAcao, acaoFn){
+  document.getElementById('textoAviso').textContent = mensagem;
+  document.getElementById('iconeAviso').textContent = icone || '🔥';
+  const btnAcao = document.getElementById('btnAvisoAcao');
+  if(textoAcao && acaoFn){
+    btnAcao.textContent = textoAcao;
+    btnAcao.classList.remove('oculto');
+    btnAcao.onclick = () => { fecharAviso(); acaoFn(); };
+  } else {
+    btnAcao.classList.add('oculto');
+  }
+  document.getElementById('modalAviso').style.display = 'flex';
+}
+function fecharAviso(){
+  document.getElementById('modalAviso').style.display = 'none';
+}
+
+/* ---------------- LOGIN ---------------- */
+function entrarOuCriar(){
+  const nome = document.getElementById('loginNome').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  if(!email || senha.length < 6){ aviso('Preencha e-mail e senha (mín. 6 caracteres).'); return; }
+
+  auth.signInWithEmailAndPassword(email, senha)
+    .catch(() => {
+      return auth.createUserWithEmailAndPassword(email, senha).then(cred => {
+        return db.collection('usuarios').doc(cred.user.uid).set({
+          nome: nome || 'Afiliado',
+          email: email,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+          pontos: 0,
+          status: 'aprovado', // liberação automática e instantânea
+          convidadoPor: uidConvite || null
+        }).then(() => creditarIndicacao(cred.user));
+      });
+    })
+    .catch(err => aviso('Erro: ' + err.message));
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if(user){
+    usuarioAtual = user;
+    document.getElementById('modalLogin').style.display = 'none';
+    const doc = await db.collection('usuarios').doc(user.uid).get();
+    const dados = doc.exists ? doc.data() : {};
+    const nome = dados.nome || 'Afiliado';
+    // Contas antigas sem o campo "status" são tratadas como já aprovadas
+    let status = dados.status || 'aprovado';
+
+    if(user.email !== ADMIN_EMAIL && status === 'pendente'){
+      try{
+        await db.collection('usuarios').doc(user.uid).update({ status: 'aprovado' });
+        status = 'aprovado';
+        creditarIndicacao(user);
+      }catch(err){ /* se falhar, cai na tela de espera como antes */ }
+    }
+
+    if(user.email !== ADMIN_EMAIL && status !== 'aprovado'){
+      mostrarTelaEspera(status);
+      // fica escutando em tempo real: se o admin aprovar, a tela libera sozinha
+      db.collection('usuarios').doc(user.uid).onSnapshot(snap => {
+        const novoStatus = snap.data()?.status || 'aprovado';
+        if(novoStatus === 'aprovado'){
+          document.getElementById('telaEspera').style.display = 'none';
+          location.reload();
+        } else {
+          mostrarTelaEspera(novoStatus);
         }
+      });
+      return;
+    }
 
-        const zapApp = new ZapLeveApp();
-        window.zapApp = zapApp;
-    </script>
+    document.getElementById('telaEspera').style.display = 'none';
+    document.getElementById('userBox').textContent = '👤 ' + nome;
+    await carregarConfigRecursos();
+    escutarConfigRecursos();
+    carregarFeed();
+    carregarRanking();
+    carregarCatalogo();
+    escutarNotificacoes();
+    escutarBadgeChatGeral();
+
+    if(user.email === ADMIN_EMAIL){
+      document.getElementById('tabAdmin').classList.remove('oculto');
+      carregarAdminStats();
+      carregarAdminAprovacoes();
+      carregarAdminPosts();
+      carregarAdminUsuarios();
+      carregarAdminPaginas();
+    } else {
+      document.getElementById('tabAdmin').classList.add('oculto');
+      // se a pessoa estava vendo a aba admin e trocou de conta, volta pro feed
+      mudarAba('feed');
+    }
+  } else {
+    document.getElementById('modalLogin').style.display = 'flex';
+    document.getElementById('telaEspera').style.display = 'none';
+    document.getElementById('tabAdmin').classList.add('oculto');
+    document.getElementById('fabChatGeral').style.display = 'none';
+    document.getElementById('fabCTA').style.display = 'none';
+  }
+});
+
+// Dá os 30 pontos de indicação na hora (o servidor confere tudo e só credita uma vez por conta)
+async function creditarIndicacao(user){
+  try{
+    const idToken = await user.getIdToken();
+    await fetch('/api/registrar-indicacao', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+  }catch(err){ /* o bônus não pode travar o cadastro */ }
+}
+
+function mostrarTelaEspera(status){
+  document.getElementById('telaEspera').style.display = 'flex';
+  if(status === 'recusado'){
+    document.getElementById('iconeEspera').textContent = '🚫';
+    document.getElementById('tituloEspera').textContent = 'Cadastro não aprovado';
+    document.getElementById('textoEspera').textContent = 'Seu cadastro não foi aprovado para o Viralize no momento.';
+  } else {
+    document.getElementById('iconeEspera').textContent = '⏳';
+    document.getElementById('tituloEspera').textContent = 'Sua conta está em análise';
+    document.getElementById('textoEspera').textContent = 'O Viralize é uma comunidade fechada de afiliados. Assim que o administrador aprovar seu cadastro, você poderá usar a plataforma normalmente.';
+  }
+}
+
+/* ---------------- ABAS ---------------- */
+function mudarAba(aba){
+  document.getElementById('feedView').classList.toggle('oculto', aba!=='feed');
+  document.getElementById('rankingView').classList.toggle('oculto', aba!=='ranking');
+  document.getElementById('catalogoView').classList.toggle('oculto', aba!=='catalogo');
+  document.getElementById('viralView').classList.toggle('oculto', aba!=='viral');
+  document.getElementById('adminView').classList.toggle('oculto', aba!=='admin');
+  document.getElementById('tabFeed').classList.toggle('ativo', aba==='feed');
+  document.getElementById('tabRanking').classList.toggle('ativo', aba==='ranking');
+  document.getElementById('tabCatalogo').classList.toggle('ativo', aba==='catalogo');
+  document.getElementById('tabViral').classList.toggle('ativo', aba==='viral');
+  document.getElementById('tabAdmin').classList.toggle('ativo', aba==='admin');
+  if(aba === 'viral') carregarViral();
+}
+function fecharViral(){ mudarAba('feed'); }
+
+function mudarSubAbaAdmin(sub){
+  document.getElementById('adminAprovacoes').classList.toggle('oculto', sub!=='aprovacoes');
+  document.getElementById('adminPosts').classList.toggle('oculto', sub!=='posts');
+  document.getElementById('adminUsuarios').classList.toggle('oculto', sub!=='usuarios');
+  document.getElementById('adminPaginas').classList.toggle('oculto', sub!=='paginas');
+  document.getElementById('adminCores').classList.toggle('oculto', sub!=='cores');
+  document.getElementById('adminCatalogos').classList.toggle('oculto', sub!=='catalogos');
+  document.getElementById('adminAssinaturas').classList.toggle('oculto', sub!=='assinaturas');
+  document.getElementById('adminGaleria').classList.toggle('oculto', sub!=='galeria');
+  document.getElementById('adminChat').classList.toggle('oculto', sub!=='chat');
+  document.getElementById('adminAjustes').classList.toggle('oculto', sub!=='ajustes');
+  const btns = { aprovacoes: 'subTabAprovacoes', posts: 'subTabPosts', usuarios: 'subTabUsuarios', paginas: 'subTabPaginas', cores: 'subTabCores', catalogos: 'subTabCatalogos', assinaturas: 'subTabAssinaturas', galeria: 'subTabGaleria', chat: 'subTabChat', ajustes: 'subTabAjustes' };
+  Object.entries(btns).forEach(([key, id]) => {
+    document.getElementById(id).style.background = key===sub ? 'var(--accent)' : '#1e222b';
+    document.getElementById(id).style.color = key===sub ? '#fff' : 'var(--muted)';
+  });
+  if(sub === 'cores') montarCamposCores();
+  if(sub === 'catalogos') carregarCatalogosAdmin();
+  if(sub === 'assinaturas') { carregarConfigAssinaturaAdmin(); carregarAssinaturasPendentes(); carregarAssinantesAtivos(); }
+  if(sub === 'galeria') carregarGaleriaAdmin();
+  if(sub === 'chat') carregarConversasAdmin();
+  if(sub === 'ajustes') carregarAjustesAdmin();
+}
+
+/* ---------------- MODAL DE POST ---------------- */
+let planoModalPostAtual = 'gratis';
+async function abrirModalPost(){
+  document.getElementById('modalPost').style.display='flex';
+  if(usuarioAtual){
+    const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+    planoModalPostAtual = (doc.exists && doc.data().plano === 'pago') ? 'pago' : 'gratis';
+    atualizarBlocoImagensExtras();
+  }
+}
+function atualizarBlocoImagensExtras(){
+  const ehPro = planoModalPostAtual === 'pago';
+  document.getElementById('blocoImagensExtras').classList.toggle('oculto', !ehPro);
+  document.getElementById('upsellImagensExtras').classList.toggle('oculto', ehPro);
+}
+function fecharModalPost(){ document.getElementById('modalPost').style.display='none'; }
+
+document.getElementById('tiposBtns').addEventListener('click', (e) => {
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#tiposBtns button').forEach(b=>b.classList.remove('sel'));
+  e.target.classList.add('sel');
+  tipoSelecionado = e.target.dataset.t;
+  const ehVideo = tipoSelecionado.startsWith('video_');
+  const ehProduto = tipoSelecionado === 'produto';
+  const ehMidia = tipoSelecionado === 'midia_propria';
+  document.getElementById('campoLink').classList.toggle('oculto', !ehVideo);
+  document.getElementById('campoProduto').classList.toggle('oculto', !ehProduto);
+  document.getElementById('campoMidia').classList.toggle('oculto', !ehMidia);
+  if(ehProduto) atualizarBlocoImagensExtras();
+});
+
+/* ---------------- EXTRAIR IDs DE VÍDEO ---------------- */
+function idYoutube(url){
+  const m = url.match(/(?:youtu\.be\/|v=|shorts\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function urlEmbedTiktok(url){
+  // TikTok precisa do oEmbed; aqui geramos um embed simplificado via blockquote (renderiza com o script deles)
+  return url;
+}
+
+/* ---------------- UPLOAD PRO CLOUDFLARE R2 ---------------- */
+async function comprimirImagemSeForImagem(arquivo){
+  if(!arquivo.type.startsWith('image/')) return arquivo; // vídeo/áudio passa direto, sem comprimir
+  return new Promise((resolve) => {
+    const img = new Image();
+    const leitor = new FileReader();
+    leitor.onload = (e) => { img.src = e.target.result; };
+    img.onload = () => {
+      const larguraMax = 1280;
+      const escala = Math.min(1, larguraMax / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * escala;
+      canvas.height = img.height * escala;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if(!blob){ resolve(arquivo); return; }
+        resolve(new File([blob], arquivo.name, { type: 'image/jpeg' }));
+      }, 'image/jpeg', 0.75);
+    };
+    img.onerror = () => resolve(arquivo); // se der erro, envia o original mesmo
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+async function subirArquivoR2(arquivoOriginal){
+  const arquivo = await comprimirImagemSeForImagem(arquivoOriginal);
+  const statusEl = document.getElementById('statusUpload') || document.getElementById('statusUploadPerfil');
+  if(statusEl) statusEl.textContent = 'Preparando arquivo...';
+
+  const dadosBase64 = await new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(leitor.result.split(',')[1]); // remove o prefixo "data:tipo;base64,"
+    leitor.onerror = reject;
+    leitor.readAsDataURL(arquivo);
+  });
+
+  if(statusEl) statusEl.textContent = 'Enviando arquivo...';
+
+  const resp = await fetch('/api/r2-upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nomeArquivo: arquivo.name, tipoArquivo: arquivo.type, dadosBase64 })
+  });
+
+  if(!resp.ok){
+    const erro = await resp.json().catch(() => ({}));
+    throw new Error(erro.erro || 'Não foi possível enviar o arquivo.');
+  }
+
+  const { urlPublica } = await resp.json();
+  if(statusEl) statusEl.textContent = 'Upload concluído ✅';
+  return urlPublica;
+}
+
+/* ---------------- PUBLICAR ---------------- */
+/* ---------------- LIMITE DE CATÁLOGO (plano grátis) ---------------- */
+const LIMITE_CATALOGO_GRATIS = 10;
+
+async function verificarLimiteCatalogo(){
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const dados = doc.data() || {};
+  if(dados.plano === 'pago') return true;
+  const catalogo = await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').get();
+  return catalogo.size < LIMITE_CATALOGO_GRATIS;
+}
+
+/* ---------------- LIMITE ANTI-SPAM (posts por dia) ---------------- */
+const LIMITE_POSTS_DIA = 15;
+
+async function verificarLimiteDiario(){
+  if(usuarioAtual.email === ADMIN_EMAIL) return true; // admin não tem limite
+  const hoje = new Date().toISOString().slice(0,10);
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const registro = (doc.data() || {}).postsHoje || {};
+  return !(registro.data === hoje && registro.qtd >= LIMITE_POSTS_DIA);
+}
+
+async function registrarPostDoDia(){
+  const hoje = new Date().toISOString().slice(0,10);
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const registro = (doc.data() || {}).postsHoje || {};
+  const novaQtd = registro.data === hoje ? (registro.qtd||0) + 1 : 1;
+  await db.collection('usuarios').doc(usuarioAtual.uid).update({ postsHoje: { data: hoje, qtd: novaQtd } }).catch(()=>{});
+}
+
+async function publicar(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  if(!(await verificarLimiteDiario())){
+    aviso(`Você atingiu o limite de ${LIMITE_POSTS_DIA} publicações hoje. Volte amanhã pra postar mais! 🌅`);
+    return;
+  }
+  const texto = document.getElementById('inputTexto').value.trim();
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = doc.exists ? doc.data().nome : 'Afiliado';
+
+  const post = {
+    tipo: tipoSelecionado,
+    texto: texto,
+    autorId: usuarioAtual.uid,
+    autorNome: nomeAutor,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    compartilhamentos: 0,
+    visualizacoes: 0
+  };
+
+  if(tipoSelecionado.startsWith('video_')){
+    const link = document.getElementById('inputLink').value.trim();
+    if(!link){ aviso('Cole o link do vídeo.'); return; }
+    post.link = link;
+  }
+
+  if(tipoSelecionado === 'midia_propria'){
+    const arquivo = document.getElementById('inputArquivo').files[0];
+    if(!arquivo){ aviso('Selecione um arquivo.'); return; }
+    try{
+      const urlPublica = await subirArquivoR2(arquivo);
+      post.midiaUrl = urlPublica;
+      post.midiaTipo = arquivo.type;
+    }catch(err){
+      aviso('Erro no upload: ' + err.message);
+      return;
+    }
+  }
+
+  if(tipoSelecionado === 'produto'){
+    post.produtoNome = document.getElementById('prodNome').value.trim();
+    post.produtoPreco = document.getElementById('prodPreco').value.trim();
+    post.produtoImg = document.getElementById('prodImg').value.trim();
+    post.produtoLink = document.getElementById('prodLink').value.trim();
+    post.produtoPlataforma = document.getElementById('prodPlataforma').value;
+    if(!post.produtoNome || !post.produtoLink){ aviso('Preencha nome e link de afiliado do produto.'); return; }
+
+    let imagens = [post.produtoImg].filter(Boolean);
+    if(planoModalPostAtual === 'pago'){
+      ['prodImg2','prodImg3','prodImg4'].forEach(id => {
+        const valor = document.getElementById(id).value.trim();
+        if(valor) imagens.push(valor);
+      });
+    }
+    imagens = imagens.slice(0, 4);
+    post.produtoImagens = imagens;
+
+    // também salva no catálogo pessoal do usuário — atualiza se já existir (evita duplicar)
+    const existente = await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo')
+      .where('nome','==', post.produtoNome).where('link','==', post.produtoLink).limit(1).get();
+
+    const dadosCatalogo = {
+      nome: post.produtoNome, preco: post.produtoPreco, img: post.produtoImg, imagens: imagens, link: post.produtoLink,
+      plataforma: post.produtoPlataforma, ativo: true
+    };
+
+    if(!existente.empty){
+      await existente.docs[0].ref.update(dadosCatalogo);
+      post.itemCatalogoId = existente.docs[0].id;
+    } else {
+      if(!(await verificarLimiteCatalogo())){
+        aviso(`Seu plano grátis permite até ${LIMITE_CATALOGO_GRATIS} produtos no catálogo. Assine o Viralize Pro pra ter catálogo ilimitado! ⭐`, '⭐', 'Assinar Viralize Pro', abrirModalAssinatura);
+        return;
+      }
+      const novoItem = await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').add({
+        ...dadosCatalogo, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      post.itemCatalogoId = novoItem.id;
+    }
+  }
+
+  await db.collection('posts').add(post);
+  registrarPostDoDia();
+  fecharModalPost();
+  document.getElementById('inputTexto').value = '';
+  document.getElementById('inputLink').value = '';
+  document.getElementById('inputArquivo').value = '';
+  document.getElementById('statusUpload').textContent = '';
+  ['prodNome','prodPreco','prodImg','prodImg2','prodImg3','prodImg4','prodLink'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+}
+
+/* ---------------- RENDERIZAR EMBED ---------------- */
+function renderEmbed(post, postId){
+  if(post.tipo === 'video_youtube'){
+    const id = idYoutube(post.link);
+    if(!id) return `<a class="link-generico" href="${post.link}" target="_blank">▶️ Ver vídeo do YouTube</a>`;
+    return `<div class="embed-wrap wide"><iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe></div>`;
+  }
+  if(post.tipo === 'video_tiktok'){
+    const containerId = 'tiktok-' + (postId || Math.random().toString(36).slice(2));
+    // Carrega via oEmbed oficial depois do card ser inserido na tela (funciona com links curtos vt.tiktok.com também)
+    setTimeout(() => carregarEmbedTiktok(containerId, post.link), 0);
+    return `<div class="embed-wrap" id="${containerId}" style="min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;">Carregando vídeo do TikTok...</div>`;
+  }
+  if(post.tipo === 'video_facebook'){
+    const src = 'https://www.facebook.com/plugins/video.php?href=' + encodeURIComponent(post.link);
+    return `<div class="embed-wrap wide"><iframe src="${src}" allowfullscreen></iframe></div>`;
+  }
+  if(post.tipo === 'video_shopee'){
+    // Shopee não oferece embed oficial: mostramos card com link direto (abre em nova aba/webview)
+    return `<a class="link-generico" href="${post.link}" target="_blank">🛒 Assistir vídeo na Shopee →</a>`;
+  }
+  if(post.tipo === 'midia_propria'){
+    if(post.midiaTipo && post.midiaTipo.startsWith('video/')){
+      return `<div class="embed-wrap"><video src="${post.midiaUrl}" controls playsinline style="width:100%;display:block;"></video></div>`;
+    }
+    if(post.midiaTipo && post.midiaTipo.startsWith('audio/')){
+      return `<audio src="${post.midiaUrl}" controls style="width:100%;"></audio>`;
+    }
+    return `<img src="${post.midiaUrl}" style="width:100%;border-radius:10px;display:block;">`;
+  }
+  if(post.tipo === 'produto'){
+    const ehCampeao = ehProdutoCampeao(post.autorId, post.itemCatalogoId);
+    return `<div class="produto-card${ehCampeao ? ' produto-campeao' : ''}">
+      <img src="${post.produtoImg || 'https://via.placeholder.com/70'}">
+      <div class="produto-info">
+        ${ehCampeao ? `<div class="campeao-selo">👑 Produto Campeão</div>` : ''}
+        ${post.produtoPlataforma ? `<div style="font-size:10px;color:var(--accent2);font-weight:700;margin-bottom:2px;">${post.produtoPlataforma}</div>` : ''}
+        <div>${post.produtoNome}</div>
+        <div class="preco">R$ ${post.produtoPreco || '--'}</div>
+        <div id="visViral-${postId}" style="font-size:10px;color:var(--muted);margin-top:2px;"></div>
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+async function carregarEmbedTiktok(containerId, url){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  try{
+    const resp = await fetch('/api/tiktok-oembed?url=' + encodeURIComponent(url));
+    if(!resp.ok) throw new Error('falha');
+    const dados = await resp.json();
+    container.style.minHeight = '0';
+    container.style.display = 'block';
+    container.innerHTML = dados.html;
+
+    // Recarrega o script oficial do TikTok pra ele "achar" e renderizar o novo embed
+    const script = document.createElement('script');
+    script.src = 'https://www.tiktok.com/embed.js?' + Date.now();
+    document.body.appendChild(script);
+  }catch(err){
+    container.style.minHeight = '0';
+    container.style.display = 'block';
+    container.innerHTML = `<a class="link-generico" href="${url}" target="_blank">🎵 Assistir vídeo no TikTok →</a>`;
+  }
+}
+
+/* ---------------- NOTIFICAÇÕES ---------------- */
+let unsubscribeNotificacoes = null;
+
+function criarNotificacao(uidDestino, texto){
+  if(!uidDestino) return;
+  db.collection('usuarios').doc(uidDestino).collection('notificacoes').add({
+    texto, lida: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+}
+
+function escutarNotificacoes(){
+  if(!usuarioAtual) return;
+  db.collection('usuarios').doc(usuarioAtual.uid).collection('notificacoes')
+    .where('lida','==',false)
+    .onSnapshot(snap => {
+      const badge = document.getElementById('badgeNotificacoes');
+      if(snap.size > 0){
+        badge.textContent = snap.size > 9 ? '9+' : snap.size;
+        badge.classList.remove('oculto');
+      } else {
+        badge.classList.add('oculto');
+      }
+    });
+}
+
+function abrirModalNotificacoes(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  document.getElementById('modalNotificacoes').style.display = 'flex';
+
+  if(unsubscribeNotificacoes) unsubscribeNotificacoes();
+  unsubscribeNotificacoes = db.collection('usuarios').doc(usuarioAtual.uid).collection('notificacoes')
+    .orderBy('criadoEm','desc').limit(30)
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaNotificacoes');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhuma notificação ainda.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const n = d.data();
+        const div = document.createElement('div');
+        div.style.cssText = `padding:12px;border-radius:10px;margin-bottom:8px;background:${n.lida ? 'transparent' : '#1e222b'};border:1px solid var(--border);cursor:pointer;`;
+        div.innerHTML = `<div style="font-size:13px;">${n.lida ? '' : '🔵 '}${escapeHtml(n.texto)}</div>`;
+        div.onclick = () => {
+          if(!n.lida) db.collection('usuarios').doc(usuarioAtual.uid).collection('notificacoes').doc(d.id).update({ lida: true });
+        };
+        el.appendChild(div);
+      });
+    });
+}
+function fecharModalNotificacoes(){
+  document.getElementById('modalNotificacoes').style.display = 'none';
+  if(unsubscribeNotificacoes){ unsubscribeNotificacoes(); unsubscribeNotificacoes = null; }
+}
+function abrirModalMenu(){
+  carregarPaginasNoMenu();
+  document.getElementById('modalMenu').style.display = 'flex';
+}
+function fecharModalMenu(){ document.getElementById('modalMenu').style.display = 'none'; }
+function copiarLinkConvite(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  fecharModalMenu();
+  const link = window.location.origin + '/?convite=' + usuarioAtual.uid;
+  navigator.clipboard.writeText(link);
+  aviso('Link de convite copiado! Cada afiliado que entrar por ele e for aprovado te dá 30 pontos:\n' + link, '🎁');
+}
+function sairDaConta(){
+  fecharModalMenu();
+  auth.signOut();
+}
+function fecharModalPagina(){ document.getElementById('modalPagina').style.display = 'none'; }
+
+const TEXTO_PRIVACIDADE = `Última atualização: 2026
+
+O Viralize é uma plataforma voltada para afiliados, criada para divulgação de produtos, vídeos e links de afiliado entre seus usuários.
+
+1. Dados coletados: nome, e-mail e conteúdo que você publica (posts, produtos, comentários).
+2. Uso dos dados: usados apenas para o funcionamento da plataforma (login, feed, catálogo, ranking).
+3. Compartilhamento: não vendemos nem compartilhamos seus dados com terceiros.
+4. Conteúdo publicado: você é responsável pelos links, produtos e vídeos que publica.
+5. Contato: em caso de dúvidas sobre seus dados, entre em contato com o administrador da plataforma.
+
+(Edite este texto no código, na constante TEXTO_PRIVACIDADE, pra personalizar com as regras reais do seu app.)`;
+
+function abrirPagina(tipo, id, titulo){
+  if(tipo === 'privacidade'){
+    document.getElementById('tituloPagina').textContent = '🔒 Política de Privacidade';
+    document.getElementById('conteudoPagina').textContent = TEXTO_PRIVACIDADE;
+    fecharModalMenu();
+    document.getElementById('modalPagina').style.display = 'flex';
+    return;
+  }
+  if(tipo === 'custom'){
+    db.collection('paginas').doc(id).get().then(doc => {
+      if(!doc.exists) return;
+      const p = doc.data();
+      document.getElementById('tituloPagina').textContent = '📄 ' + p.titulo;
+      document.getElementById('conteudoPagina').textContent = p.conteudo;
+      fecharModalMenu();
+      document.getElementById('modalPagina').style.display = 'flex';
+    });
+  }
+}
+
+function carregarPaginasNoMenu(){
+  db.collection('paginas').orderBy('criadoEm','desc').get().then(snap => {
+    const el = document.getElementById('listaPaginasMenu');
+    el.innerHTML = '';
+    snap.forEach(d => {
+      const p = d.data();
+      const btn = document.createElement('button');
+      btn.style.cssText = 'width:100%;text-align:left;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;margin-bottom:8px;';
+      btn.textContent = '📄 ' + p.titulo;
+      btn.onclick = () => abrirPagina('custom', d.id);
+      el.appendChild(btn);
+    });
+  });
+}
+
+/* ---------------- CRIAÇÃO DE PÁGINAS (ADMIN) ---------------- */
+async function criarPaginaAdmin(){
+  const titulo = document.getElementById('novaPaginaTitulo').value.trim();
+  const conteudo = document.getElementById('novaPaginaConteudo').value.trim();
+  if(!titulo || !conteudo){ aviso('Preencha título e conteúdo da página.'); return; }
+  await db.collection('paginas').add({
+    titulo, conteudo, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById('novaPaginaTitulo').value = '';
+  document.getElementById('novaPaginaConteudo').value = '';
+  carregarAdminPaginas();
+  aviso('Página criada! Já aparece no menu ☰ do app.');
+}
+
+function carregarAdminPaginas(){
+  db.collection('paginas').orderBy('criadoEm','desc').onSnapshot(snap => {
+    const el = document.getElementById('adminListaPaginas');
+    if(!el) return;
+    if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhuma página criada ainda.</div>'; return; }
+    el.innerHTML = '';
+    snap.forEach(d => {
+      const p = d.data();
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <div class="top"><div class="autor">📄 ${p.titulo}</div></div>
+        <div class="acoes"><button onclick="excluirPaginaAdmin('${d.id}')" style="color:#ff5c5c;">🗑️ Excluir</button></div>
+      `;
+      el.appendChild(div);
+    });
+  });
+}
+function excluirPaginaAdmin(id){
+  if(!confirm('Excluir essa página?')) return;
+  db.collection('paginas').doc(id).delete();
+}
+
+/* ---------------- COMENTÁRIOS (formato chat) ---------------- */
+let postComentarioAtual = null;
+let unsubscribeComentarios = null;
+
+function abrirModalComentarios(postId){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  postComentarioAtual = postId;
+  document.getElementById('modalComentarios').style.display = 'flex';
+  document.getElementById('inputComentario').value = '';
+
+  if(unsubscribeComentarios) unsubscribeComentarios();
+  unsubscribeComentarios = db.collection('posts').doc(postId).collection('comentarios')
+    .orderBy('criadoEm','asc')
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaComentarios');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum comentário ainda. Seja o primeiro!</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const c = d.data();
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-bottom:12px;';
+        div.innerHTML = `
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+            <div class="avatar" style="width:24px;height:24px;font-size:11px;">${(c.autorNome||'A')[0].toUpperCase()}</div>
+            <span style="font-size:12px;font-weight:600;">${c.autorNome||'Afiliado'}</span>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13px;margin-left:30px;">${escapeHtml(c.texto)}</div>
+        `;
+        el.appendChild(div);
+      });
+      el.scrollTop = el.scrollHeight;
+    });
+}
+
+function fecharModalComentarios(){
+  document.getElementById('modalComentarios').style.display = 'none';
+  if(unsubscribeComentarios){ unsubscribeComentarios(); unsubscribeComentarios = null; }
+  postComentarioAtual = null;
+}
+
+async function enviarComentario(){
+  const texto = document.getElementById('inputComentario').value.trim();
+  if(!texto || !postComentarioAtual || !usuarioAtual) return;
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = doc.exists ? doc.data().nome : 'Afiliado';
+
+  await db.collection('posts').doc(postComentarioAtual).collection('comentarios').add({
+    texto, autorId: usuarioAtual.uid, autorNome: nomeAutor,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById('inputComentario').value = '';
+
+  const postDoc = await db.collection('posts').doc(postComentarioAtual).get();
+  const post = postDoc.data();
+  if(post && post.autorId !== usuarioAtual.uid){
+    criarNotificacao(post.autorId, `💬 ${nomeAutor} comentou no seu post`);
+  }
+}
+function carregarFeed(){
+  db.collection('posts').orderBy('criadoEm','desc').limit(50)
+    .onSnapshot(snap => {
+      const el = document.getElementById('feedView');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhuma publicação ainda.<br>Seja o primeiro a viralizar! 🚀</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const p = d.data();
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="top">
+            <div class="avatar">${(p.autorNome||'A')[0].toUpperCase()}</div>
+            <div class="autor">${p.autorNome||'Afiliado'}</div>
+            <div class="badge">${p.anuncioAtivo ? '🚀 Anúncio' : rotuloTipo(p.tipo)}</div>
+          </div>
+          ${p.origemAutorNome ? `<div style="font-size:11px;color:var(--accent2);margin-bottom:6px;">🔁 Repost do produto de ${p.origemAutorNome}</div>` : ''}
+          ${p.texto ? `<div class="conteudo">${escapeHtml(p.texto)}</div>` : ''}
+          ${renderEmbed(p, d.id)}
+          ${p.tipo==='produto' ? `<a class="link-generico" href="${p.produtoLink}" target="_blank" onclick="registrarClique('${d.id}')">🔗 Comprar / Ver oferta</a>` : ''}
+          ${p.linkCompra ? `<a class="link-generico" href="${p.linkCompra}" target="_blank" onclick="registrarClique('${d.id}')">🛒 Comprar (link de ${p.autorNome})</a>` : ''}
+          <div class="acoes">
+            <button onclick="compartilhar('${d.id}', this)">↗️ Compartilhar (<span>${p.compartilhamentos||0}</span>)</button>
+            <button onclick="abrirModalComentarios('${d.id}')">💬 Comentar</button>
+            <span>👁️ ${p.visualizacoes||0}</span>
+          </div>
+        `;
+        el.appendChild(card);
+
+        if(p.tipo === 'produto' && p.itemCatalogoId && p.autorId){
+          db.collection('usuarios').doc(p.autorId).collection('catalogo').doc(p.itemCatalogoId)
+            .onSnapshot(itemDoc => {
+              const spanEl = document.getElementById('visViral-' + d.id);
+              if(spanEl && itemDoc.exists){
+                const item = itemDoc.data();
+                spanEl.textContent = `👀 ${item.visualizacoesViral||0} no Viral · 🖱️ ${item.cliques||0} cliques`;
+              }
+            }, () => {});
+        }
+      });
+    });
+}
+function rotuloTipo(t){
+  return {video_youtube:'YouTube', video_tiktok:'TikTok', video_facebook:'Facebook', video_shopee:'Shopee', produto:'Produto', texto:'Post', midia_propria:'Mídia própria'}[t] || t;
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------------- COMPARTILHAMENTO RASTREÁVEL ---------------- */
+let postPendenteCompartilhar = null;
+
+async function compartilhar(postId, btn){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+
+  const doc = await db.collection('posts').doc(postId).get();
+  const post = doc.data();
+
+  const ehVideoDeAfiliado = post.tipo === 'video_youtube' || post.tipo === 'video_tiktok' || post.tipo === 'video_facebook' || post.tipo === 'video_shopee';
+
+  // Produto ou vídeo de afiliado: abre modal pedindo o link de afiliado da pessoa
+  if(post.tipo === 'produto' || ehVideoDeAfiliado){
+    if(post.autorId === usuarioAtual.uid){
+      aviso('Esse conteúdo já é seu! Use o compartilhamento normal pra divulgar.');
+      return compartilharLinkDireto(postId);
+    }
+    postPendenteCompartilhar = { postId, post };
+
+    if(post.tipo === 'produto'){
+      document.getElementById('tituloModalCompartilhar').textContent = 'Compartilhar produto com meu link';
+      document.getElementById('textoModalCompartilhar').textContent = 'Cole seu link de afiliado desse produto. Ele vai aparecer no seu feed e catálogo, com o seu link.';
+      document.getElementById('previewProdutoCompartilhar').innerHTML = `
+        <div class="produto-card">
+          <img src="${post.produtoImg || 'https://via.placeholder.com/70'}">
+          <div class="produto-info">
+            <div>${post.produtoNome}</div>
+            <div class="preco">R$ ${post.produtoPreco || '--'}</div>
+          </div>
+        </div>`;
+    } else {
+      document.getElementById('tituloModalCompartilhar').textContent = 'Compartilhar vídeo com meu link';
+      document.getElementById('textoModalCompartilhar').textContent = 'O vídeo continua sendo do autor original — mas o botão "Comprar" abaixo dele vai usar o SEU link de afiliado.';
+      document.getElementById('previewProdutoCompartilhar').innerHTML = renderEmbed(post, postId);
+    }
+
+    document.getElementById('meuLinkAfiliado').value = '';
+    document.getElementById('modalCompartilhar').style.display = 'flex';
+    return;
+  }
+
+  // Outros tipos (texto, mídia própria): compartilhamento normal (link rastreável)
+  compartilharLinkDireto(postId);
+}
+
+async function confirmarCompartilhamento(){
+  const link = document.getElementById('meuLinkAfiliado').value.trim();
+  if(!link){ aviso('Cole seu link de afiliado.'); return; }
+  if(!postPendenteCompartilhar) return;
+  if(!(await verificarLimiteDiario())){
+    aviso(`Você atingiu o limite de ${LIMITE_POSTS_DIA} publicações hoje. Volte amanhã pra postar mais! 🌅`);
+    return;
+  }
+
+  const { postId, post } = postPendenteCompartilhar;
+  const docUsuario = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = docUsuario.exists ? docUsuario.data().nome : 'Afiliado';
+  const souPro = docUsuario.exists && docUsuario.data().plano === 'pago';
+
+  if(post.tipo === 'produto'){
+    if(!(await verificarLimiteCatalogo())){
+      aviso(`Seu plano grátis permite até ${LIMITE_CATALOGO_GRATIS} produtos no catálogo. Assine o Viralize Pro pra ter catálogo ilimitado! ⭐`, '⭐', 'Assinar Viralize Pro', abrirModalAssinatura);
+      return;
+    }
+    const imagensRepost = souPro ? (post.produtoImagens && post.produtoImagens.length ? post.produtoImagens : [post.produtoImg]) : [post.produtoImg];
+    const novoItemRepost = await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').add({
+      nome: post.produtoNome, preco: post.produtoPreco, img: post.produtoImg, imagens: imagensRepost, link: link,
+      plataforma: post.produtoPlataforma, ativo: true,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('posts').add({
+      tipo: 'produto',
+      texto: `🔁 Repost de ${post.autorNome || 'um afiliado'}`,
+      autorId: usuarioAtual.uid,
+      autorNome: nomeAutor,
+      produtoNome: post.produtoNome,
+      produtoPreco: post.produtoPreco,
+      produtoImg: post.produtoImg,
+      produtoImagens: imagensRepost,
+      produtoLink: link,
+      produtoPlataforma: post.produtoPlataforma,
+      itemCatalogoId: novoItemRepost.id,
+      origemPostId: postId,
+      origemAutorNome: post.autorNome || null,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      compartilhamentos: 0,
+      visualizacoes: 0
+    });
+  } else {
+    // Repost de vídeo: mesmo vídeo (link do embed original), botão de compra com o link de quem compartilhou
+    await db.collection('posts').add({
+      tipo: post.tipo,
+      texto: `🔁 Repost de ${post.autorNome || 'um afiliado'}`,
+      autorId: usuarioAtual.uid,
+      autorNome: nomeAutor,
+      link: post.link,
+      linkCompra: link,
+      origemPostId: postId,
+      origemAutorNome: post.autorNome || null,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      compartilhamentos: 0,
+      visualizacoes: 0
+    });
+  }
+
+  await db.collection('posts').doc(postId).update({
+    compartilhamentos: firebase.firestore.FieldValue.increment(1)
+  });
+  await db.collection('usuarios').doc(usuarioAtual.uid).update({
+    pontos: firebase.firestore.FieldValue.increment(15)
+  }).catch(()=>{});
+
+  if(post.autorId && post.autorId !== usuarioAtual.uid){
+    criarNotificacao(post.autorId, `↗️ ${nomeAutor} compartilhou seu post`);
+  }
+  registrarPostDoDia();
+
+  fecharModalCompartilhar();
+  aviso('Compartilhado! Já apareceu no seu feed, com o seu link. 🚀');
+}
+
+function confirmarAcaoCompartilhar(){
+  if(revendaPendenteViral) return confirmarRevendaViral();
+  return confirmarCompartilhamento();
+}
+
+function fecharModalCompartilhar(){
+  document.getElementById('modalCompartilhar').style.display = 'none';
+  postPendenteCompartilhar = null;
+  revendaPendenteViral = null;
+}
+
+async function compartilharLinkDireto(postId){
+  const base = window.location.origin + window.location.pathname.replace('index.html','');
+  const link = `${base}p/${postId}?ref=${usuarioAtual ? usuarioAtual.uid : 'anon'}`;
+
+  await db.collection('posts').doc(postId).update({
+    compartilhamentos: firebase.firestore.FieldValue.increment(1)
+  });
+  if(usuarioAtual){
+    await db.collection('usuarios').doc(usuarioAtual.uid).update({
+      pontos: firebase.firestore.FieldValue.increment(10)
+    }).catch(()=>{});
+  }
+
+  if(navigator.share){
+    navigator.share({ title: 'Olha isso no Viralize!', url: link }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(link);
+    aviso('Link copiado! Cole onde quiser compartilhar:\n' + link);
+  }
+}
+function registrarClique(postId){
+  db.collection('posts').doc(postId).update({
+    visualizacoes: firebase.firestore.FieldValue.increment(1)
+  }).catch(()=>{});
+}
+
+/* ---------------- RANKING ---------------- */
+function carregarRanking(){
+  db.collection('usuarios').orderBy('pontos','desc').limit(20)
+    .onSnapshot(snap => {
+      const el = document.getElementById('ranking');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Ranking vazio ainda.</div>'; return; }
+      el.innerHTML = '<h3>🏆 Top Divulgadores</h3>';
+      let pos = 1;
+      snap.forEach(d => {
+        const u = d.data();
+        el.innerHTML += `<div class="rank-item"><div class="rank-pos">#${pos}</div><div class="avatar">${(u.nome||'A')[0].toUpperCase()}</div><div>${u.nome||'Afiliado'}<br><small style="color:var(--muted)">${u.pontos||0} pontos</small></div></div>`;
+        pos++;
+      });
+    });
+}
+
+/* ---------------- MEU PAINEL (métricas do afiliado) ---------------- */
+async function abrirModalPainel(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  document.getElementById('conteudoPainel').innerHTML = '<div class="vazio">Carregando...</div>';
+  document.getElementById('modalPainel').style.display = 'flex';
+
+  const [doc, catalogo] = await Promise.all([
+    db.collection('usuarios').doc(usuarioAtual.uid).get(),
+    db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').get()
+  ]);
+  const dados = doc.data() || {};
+  const ehPro = dados.plano === 'pago';
+
+  let totalCliques = 0, totalVisualizacoesViral = 0, ativos = 0;
+  catalogo.forEach(d => {
+    const p = d.data();
+    totalCliques += Number(p.cliques) || 0;
+    totalVisualizacoesViral += Number(p.visualizacoesViral) || 0;
+    if(p.ativo !== false) ativos++;
+  });
+
+  document.getElementById('conteudoPainel').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="card" style="flex:1;min-width:100px;text-align:center;padding:12px;">
+        <div style="font-size:20px;font-weight:800;color:var(--accent2);">${totalCliques}</div>
+        <div style="font-size:11px;color:var(--muted);">Cliques totais</div>
+      </div>
+      <div class="card" style="flex:1;min-width:100px;text-align:center;padding:12px;">
+        <div style="font-size:20px;font-weight:800;color:var(--accent2);">${totalVisualizacoesViral}</div>
+        <div style="font-size:11px;color:var(--muted);">Visualizações no Viral</div>
+      </div>
+      <div class="card" style="flex:1;min-width:100px;text-align:center;padding:12px;">
+        <div style="font-size:20px;font-weight:800;color:var(--accent2);">${ativos}/${catalogo.size}</div>
+        <div style="font-size:11px;color:var(--muted);">Produtos ativos</div>
+      </div>
+      <div class="card" style="flex:1;min-width:100px;text-align:center;padding:12px;">
+        <div style="font-size:20px;font-weight:800;color:var(--accent2);">${dados.pontos||0}</div>
+        <div style="font-size:11px;color:var(--muted);">Pontos</div>
+      </div>
+      <div class="card" style="flex:1;min-width:100px;text-align:center;padding:12px;">
+        <div style="font-size:20px;font-weight:800;color:var(--accent2);">${dados.indicacoes||0}</div>
+        <div style="font-size:11px;color:var(--muted);">Indicações</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px;background:${ehPro ? '#132a1c' : '#241a10'};border-color:${ehPro ? '#1e5c37' : '#4a3520'};">
+      <div style="font-size:14px;font-weight:700;color:${ehPro ? '#7ee08a' : 'var(--accent2)'};">${ehPro ? '⭐ Você é Viralize Pro' : '🔓 Plano grátis'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">${ehPro ? 'Catálogo ilimitado e loja sem marca ativados.' : `Catálogo limitado a ${LIMITE_CATALOGO_GRATIS} produtos.`}</div>
+      ${!ehPro ? `<button class="btn-principal" style="margin-top:10px;" onclick="fecharModalPainel();abrirModalAssinatura()">Assinar Viralize Pro</button>` : ''}
+    </div>
+    <button onclick="fecharModalPainel();mudarAba('catalogo')" style="width:100%;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:10px;font-size:14px;">🛍️ Ver e gerenciar meu catálogo</button>
+  `;
+}
+function fecharModalPainel(){ document.getElementById('modalPainel').style.display = 'none'; }
+
+/* ---------------- PÁGINA VIRAL (feed estilo reels + pontos por visualização) ---------------- */
+let observadorViralScroll = null;
+let produtosJaVistosSessao = new Set();
+let produtosViralAtuais = [];
+let revendaPendenteViral = null;
+
+function verificarSlideCentral(scrollEl){
+  const rectContainer = scrollEl.getBoundingClientRect();
+  const centro = rectContainer.top + rectContainer.height / 2;
+  document.querySelectorAll('.viral-slide').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if(rect.top <= centro && rect.bottom >= centro){
+      registrarVisualizacaoViral(el.dataset.dono, el.dataset.id);
+    }
+  });
+}
+
+function logViral(msg){
+  const el = document.getElementById('viralDebug');
+  if(!el) return;
+  const linha = document.createElement('div');
+  linha.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+  el.appendChild(linha);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function carregarViral(){
+  const scrollEl = document.getElementById('viralScroll');
+  logViral('Carregando produtos...');
+  scrollEl.innerHTML = '<div class="vazio" style="color:#fff;padding-top:40vh;">Carregando produtos...</div>';
+
+  try{
+    const snap = await db.collectionGroup('catalogo').limit(300).get();
+    let produtos = [];
+    snap.forEach(doc => {
+      const p = doc.data();
+      if(p.ativo === false) return;
+      if(!p.img) return;
+      produtos.push({ id: doc.id, donoId: doc.ref.parent.parent.id, ...p });
+    });
+    logViral(`${snap.size} itens no catálogo total, ${produtos.length} com foto e ativos.`);
+
+    // embaralha pra parecer um feed tipo reels, diferente a cada visita
+    for(let i = produtos.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [produtos[i], produtos[j]] = [produtos[j], produtos[i]];
+    }
+
+    if(produtos.length === 0){
+      scrollEl.innerHTML = '<div class="vazio" style="color:#fff;padding-top:40vh;">Nenhum produto disponível ainda.</div>';
+      return;
+    }
+
+    produtosViralAtuais = produtos;
+
+    scrollEl.innerHTML = produtos.map(p => `
+      <div class="viral-slide${ehProdutoCampeao(p.donoId, p.id) ? ' produto-campeao' : ''}" data-id="${p.id}" data-dono="${p.donoId}">
+        <div class="fundo-blur" style="background-image:url('${p.img}');"></div>
+        <img src="${p.img}" loading="lazy">
+        <div class="viral-info">
+          ${ehProdutoCampeao(p.donoId, p.id) ? `<div class="campeao-selo">👑 Produto Campeão</div>` : ''}
+          <div class="viral-selo">${p.plataforma || 'Oferta'}</div>
+          <div class="viral-nome">${escapeHtml(p.nome || 'Produto')}</div>
+          <div class="viral-preco">R$ ${p.preco || '--'}</div>
+          <div style="display:flex;gap:8px;">
+            <a class="viral-btn" href="${p.link}" target="_blank" rel="noopener" onclick="event.stopPropagation();registrarCliqueViral('${p.donoId}','${p.id}')">🛒 Comprar agora</a>
+            ${p.donoId !== (usuarioAtual ? usuarioAtual.uid : null) ? `<button type="button" class="viral-btn" style="background:rgba(255,255,255,.15);" onclick="event.stopPropagation();abrirRevendaViral('${p.donoId}','${p.id}')">🔁 Revender</button>` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    if(observadorViralScroll) scrollEl.removeEventListener('scroll', observadorViralScroll);
+    observadorViralScroll = () => verificarSlideCentral(scrollEl);
+    scrollEl.addEventListener('scroll', observadorViralScroll, { passive: true });
+
+    logViral(`${document.querySelectorAll('.viral-slide').length} slides prontos. Seu uid: ${usuarioAtual ? usuarioAtual.uid.slice(0,6) : 'NULO'}`);
+    setTimeout(() => verificarSlideCentral(scrollEl), 400); // checa o primeiro produto assim que abre, sem precisar rolar
+  }catch(err){
+    console.error(err);
+    logViral('ERRO: ' + (err.message || String(err)));
+    scrollEl.innerHTML = `<div class="vazio" style="color:#fff;padding-top:30vh;padding-left:16px;padding-right:16px;">Erro ao carregar.<br><br><span style="font-size:11px;color:#ff8080;word-break:break-word;">${escapeHtml(err.message || String(err))}</span><br><br><button onclick="carregarViral()" style="background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:20px;">Tentar de novo</button></div>`;
+  }
+}
+
+async function registrarVisualizacaoViral(donoId, produtoId){
+  if(!usuarioAtual){ logViral('Sem usuarioAtual, abortando.'); return; }
+  const chave = donoId + '_' + produtoId;
+  if(produtosJaVistosSessao.has(chave)){ logViral('Já processado nessa sessão: ' + chave.slice(0,12)); return; }
+  produtosJaVistosSessao.add(chave);
+
+  const ehProprioProduto = donoId === usuarioAtual.uid;
+  logViral(`Registrando visualização. Próprio produto? ${ehProprioProduto}`);
+
+  try{
+    const refVisto = db.collection('usuarios').doc(usuarioAtual.uid).collection('visualizacoesViral').doc(chave);
+    const jaVisto = await refVisto.get();
+    if(jaVisto.exists){ logViral('Já tinha visto esse produto antes.'); return; }
+
+    await refVisto.set({ produtoId, donoId, vistoEm: firebase.firestore.FieldValue.serverTimestamp() });
+    logViral('Gravado em visualizacoesViral ✅');
+
+    // a visualização do produto sempre conta (mesmo sendo o próprio produto, pra dar métrica real ao afiliado)
+    registrarVisualizacaoProdutoDono(donoId, produtoId);
+
+    // mas o PONTO só é dado se não for o próprio produto, pra evitar autofarmar pontos vendo o que você mesmo postou
+    if(!ehProprioProduto){
+      await db.collection('usuarios').doc(usuarioAtual.uid).update({
+        pontos: firebase.firestore.FieldValue.increment(1)
+      });
+      logViral('Ponto dado! ✅');
+      mostrarToastPonto();
+    } else {
+      logViral('Sem ponto (produto é seu), mas visualização contada.');
+    }
+  }catch(err){
+    logViral('ERRO ao registrar: ' + (err.message || String(err)));
+  }
+}
+
+function registrarVisualizacaoProdutoDono(donoId, produtoId){
+  fetch('/api/registrar-visualizacao', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid: donoId, itemId: produtoId })
+  }).catch(() => {});
+}
+
+function mostrarToastPonto(){
+  const toast = document.getElementById('viralPontoToast');
+  toast.classList.add('mostrar');
+  setTimeout(() => toast.classList.remove('mostrar'), 1400);
+}
+
+async function abrirRevendaViral(donoId, produtoId){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  if(donoId === usuarioAtual.uid){ aviso('Esse produto já é seu! Use "Comprar agora" pra levar tráfego direto.'); return; }
+
+  const produto = produtosViralAtuais.find(p => p.donoId === donoId && p.id === produtoId);
+  if(!produto) return;
+
+  const donoDoc = await db.collection('usuarios').doc(donoId).get();
+  const nomeDono = donoDoc.exists ? (donoDoc.data().nomeLoja || donoDoc.data().nome || 'um afiliado') : 'um afiliado';
+
+  revendaPendenteViral = { donoId, produto, nomeDono };
+
+  document.getElementById('tituloModalCompartilhar').textContent = 'Revender com meu link';
+  document.getElementById('textoModalCompartilhar').textContent = `Cole seu link de afiliado desse produto de ${nomeDono}. Ele vai pro seu catálogo e feed, com o seu link.`;
+  document.getElementById('previewProdutoCompartilhar').innerHTML = `
+    <div class="produto-card">
+      <img src="${produto.img || 'https://via.placeholder.com/70'}">
+      <div class="produto-info">
+        <div>${escapeHtml(produto.nome || 'Produto')}</div>
+        <div class="preco">R$ ${produto.preco || '--'}</div>
+      </div>
+    </div>`;
+  document.getElementById('meuLinkAfiliado').value = '';
+  document.getElementById('modalCompartilhar').style.display = 'flex';
+}
+
+async function confirmarRevendaViral(){
+  const link = document.getElementById('meuLinkAfiliado').value.trim();
+  if(!link){ aviso('Cole seu link de afiliado.'); return; }
+  if(!revendaPendenteViral) return;
+  if(!(await verificarLimiteDiario())){
+    aviso(`Você atingiu o limite de ${LIMITE_POSTS_DIA} publicações hoje. Volte amanhã pra postar mais! 🌅`);
+    return;
+  }
+  if(!(await verificarLimiteCatalogo())){
+    aviso(`Seu plano grátis permite até ${LIMITE_CATALOGO_GRATIS} produtos no catálogo. Assine o Viralize Pro pra ter catálogo ilimitado! ⭐`, '⭐', 'Assinar Viralize Pro', abrirModalAssinatura);
+    return;
+  }
+
+  const { produto, donoId, nomeDono } = revendaPendenteViral;
+  const docUsuario = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = docUsuario.exists ? docUsuario.data().nome : 'Afiliado';
+  const souPro = docUsuario.exists && docUsuario.data().plano === 'pago';
+  const imagensRevenda = souPro ? (produto.imagens && produto.imagens.length ? produto.imagens : [produto.img]) : [produto.img];
+
+  const novoItem = await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').add({
+    nome: produto.nome, preco: produto.preco, img: produto.img, imagens: imagensRevenda, link: link,
+    plataforma: produto.plataforma, ativo: true,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  await db.collection('posts').add({
+    tipo: 'produto',
+    texto: `🔁 Repost de ${nomeDono}`,
+    autorId: usuarioAtual.uid,
+    autorNome: nomeAutor,
+    produtoNome: produto.nome,
+    produtoPreco: produto.preco,
+    produtoImg: produto.img,
+    produtoImagens: imagensRevenda,
+    produtoLink: link,
+    produtoPlataforma: produto.plataforma,
+    itemCatalogoId: novoItem.id,
+    origemAutorNome: nomeDono,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    compartilhamentos: 0,
+    visualizacoes: 0
+  });
+
+  await db.collection('usuarios').doc(usuarioAtual.uid).update({
+    pontos: firebase.firestore.FieldValue.increment(15)
+  }).catch(()=>{});
+
+  if(donoId !== usuarioAtual.uid){
+    criarNotificacao(donoId, `🔁 ${nomeAutor} revendeu seu produto "${produto.nome}"!`);
+  }
+  registrarPostDoDia();
+
+  fecharModalCompartilhar();
+  aviso('Produto adicionado ao seu catálogo com seu link! Já apareceu no seu feed. 🚀');
+}
+
+function registrarCliqueViral(donoId, produtoId){
+  fetch('/api/registrar-clique', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid: donoId, itemId: produtoId })
+  }).catch(() => {});
+}
+
+let capaMarcadaParaRemover = false;
+let capaEscolhidaGaleria = null;
+let planoAtualUsuario = 'gratis';
+let planoCatalogoAtual = 'gratis';
+let estiloLojaAtual = 'grade';
+
+function mudarEstiloLoja(estilo){
+  estiloLojaAtual = estilo;
+  marcarBotaoEstiloAtivo();
+}
+function marcarBotaoEstiloAtivo(){
+  const btnGrade = document.getElementById('btnEstiloGrade');
+  const btnReels = document.getElementById('btnEstiloReels');
+  if(!btnGrade || !btnReels) return;
+  btnGrade.style.background = estiloLojaAtual === 'grade' ? 'var(--accent)' : '#1e222b';
+  btnGrade.style.color = estiloLojaAtual === 'grade' ? '#fff' : 'var(--muted)';
+  btnReels.style.background = estiloLojaAtual === 'reels' ? 'var(--accent)' : '#1e222b';
+  btnReels.style.color = estiloLojaAtual === 'reels' ? '#fff' : 'var(--muted)';
+}
+
+async function abrirModalPerfil(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  capaMarcadaParaRemover = false;
+  capaEscolhidaGaleria = null;
+  document.getElementById('inputFotoPerfil').value = '';
+
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const dados = doc.exists ? doc.data() : {};
+  planoAtualUsuario = dados.plano === 'pago' ? 'pago' : 'gratis';
+
+  document.getElementById('previewFotoPerfil').innerHTML = dados.fotoPerfil
+    ? `<img src="${dados.fotoPerfil}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">`
+    : '<span style="font-size:12px;color:var(--muted);">Nenhuma foto ainda</span>';
+
+  const bloco = document.getElementById('blocoProLoja');
+
+  if(planoAtualUsuario !== 'pago'){
+    bloco.innerHTML = `
+      <label style="margin-top:16px;">Apelido da loja (link curto)</label>
+      <div style="display:flex;align-items:center;gap:2px;">
+        <span style="font-size:12px;color:var(--muted);white-space:nowrap;">viralize.alibr.com.br/</span>
+        <input type="text" id="inputSlugLoja" maxlength="30" placeholder="seunome" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')" style="flex:1;">
+      </div>
+      <div id="statusSlugLoja" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+
+      <label style="margin-top:16px;">Estilo da loja pública</label>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 8px;">Escolha como sua loja aparece pra quem visita o link.</p>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button type="button" onclick="mudarEstiloLoja('grade')" id="btnEstiloGrade" style="flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--border);font-size:12px;">🛍️ Catálogo (grade)</button>
+        <button type="button" onclick="mudarEstiloLoja('reels')" id="btnEstiloReels" style="flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--border);font-size:12px;">🎞️ Página única (rolagem)</button>
+      </div>
+      <p style="font-size:11px;color:var(--accent2);margin:-8px 0 12px;">No plano grátis, o estilo "Página única" mostra só 1 produto. Assine o Pro pra mostrar o catálogo inteiro nesse estilo também.</p>
+      <div class="card" style="margin-top:0;background:#241a10;border-color:#4a3520;">
+        <div style="font-size:14px;font-weight:700;color:var(--accent2);margin-bottom:6px;">⭐ Recursos do Viralize Pro</div>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 12px;">Assine pra editar o nome e a descrição da sua loja, escolher uma capa (upload, link ou galeria) e remover a marca Viralize.</p>
+        <button class="btn-principal" style="margin-top:0;" onclick="abrirModalAssinatura()">Assinar Viralize Pro</button>
+      </div>
+      <div id="statusUploadPerfil2" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+      <button class="btn-principal" onclick="salvarPerfil()">💾 Salvar</button>
+    `;
+    estiloLojaAtual = dados.estiloLoja === 'reels' ? 'reels' : 'grade';
+    marcarBotaoEstiloAtivo();
+    document.getElementById('inputSlugLoja').value = dados.slug || '';
+    document.getElementById('modalPerfil').style.display = 'flex';
+    return;
+  }
+
+  bloco.innerHTML = `
+    <label style="margin-top:16px;">Apelido da loja (link curto)</label>
+    <div style="display:flex;align-items:center;gap:2px;">
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap;">viralize.alibr.com.br/</span>
+      <input type="text" id="inputSlugLoja" maxlength="30" placeholder="seunome" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')" style="flex:1;">
+    </div>
+    <div id="statusSlugLoja" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+
+    <label style="margin-top:16px;">Estilo da loja pública</label>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 8px;">Escolha como sua loja aparece pra quem visita o link.</p>
+    <div style="display:flex;gap:6px;margin-bottom:16px;">
+      <button type="button" onclick="mudarEstiloLoja('grade')" id="btnEstiloGrade" style="flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--border);font-size:12px;">🛍️ Catálogo (grade)</button>
+      <button type="button" onclick="mudarEstiloLoja('reels')" id="btnEstiloReels" style="flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--border);font-size:12px;">🎞️ Página única (rolagem)</button>
+    </div>
+
+    <label style="margin-top:12px;">Nome da loja</label>
+    <input type="text" id="inputNomeLoja" maxlength="40" oninput="atualizarContador('inputNomeLoja','contadorNomeLoja',40)" placeholder="Ex: Loja da Maria">
+    <div style="text-align:right;font-size:11px;color:var(--muted);" id="contadorNomeLoja">0/40</div>
+
+    <label style="margin-top:12px;">Descrição da loja</label>
+    <textarea id="inputDescricaoLoja" maxlength="100" oninput="atualizarContador('inputDescricaoLoja','contadorDescricaoLoja',100)" placeholder="Ex: Ofertas selecionadas todos os dias 🔥" style="min-height:60px;"></textarea>
+    <div style="text-align:right;font-size:11px;color:var(--muted);" id="contadorDescricaoLoja">0/100</div>
+
+    <label style="margin-top:16px;">Cor da loja</label>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 8px;">Escolha uma cor e ela substitui o laranja em toda a sua loja pública.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <input type="color" id="inputCorLoja" style="width:48px;height:40px;border:1px solid var(--border);border-radius:8px;background:none;padding:2px;cursor:pointer;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${['#ee4d2d','#e91e63','#9c27b0','#3f51b5','#009688','#4caf50','#ff9800','#607d8b'].map(c =>
+          `<button type="button" onclick="document.getElementById('inputCorLoja').value='${c}'" style="width:24px;height:24px;border-radius:50%;background:${c};border:1px solid var(--border);cursor:pointer;"></button>`
+        ).join('')}
+      </div>
+    </div>
+
+    <label style="margin-top:16px;">Capa da loja</label>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button type="button" onclick="mudarModoCapa('upload')" id="btnModoUpload" class="modo-capa-ativo" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:12px;">📤 Upload</button>
+      <button type="button" onclick="mudarModoCapa('link')" id="btnModoLink" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:#1e222b;color:var(--muted);font-size:12px;">🔗 Link</button>
+      <button type="button" onclick="mudarModoCapa('galeria')" id="btnModoGaleria" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:#1e222b;color:var(--muted);font-size:12px;">🖼️ Galeria</button>
+    </div>
+    <div id="campoModoUpload"><input type="file" id="inputFotoCapa" accept="image/*"></div>
+    <div id="campoModoLink" class="oculto"><input type="text" id="inputLinkCapa" placeholder="https://..."></div>
+    <div id="campoModoGaleria" class="oculto"><button type="button" onclick="abrirModalGaleria()" style="width:100%;background:#1e222b;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:8px;">🖼️ Escolher da galeria</button></div>
+    <div id="previewFotoCapa" style="margin-top:8px;"></div>
+    <button onclick="removerCapaPerfil()" style="margin-top:8px;background:#1e222b;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;">Remover capa</button>
+
+    <div id="statusUploadPerfil2" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+    <button class="btn-principal" onclick="salvarPerfil()">💾 Salvar</button>
+  `;
+
+  document.getElementById('inputNomeLoja').value = dados.nomeLoja || dados.nome || '';
+  document.getElementById('inputDescricaoLoja').value = dados.descricaoLoja || '';
+  document.getElementById('inputCorLoja').value = dados.corLoja || '#ee4d2d';
+  document.getElementById('inputSlugLoja').value = dados.slug || '';
+  estiloLojaAtual = dados.estiloLoja === 'reels' ? 'reels' : 'grade';
+  marcarBotaoEstiloAtivo();
+  atualizarContador('inputNomeLoja','contadorNomeLoja',40);
+  atualizarContador('inputDescricaoLoja','contadorDescricaoLoja',100);
+
+  document.getElementById('previewFotoCapa').innerHTML = dados.fotoCapa
+    ? `<img src="${dados.fotoCapa}" style="width:100%;max-height:100px;object-fit:cover;border-radius:8px;">`
+    : '<span style="font-size:12px;color:var(--muted);">Nenhuma capa ainda</span>';
+
+  document.getElementById('modalPerfil').style.display = 'flex';
+}
+function fecharModalPerfil(){ document.getElementById('modalPerfil').style.display = 'none'; }
+function atualizarContador(idCampo, idContador, max){
+  const tamanho = document.getElementById(idCampo).value.length;
+  document.getElementById(idContador).textContent = `${tamanho}/${max}`;
+}
+
+function mudarModoCapa(modo){
+  document.getElementById('campoModoUpload').classList.toggle('oculto', modo!=='upload');
+  document.getElementById('campoModoLink').classList.toggle('oculto', modo!=='link');
+  document.getElementById('campoModoGaleria').classList.toggle('oculto', modo!=='galeria');
+  ['Upload','Link','Galeria'].forEach(m => {
+    const btn = document.getElementById('btnModo'+m);
+    const ativo = m.toLowerCase() === modo;
+    btn.style.background = ativo ? 'var(--accent)' : '#1e222b';
+    btn.style.color = ativo ? '#fff' : 'var(--muted)';
+  });
+}
+
+async function abrirModalGaleria(){
+  const snap = await db.collection('galeriaCapas').orderBy('criadoEm','desc').get();
+  const el = document.getElementById('listaGaleriaSelecao');
+  if(snap.empty){ el.innerHTML = '<div class="vazio" style="grid-column:1/-1;">Nenhuma imagem na galeria ainda.</div>'; }
+  else {
+    el.innerHTML = '';
+    snap.forEach(d => {
+      const g = d.data();
+      const img = document.createElement('img');
+      img.src = g.url;
+      img.style.cssText = 'width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;';
+      img.onclick = () => {
+        capaEscolhidaGaleria = g.url;
+        document.getElementById('previewFotoCapa').innerHTML = `<img src="${g.url}" style="width:100%;max-height:100px;object-fit:cover;border-radius:8px;">`;
+        fecharModalGaleria();
+      };
+      el.appendChild(img);
+    });
+  }
+  document.getElementById('modalGaleria').style.display = 'flex';
+}
+function fecharModalGaleria(){ document.getElementById('modalGaleria').style.display = 'none'; }
+
+function removerCapaPerfil(){
+  capaMarcadaParaRemover = true;
+  capaEscolhidaGaleria = null;
+  document.getElementById('previewFotoCapa').innerHTML = '<span style="font-size:12px;color:var(--muted);">Capa será removida ao salvar</span>';
+  const inputCapa = document.getElementById('inputFotoCapa');
+  if(inputCapa) inputCapa.value = '';
+}
+
+async function salvarPerfil(){
+  const statusEl = document.getElementById('statusUploadPerfil2') || document.getElementById('statusUploadPerfil');
+  const arquivoPerfil = document.getElementById('inputFotoPerfil').files[0];
+  const atualizacoes = { estiloLoja: estiloLojaAtual };
+
+  const slugDigitado = document.getElementById('inputSlugLoja').value.trim().toLowerCase();
+  const PALAVRAS_RESERVADAS = ['api','loja','p','icons','admin','viralize','index','manifest','favicon','service-worker','www','app','static','assets'];
+
+  if(slugDigitado){
+    if(slugDigitado.length < 3){
+      aviso('O apelido da loja precisa ter pelo menos 3 letras.');
+      return;
+    }
+    if(PALAVRAS_RESERVADAS.includes(slugDigitado)){
+      aviso('Esse apelido não pode ser usado, escolha outro.');
+      return;
+    }
+    statusEl.textContent = 'Verificando apelido...';
+    const jaExiste = await db.collection('usuarios').where('slug','==', slugDigitado).limit(1).get();
+    if(!jaExiste.empty && jaExiste.docs[0].id !== usuarioAtual.uid){
+      statusEl.textContent = '';
+      aviso('Esse apelido já está sendo usado por outra loja. Escolha outro.');
+      return;
+    }
+    atualizacoes.slug = slugDigitado;
+  } else {
+    atualizacoes.slug = firebase.firestore.FieldValue.delete();
+  }
+
+  if(planoAtualUsuario === 'pago'){
+    atualizacoes.nomeLoja = document.getElementById('inputNomeLoja').value.trim().slice(0,40);
+    atualizacoes.descricaoLoja = document.getElementById('inputDescricaoLoja').value.trim().slice(0,100);
+    atualizacoes.corLoja = document.getElementById('inputCorLoja').value;
+  }
+
+  try{
+    if(arquivoPerfil){
+      statusEl.textContent = 'Enviando foto de perfil...';
+      atualizacoes.fotoPerfil = await subirArquivoR2(arquivoPerfil);
+    }
+
+    if(planoAtualUsuario === 'pago'){
+      const arquivoCapa = document.getElementById('inputFotoCapa') ? document.getElementById('inputFotoCapa').files[0] : null;
+      const linkCapa = document.getElementById('inputLinkCapa') ? document.getElementById('inputLinkCapa').value.trim() : '';
+
+      if(arquivoCapa){
+        statusEl.textContent = 'Enviando capa...';
+        atualizacoes.fotoCapa = await subirArquivoR2(arquivoCapa);
+      } else if(linkCapa){
+        atualizacoes.fotoCapa = linkCapa;
+      } else if(capaEscolhidaGaleria){
+        atualizacoes.fotoCapa = capaEscolhidaGaleria;
+      } else if(capaMarcadaParaRemover){
+        atualizacoes.fotoCapa = firebase.firestore.FieldValue.delete();
+      }
+    }
+
+    await db.collection('usuarios').doc(usuarioAtual.uid).set(atualizacoes, { merge: true });
+    statusEl.textContent = '';
+    fecharModalPerfil();
+    aviso('Loja atualizada! ✅');
+  }catch(err){
+    statusEl.textContent = '';
+    aviso('Erro ao salvar: ' + err.message);
+  }
+}
+async function copiarLinkLoja(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const dados = doc.data() || {};
+  const link = dados.slug
+    ? window.location.origin + '/' + dados.slug
+    : window.location.origin + '/loja.html?uid=' + usuarioAtual.uid;
+  navigator.clipboard.writeText(link);
+  aviso('Link da sua loja copiado! Cole na bio do TikTok, Instagram ou onde quiser divulgar:\n' + link, '🔗');
+}
+function carregarCatalogo(){
+  if(!usuarioAtual) return;
+  db.collection('usuarios').doc(usuarioAtual.uid).get().then(doc => {
+    planoCatalogoAtual = (doc.exists && doc.data().plano === 'pago') ? 'pago' : 'gratis';
+  });
+  db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').orderBy('criadoEm','desc')
+    .onSnapshot(snap => {
+      const el = document.getElementById('catalogoLista');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Seu catálogo está vazio.<br>Crie um post do tipo Produto para adicionar itens aqui.</div>'; return; }
+      el.innerHTML = '<h3>🛍️ Meu Catálogo</h3>';
+      snap.forEach(d => {
+        const p = d.data();
+        const ativo = p.ativo !== false; // itens antigos sem o campo contam como ativos
+        el.innerHTML += `<div class="produto-card" style="${ativo ? '' : 'opacity:.5;'}flex-wrap:wrap;">
+          <img src="${p.img || 'https://via.placeholder.com/70'}">
+          <div class="produto-info">
+            <div>${p.nome}</div>
+            <div class="preco">R$ ${p.preco||'--'}</div>
+            <div style="font-size:10px;color:${ativo ? '#4caf50' : 'var(--muted)'};font-weight:700;">${ativo ? '● Ativo na loja' : '○ Desativado (não aparece na loja)'} · 🖱️ ${p.cliques||0} cliques · 👀 ${p.visualizacoesViral||0} no Viral</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${planoCatalogoAtual === 'pago' ? `<button onclick="abrirEditarProduto('${d.id}')" style="background:#1e2a3a;color:#7ec6ff;border:none;border-radius:8px;padding:8px 10px;font-size:11px;white-space:nowrap;">✏️ Editar</button>` : ''}
+            <button onclick="alternarStatusProduto('${d.id}', ${ativo})" style="background:${ativo ? '#3a1e1e' : '#1e3a24'};color:${ativo ? '#ff8080' : '#7ee08a'};border:none;border-radius:8px;padding:8px 10px;font-size:11px;white-space:nowrap;">${ativo ? 'Desativar' : 'Ativar'}</button>
+            <button onclick="excluirDoCatalogoPessoal('${d.id}')" style="background:#2a1616;color:#ff8080;border:none;border-radius:8px;padding:6px 10px;font-size:11px;">🗑️ Excluir</button>
+          </div>
+        </div>`;
+      });
+    });
+}
+
+function excluirDoCatalogoPessoal(itemId){
+  if(!confirm('Excluir esse item do seu catálogo? Essa ação não pode ser desfeita.')) return;
+  db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').doc(itemId).delete();
+}
+
+function alternarStatusProduto(itemId, estaAtivo){
+  db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').doc(itemId)
+    .update({ ativo: !estaAtivo });
+}
+
+/* ---------------- EDITAR PRODUTO DO CATÁLOGO (só Pro) ---------------- */
+let itemEditandoAtual = null;
+
+async function abrirEditarProduto(itemId){
+  if(planoCatalogoAtual !== 'pago'){
+    aviso('Editar produtos é um recurso do Viralize Pro. ⭐', '⭐', 'Assinar Viralize Pro', abrirModalAssinatura);
+    return;
+  }
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').doc(itemId).get();
+  if(!doc.exists) return;
+  const p = doc.data();
+  itemEditandoAtual = itemId;
+
+  document.getElementById('editProdPlataforma').value = p.plataforma || 'Shopee';
+  document.getElementById('editProdNome').value = p.nome || '';
+  document.getElementById('editProdPreco').value = p.preco || '';
+  document.getElementById('editProdLink').value = p.link || '';
+
+  const imagens = (p.imagens && p.imagens.length ? p.imagens : [p.img]).filter(Boolean);
+  document.getElementById('editProdImg1').value = imagens[0] || '';
+  document.getElementById('editProdImg2').value = imagens[1] || '';
+  document.getElementById('editProdImg3').value = imagens[2] || '';
+  document.getElementById('editProdImg4').value = imagens[3] || '';
+
+  document.getElementById('modalEditarProduto').style.display = 'flex';
+}
+
+function fecharModalEditarProduto(){
+  document.getElementById('modalEditarProduto').style.display = 'none';
+  itemEditandoAtual = null;
+}
+
+async function salvarEdicaoProduto(){
+  if(!itemEditandoAtual) return;
+
+  const nome = document.getElementById('editProdNome').value.trim();
+  const link = document.getElementById('editProdLink').value.trim();
+  if(!nome || !link){ aviso('Preencha nome e link de afiliado do produto.'); return; }
+
+  const imagens = ['editProdImg1','editProdImg2','editProdImg3','editProdImg4']
+    .map(id => document.getElementById(id).value.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
+  await db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo').doc(itemEditandoAtual).update({
+    nome,
+    preco: document.getElementById('editProdPreco').value.trim(),
+    plataforma: document.getElementById('editProdPlataforma').value,
+    link,
+    img: imagens[0] || '',
+    imagens
+  });
+
+  fecharModalEditarProduto();
+  aviso('Produto atualizado! ✅');
+}
+
+/* ---------------- IMPORTAR PLANILHA DE PRODUTOS (só Pro/admin) ---------------- */
+const LIMITE_LINHAS_PLANILHA = 300;
+
+function carregarSheetJS(){
+  return new Promise((resolve, reject) => {
+    if(window.XLSX) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Não foi possível carregar o leitor de planilhas. Confira sua internet e tente de novo.'));
+    document.head.appendChild(s);
+  });
+}
+
+async function podeImportarPlanilha(){
+  if(!usuarioAtual) return false;
+  if(usuarioAtual.email === ADMIN_EMAIL) return true;
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  return doc.exists && doc.data().plano === 'pago';
+}
+
+async function abrirModalImportar(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  if(!(await podeImportarPlanilha())){
+    aviso('Importar planilha de produtos é um recurso do Viralize Pro. ⭐', '⭐', 'Assinar Viralize Pro', abrirModalAssinatura);
+    return;
+  }
+  document.getElementById('inputPlanilha').value = '';
+  document.getElementById('statusImportacao').textContent = '';
+  document.getElementById('resultadoImportacao').innerHTML = '';
+  document.getElementById('modalImportar').style.display = 'flex';
+}
+function fecharModalImportar(){ document.getElementById('modalImportar').style.display = 'none'; }
+
+async function baixarModeloPlanilha(){
+  try{
+    await carregarSheetJS();
+  }catch(err){ aviso(err.message); return; }
+  const dados = [
+    ['nome','preco','plataforma','link','imagem1','imagem2','imagem3','imagem4'],
+    ['Fone Bluetooth X10','79,90','Shopee','https://shopee.com.br/seu-link-de-afiliado','https://exemplo.com/foto1.jpg','https://exemplo.com/foto2.jpg','','']
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(dados);
+  ws['!cols'] = [{wch:32},{wch:10},{wch:16},{wch:48},{wch:36},{wch:36},{wch:36},{wch:36}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+  XLSX.writeFile(wb, 'modelo-produtos-viralize.xlsx');
+}
+
+function normalizarChavePlanilha(t){
+  return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+}
+function formatarPrecoPlanilha(n){
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace('.', ',');
+}
+function limparPrecoTexto(t){
+  let p = String(t).replace(/R\$/gi, '').replace(/\s/g, '');
+  if(/^\d+\.\d{1,2}$/.test(p)) p = p.replace('.', ','); // 79.9 -> 79,9
+  return p;
+}
+function inferirPlataforma(texto, link){
+  const t = normalizarChavePlanilha(texto || '');
+  const l = (link || '').toLowerCase();
+  if(t.includes('shopee') || l.includes('shopee.') || l.includes('shope.ee')) return 'Shopee';
+  if(t.includes('amazon') || l.includes('amazon.') || l.includes('amzn.')) return 'Amazon';
+  if(t.includes('mercadolivre') || l.includes('mercadolivre.') || l.includes('meli.la')) return 'Mercado Livre';
+  if(t.includes('shein') || l.includes('shein.')) return 'Shein';
+  if(t.includes('dridalia') || l.includes('dridalia.')) return 'Dridália Modas';
+  return 'Outro';
+}
+function mapearLinhaPlanilha(linha){
+  const r = { nome:'', preco:'', plataformaTexto:'', link:'' };
+  const imgs = {};
+  Object.keys(linha).forEach(chaveOriginal => {
+    const valorBruto = linha[chaveOriginal];
+    if(valorBruto === null || valorBruto === undefined || valorBruto === '') return;
+    const k = normalizarChavePlanilha(chaveOriginal);
+    const texto = String(valorBruto).trim();
+    if(!texto) return;
+    if(k.startsWith('nome') || k === 'produto' || k === 'titulo') r.nome = texto;
+    else if(k.startsWith('preco') || k === 'valor') r.preco = (typeof valorBruto === 'number') ? formatarPrecoPlanilha(valorBruto) : limparPrecoTexto(texto);
+    else if(k.startsWith('plataforma') || k === 'marketplace' || k === 'loja') r.plataformaTexto = texto;
+    else if(k.startsWith('link') || k === 'url') r.link = texto;
+    else {
+      const m = k.match(/^(imagem|img|foto)(\d)?/);
+      if(m){
+        const idx = m[2] ? parseInt(m[2], 10) : 1;
+        if(idx >= 1 && idx <= 4) imgs[idx] = texto;
+      }
+    }
+  });
+  r.imagens = [1,2,3,4].map(i => imgs[i]).filter(u => u && /^https?:\/\//i.test(u));
+  return r;
+}
+function chaveProduto(nome, link){
+  return String(nome).trim().toLowerCase() + '|' + String(link).trim();
+}
+
+async function importarPlanilha(){
+  const statusEl = document.getElementById('statusImportacao');
+  const resultadoEl = document.getElementById('resultadoImportacao');
+  const btn = document.getElementById('btnImportar');
+  const arquivo = document.getElementById('inputPlanilha').files[0];
+  resultadoEl.innerHTML = '';
+
+  if(!arquivo){ aviso('Escolha o arquivo da planilha primeiro.'); return; }
+  if(!(await podeImportarPlanilha())){ aviso('Importar planilha é um recurso do Viralize Pro. ⭐'); return; }
+
+  btn.disabled = true;
+  try{
+    statusEl.textContent = 'Lendo a planilha...';
+    await carregarSheetJS();
+
+    let workbook;
+    if(/\.csv$/i.test(arquivo.name)){
+      const texto = await arquivo.text();
+      workbook = XLSX.read(texto, { type: 'string', raw: true });
+    } else {
+      const buffer = await arquivo.arrayBuffer();
+      workbook = XLSX.read(buffer, { type: 'array' });
+    }
+    const planilha = workbook.Sheets[workbook.SheetNames[0]];
+    const linhas = XLSX.utils.sheet_to_json(planilha, { defval: '' });
+
+    if(!linhas.length){ statusEl.textContent = ''; aviso('Essa planilha está vazia ou sem linhas de produto.'); return; }
+    if(linhas.length > LIMITE_LINHAS_PLANILHA){
+      statusEl.textContent = '';
+      aviso(`Essa planilha tem ${linhas.length} linhas. O máximo por envio é ${LIMITE_LINHAS_PLANILHA}. Divida em partes menores.`);
+      return;
+    }
+
+    statusEl.textContent = 'Conferindo seu catálogo atual...';
+    const colRef = db.collection('usuarios').doc(usuarioAtual.uid).collection('catalogo');
+    const existentesSnap = await colRef.get();
+    const existentes = new Map();
+    existentesSnap.forEach(d => { const x = d.data(); existentes.set(chaveProduto(x.nome || '', x.link || ''), d.ref); });
+
+    const operacoes = [];
+    const vistosNaPlanilha = new Set();
+    const problemas = [];
+    let novos = 0, atualizados = 0, semImagem = 0;
+    const agora = Date.now();
+
+    linhas.forEach((linha, i) => {
+      const numeroLinha = i + 2; // +2 porque a linha 1 é o cabeçalho
+      const p = mapearLinhaPlanilha(linha);
+      if(!p.nome || !p.link){ problemas.push(`Linha ${numeroLinha}: falta nome ou link`); return; }
+      if(!/^https?:\/\//i.test(p.link)){ problemas.push(`Linha ${numeroLinha}: o link precisa começar com http`); return; }
+
+      const chave = chaveProduto(p.nome, p.link);
+      if(vistosNaPlanilha.has(chave)){ problemas.push(`Linha ${numeroLinha}: produto repetido na planilha`); return; }
+      vistosNaPlanilha.add(chave);
+
+      if(!p.imagens.length) semImagem++;
+      const dados = {
+        nome: p.nome,
+        preco: p.preco,
+        img: p.imagens[0] || '',
+        imagens: p.imagens,
+        link: p.link,
+        plataforma: inferirPlataforma(p.plataformaTexto, p.link)
+      };
+
+      const refExistente = existentes.get(chave);
+      if(refExistente){
+        operacoes.push({ tipo: 'update', ref: refExistente, dados });
+        atualizados++;
+      } else {
+        operacoes.push({
+          tipo: 'set',
+          ref: colRef.doc(),
+          // a primeira linha da planilha fica no topo do catálogo
+          dados: { ...dados, ativo: true, criadoEm: firebase.firestore.Timestamp.fromMillis(agora - i) }
+        });
+        novos++;
+      }
+    });
+
+    if(!operacoes.length){
+      statusEl.textContent = '';
+      resultadoEl.innerHTML = `<div class="card" style="background:#2a1616;border-color:#4a2020;color:#ff8080;font-size:13px;">Nenhum produto válido encontrado.<br>${problemas.slice(0,5).map(escapeHtml).join('<br>')}</div>`;
+      return;
+    }
+
+    statusEl.textContent = `Salvando ${operacoes.length} produtos...`;
+    for(let i = 0; i < operacoes.length; i += 400){
+      const lote = db.batch();
+      operacoes.slice(i, i + 400).forEach(op => {
+        if(op.tipo === 'set') lote.set(op.ref, op.dados);
+        else lote.update(op.ref, op.dados);
+      });
+      await lote.commit();
+    }
+
+    statusEl.textContent = '';
+    document.getElementById('inputPlanilha').value = '';
+    resultadoEl.innerHTML = `
+      <div class="card" style="background:#132a1c;border-color:#1e5c37;font-size:13px;">
+        <div style="font-weight:700;color:#7ee08a;margin-bottom:4px;">✅ Importação concluída</div>
+        <div>${novos} produtos novos · ${atualizados} atualizados${problemas.length ? ` · ${problemas.length} ignorados` : ''}</div>
+        ${semImagem ? `<div style="color:var(--accent2);margin-top:6px;font-size:12px;">⚠️ ${semImagem} produto(s) sem imagem válida — não vão aparecer na aba Viral.</div>` : ''}
+        ${problemas.length ? `<div style="color:var(--muted);margin-top:6px;font-size:12px;">${problemas.slice(0,5).map(escapeHtml).join('<br>')}${problemas.length > 5 ? `<br>...e mais ${problemas.length - 5}` : ''}</div>` : ''}
+      </div>`;
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = '';
+    aviso('Não consegui importar a planilha: ' + (err.message || err));
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------------- PAINEL ADMIN ---------------- */
+function carregarAdminStats(){
+  Promise.all([
+    db.collection('posts').get(),
+    db.collection('usuarios').get()
+  ]).then(([postsSnap, usuariosSnap]) => {
+    let totalCompartilhamentos = 0;
+    postsSnap.forEach(d => totalCompartilhamentos += (d.data().compartilhamentos || 0));
+    const el = document.getElementById('adminStats');
+    el.innerHTML = `
+      <div class="card" style="flex:1;text-align:center;padding:10px;">
+        <div style="font-size:22px;font-weight:800;color:var(--accent2);">${postsSnap.size}</div>
+        <div style="font-size:11px;color:var(--muted);">Posts</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;padding:10px;">
+        <div style="font-size:22px;font-weight:800;color:var(--accent2);">${usuariosSnap.size}</div>
+        <div style="font-size:11px;color:var(--muted);">Usuários</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;padding:10px;">
+        <div style="font-size:22px;font-weight:800;color:var(--accent2);">${totalCompartilhamentos}</div>
+        <div style="font-size:11px;color:var(--muted);">Compartilhamentos</div>
+      </div>
+    `;
+  });
+}
+
+function carregarAdminPosts(){
+  db.collection('posts').orderBy('criadoEm','desc').limit(100)
+    .onSnapshot(snap => {
+      const el = document.getElementById('adminPosts');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum post ainda.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const p = d.data();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="top">
+            <div class="avatar">${(p.autorNome||'A')[0].toUpperCase()}</div>
+            <div class="autor">${p.autorNome||'Afiliado'}</div>
+            <div class="badge">${rotuloTipo(p.tipo)}</div>
+          </div>
+          ${p.texto ? `<div class="conteudo">${escapeHtml(p.texto)}</div>` : ''}
+          <div class="acoes">
+            <span>↗️ ${p.compartilhamentos||0}</span>
+            <span>👁️ ${p.visualizacoes||0}</span>
+            <button onclick="excluirPostAdmin('${d.id}')" style="color:#ff5c5c;margin-left:auto;">🗑️ Excluir</button>
+          </div>
+        `;
+        el.appendChild(div);
+      });
+    });
+}
+
+function excluirPostAdmin(postId){
+  if(!confirm('Excluir esta publicação permanentemente?')) return;
+  db.collection('posts').doc(postId).delete().then(() => carregarAdminStats());
+}
+
+function carregarAdminAprovacoes(){
+  db.collection('usuarios').where('status','==','pendente')
+    .onSnapshot(snap => {
+      const el = document.getElementById('adminAprovacoes');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum cadastro pendente no momento.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const u = d.data();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="top">
+            <div class="avatar">${(u.nome||'A')[0].toUpperCase()}</div>
+            <div class="autor">${u.nome||'Afiliado'}</div>
+          </div>
+          <div class="conteudo" style="color:var(--muted);">${u.email||''}</div>
+          <div class="acoes" style="gap:10px;">
+            <button onclick="responderAprovacao('${d.id}','aprovado')" style="background:#1e9e5e;color:#fff;padding:8px 14px;border-radius:8px;">✅ Aprovar</button>
+            <button onclick="responderAprovacao('${d.id}','recusado')" style="background:#3a1e1e;color:#ff8080;padding:8px 14px;border-radius:8px;">✕ Recusar</button>
+          </div>
+        `;
+        el.appendChild(div);
+      });
+    });
+}
+
+function responderAprovacao(userId, novoStatus){
+  db.collection('usuarios').doc(userId).get().then(doc => {
+    const dados = doc.data() || {};
+    db.collection('usuarios').doc(userId).update({ status: novoStatus }).then(() => {
+      carregarAdminStats();
+      criarNotificacao(userId, novoStatus === 'aprovado' ? '✅ Seu cadastro foi aprovado! Bem-vindo ao Viralize.' : '🚫 Seu cadastro não foi aprovado.');
+
+      if(novoStatus === 'aprovado' && dados.convidadoPor && !dados.indicacaoCreditada){
+        db.collection('usuarios').doc(userId).update({ indicacaoCreditada: true }).catch(()=>{});
+        db.collection('usuarios').doc(dados.convidadoPor).update({
+          pontos: firebase.firestore.FieldValue.increment(30),
+          indicacoes: firebase.firestore.FieldValue.increment(1)
+        }).catch(()=>{});
+        criarNotificacao(dados.convidadoPor, `🎁 ${dados.nome || 'Alguém'} entrou pelo seu convite! Você ganhou 30 pontos.`);
+      }
+    });
+  });
+}
+
+/* ---------------- PALETA DE CORES (ADMIN) ---------------- */
+const CORES_PADRAO = {
+  '--bg': '#0f1115', '--card': '#171a21', '--accent': '#ff5c35',
+  '--accent2': '#ffb347', '--text': '#f2f2f2', '--muted': '#9aa0ab', '--border': '#262a33'
+};
+const NOMES_CORES = {
+  '--bg': 'Fundo geral', '--card': 'Fundo dos cartões', '--accent': 'Cor principal (destaque)',
+  '--accent2': 'Cor secundária (destaque 2)', '--text': 'Texto', '--muted': 'Texto apagado', '--border': 'Bordas'
+};
+
+function aplicarCores(cores){
+  Object.entries(cores).forEach(([variavel, valor]) => {
+    document.documentElement.style.setProperty(variavel, valor);
+  });
+}
+
+async function carregarCoresSalvas(){
+  try{
+    const doc = await db.collection('config').doc('aparencia').get();
+    if(doc.exists) aplicarCores(doc.data());
+  }catch(err){ /* sem configuração salva ainda, usa o padrão do CSS */ }
+}
+
+function montarCamposCores(){
+  const el = document.getElementById('camposCores');
+  el.innerHTML = '';
+  Object.keys(CORES_PADRAO).forEach(variavel => {
+    const valorAtual = getComputedStyle(document.documentElement).getPropertyValue(variavel).trim() || CORES_PADRAO[variavel];
+    const linha = document.createElement('div');
+    linha.style.cssText = 'display:flex;align-items:center;gap:12px;margin-bottom:10px;';
+    linha.innerHTML = `
+      <input type="color" data-var="${variavel}" value="${valorAtual}" style="width:44px;height:44px;border:none;border-radius:8px;padding:0;background:none;">
+      <div style="flex:1;font-size:13px;">${NOMES_CORES[variavel]}</div>
+    `;
+    el.appendChild(linha);
+    linha.querySelector('input').addEventListener('input', (e) => {
+      document.documentElement.style.setProperty(variavel, e.target.value);
+    });
+  });
+}
+
+async function salvarCoresAdmin(){
+  const inputs = document.querySelectorAll('#camposCores input[type=color]');
+  const cores = {};
+  inputs.forEach(i => cores[i.dataset.var] = i.value);
+  await db.collection('config').doc('aparencia').set(cores);
+  aviso('Cores salvas! Já valem pra todo mundo que abrir o app agora. 🎨');
+}
+
+function restaurarCoresPadrao(){
+  aplicarCores(CORES_PADRAO);
+  montarCamposCores();
+}
+
+/* ---------------- CHAT DE SUPORTE AO VIVO ---------------- */
+let unsubscribeChatSuporte = null;
+let chatSuporteUserId = null; // quando o admin abre o chat de um afiliado específico
+
+function abrirChatSuporte(mensagemInicial, userIdAlvo){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  // Afiliado sempre fala no PRÓPRIO chat. Admin pode abrir o chat de qualquer afiliado (userIdAlvo).
+  chatSuporteUserId = userIdAlvo || usuarioAtual.uid;
+  document.getElementById('modalChatSuporte').style.display = 'flex';
+  document.getElementById('tituloChatSuporte').textContent = userIdAlvo ? '💬 Chat com afiliado' : '💬 Chat com o suporte';
+
+  if(unsubscribeChatSuporte) unsubscribeChatSuporte();
+  unsubscribeChatSuporte = db.collection('chats').doc(chatSuporteUserId).collection('mensagens')
+    .orderBy('criadoEm','asc')
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaChatSuporte');
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const m = d.data();
+        const minhaMsg = m.autor === (userIdAlvo ? 'admin' : 'usuario');
+        const div = document.createElement('div');
+        div.style.cssText = `margin-bottom:10px;display:flex;flex-direction:column;align-items:${minhaMsg ? 'flex-end' : 'flex-start'};`;
+        div.innerHTML = `
+          <span style="font-size:10px;color:var(--muted);margin-bottom:2px;">${m.autor==='admin' ? 'Admin' : (m.autorNome||'Afiliado')}</span>
+          <div style="background:${minhaMsg ? 'var(--accent)' : 'var(--card)'};border:1px solid var(--border);color:${minhaMsg?'#fff':'var(--text)'};border-radius:12px;padding:8px 12px;font-size:13px;max-width:80%;">${escapeHtml(m.texto)}</div>
+        `;
+        el.appendChild(div);
+      });
+      el.scrollTop = el.scrollHeight;
+    });
+
+  if(mensagemInicial){
+    enviarMensagemChatSuporte(mensagemInicial);
+  }
+}
+
+function fecharChatSuporte(){
+  document.getElementById('modalChatSuporte').style.display = 'none';
+  if(unsubscribeChatSuporte){ unsubscribeChatSuporte(); unsubscribeChatSuporte = null; }
+  chatSuporteUserId = null;
+}
+
+/* ---------------- CHAT DA COMUNIDADE (ao vivo, todo mundo junto) ---------------- */
+let unsubscribeChatGeral = null;
+let unsubscribeBadgeChatGeral = null;
+
+function abrirChatGeral(){
+  if(!usuarioAtual){ aviso('Faça login primeiro.'); return; }
+  if(!configRecursos.chatAtivo){ aviso('O chat da comunidade está desativado no momento.'); return; }
+  document.getElementById('modalChatGeral').style.display = 'flex';
+  document.getElementById('badgeChatGeral').classList.add('oculto');
+  localStorage.setItem('viralizeUltimaLeituraChatGeral', Date.now().toString());
+
+  if(unsubscribeChatGeral) unsubscribeChatGeral();
+  unsubscribeChatGeral = db.collection('chatGeral').orderBy('criadoEm','desc').limit(100)
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaChatGeral');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhuma mensagem ainda. Comece a conversa! 👋</div>'; return; }
+      const msgs = [];
+      snap.forEach(d => msgs.push(d.data()));
+      msgs.reverse();
+      el.innerHTML = '';
+      msgs.forEach(m => {
+        const minhaMsg = m.autorId === usuarioAtual.uid;
+        const div = document.createElement('div');
+        div.style.cssText = `margin-bottom:12px;display:flex;flex-direction:column;align-items:${minhaMsg ? 'flex-end' : 'flex-start'};`;
+        div.innerHTML = `
+          <span style="font-size:10px;color:var(--muted);margin-bottom:2px;">${escapeHtml(m.autorNome || 'Afiliado')}</span>
+          <div style="background:${minhaMsg ? 'var(--accent)' : 'var(--card)'};border:1px solid var(--border);color:${minhaMsg?'#fff':'var(--text)'};border-radius:12px;padding:8px 12px;font-size:13px;max-width:80%;word-break:break-word;">${escapeHtml(m.texto)}</div>
+        `;
+        el.appendChild(div);
+      });
+      el.scrollTop = el.scrollHeight;
+    });
+}
+
+function fecharChatGeral(){
+  document.getElementById('modalChatGeral').style.display = 'none';
+  if(unsubscribeChatGeral){ unsubscribeChatGeral(); unsubscribeChatGeral = null; }
+}
+
+async function enviarMensagemChatGeral(){
+  const input = document.getElementById('inputChatGeral');
+  const texto = input.value.trim();
+  if(!texto || !usuarioAtual) return;
+
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = doc.exists ? doc.data().nome : 'Afiliado';
+
+  await db.collection('chatGeral').add({
+    texto: texto.slice(0, 500),
+    autorId: usuarioAtual.uid,
+    autorNome: nomeAutor,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  input.value = '';
+}
+
+function escutarBadgeChatGeral(){
+  if(!usuarioAtual) return;
+  if(unsubscribeBadgeChatGeral) unsubscribeBadgeChatGeral();
+  unsubscribeBadgeChatGeral = db.collection('chatGeral').orderBy('criadoEm','desc').limit(1)
+    .onSnapshot(snap => {
+      if(snap.empty) return;
+      const ultima = snap.docs[0].data();
+      const modalAberto = document.getElementById('modalChatGeral').style.display === 'flex';
+      const ultimaLeitura = Number(localStorage.getItem('viralizeUltimaLeituraChatGeral') || 0);
+      const criadoEmMs = ultima.criadoEm ? ultima.criadoEm.toMillis() : 0;
+      if(!modalAberto && ultima.autorId !== usuarioAtual.uid && criadoEmMs > ultimaLeitura){
+        document.getElementById('badgeChatGeral').classList.remove('oculto');
+      }
+    });
+}
+
+async function enviarMensagemChatSuporte(textoForcado){
+  const input = document.getElementById('inputChatSuporte');
+  const texto = textoForcado || input.value.trim();
+  if(!texto || !chatSuporteUserId || !usuarioAtual) return;
+
+  const souAdmin = usuarioAtual.email === ADMIN_EMAIL && chatSuporteUserId !== usuarioAtual.uid;
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = doc.exists ? doc.data().nome : 'Afiliado';
+
+  await db.collection('chats').doc(chatSuporteUserId).collection('mensagens').add({
+    texto,
+    autor: souAdmin ? 'admin' : 'usuario',
+    autorNome: souAdmin ? 'Admin' : nomeAutor,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  await db.collection('chats').doc(chatSuporteUserId).set({
+    nomeUsuario: souAdmin ? (document.getElementById('tituloChatSuporte').dataset.nome || 'Afiliado') : nomeAutor,
+    ultimaMensagem: texto,
+    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    lidoPeloAdmin: souAdmin
+  }, { merge: true });
+
+  if(!textoForcado) input.value = '';
+}
+function carregarConversasAdmin(){
+  db.collection('chats').orderBy('atualizadoEm','desc')
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaConversasAdmin');
+      if(!el) return;
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhuma conversa ainda.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const c = d.data();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `
+          <div class="top"><div class="autor">${c.nomeUsuario || 'Afiliado'}</div></div>
+          <div class="conteudo" style="color:var(--muted);">${escapeHtml(c.ultimaMensagem || '')}</div>
+        `;
+        div.onclick = () => {
+          document.getElementById('tituloChatSuporte').dataset.nome = c.nomeUsuario;
+          abrirChatSuporte(null, d.id);
+        };
+        el.appendChild(div);
+      });
+    });
+}
+
+/* ---------------- AJUSTES (chat geral on/off + produto campeão) ---------------- */
+async function carregarAjustesAdmin(){
+  const doc = await db.collection('config').doc('recursos').get();
+  const c = doc.exists ? doc.data() : {};
+  configRecursos = { chatAtivo: c.chatAtivo !== false, pagamentoAtivo: c.pagamentoAtivo !== false, ctaAtivo: c.ctaAtivo === true, ctaTexto: c.ctaTexto || '', ctaLink: c.ctaLink || '', produtoCampeaoDono: c.produtoCampeaoDono || null, produtoCampeaoId: c.produtoCampeaoId || null };
+
+  atualizarBotaoToggleChat();
+  atualizarBotaoTogglePagamento();
+  atualizarBotaoToggleCTA();
+  document.getElementById('inputCTATexto').value = configRecursos.ctaTexto;
+  document.getElementById('inputCTALink').value = configRecursos.ctaLink;
+
+  const painelCampeao = document.getElementById('produtoCampeaoAtual');
+  if(configRecursos.produtoCampeaoId){
+    const itemDoc = await db.collection('usuarios').doc(configRecursos.produtoCampeaoDono).collection('catalogo').doc(configRecursos.produtoCampeaoId).get();
+    const item = itemDoc.exists ? itemDoc.data() : null;
+    painelCampeao.innerHTML = item ? `
+      <div class="produto-card" style="box-shadow:0 0 0 2px var(--accent), 0 0 16px rgba(255,92,53,.6);">
+        <img src="${item.img || 'https://via.placeholder.com/70'}">
+        <div class="produto-info">
+          <div>👑 ${item.nome || 'Sem nome'}</div>
+          <div class="preco">R$ ${item.preco || '--'}</div>
+        </div>
+        <button onclick="removerProdutoCampeao()" style="color:#ff5c5c;background:none;border:none;">🗑️</button>
+      </div>
+    ` : '<div class="vazio">O produto campeão anterior foi removido do catálogo.</div>';
+  } else {
+    painelCampeao.innerHTML = '<div class="vazio">Nenhum produto campeão definido ainda.</div>';
+  }
+
+  db.collectionGroup('catalogo').limit(200).get().then(snap => {
+    const el = document.getElementById('listaEscolherCampeao');
+    if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum produto em catálogo ainda.</div>'; return; }
+    el.innerHTML = '';
+    snap.forEach(doc => {
+      const p = doc.data();
+      const userId = doc.ref.parent.parent.id;
+      const jaEhCampeao = userId === configRecursos.produtoCampeaoDono && doc.id === configRecursos.produtoCampeaoId;
+      const div = document.createElement('div');
+      div.className = 'produto-card';
+      div.innerHTML = `
+        <img src="${p.img || 'https://via.placeholder.com/70'}">
+        <div class="produto-info">
+          <div>${p.nome || 'Sem nome'}</div>
+          <div class="preco">R$ ${p.preco || '--'}</div>
+        </div>
+        <button onclick="definirProdutoCampeao('${userId}','${doc.id}')" ${jaEhCampeao ? 'disabled' : ''} style="background:${jaEhCampeao ? '#3a2c1e' : '#1e3a24'};color:${jaEhCampeao ? 'var(--accent2)' : '#7ee08a'};border:none;border-radius:8px;padding:8px 10px;font-size:11px;white-space:nowrap;">${jaEhCampeao ? '👑 Atual' : 'Tornar campeão'}</button>
+      `;
+      el.appendChild(div);
+    });
+  });
+}
+
+function atualizarBotaoToggleChat(){
+  const btn = document.getElementById('btnToggleChatGeral');
+  btn.textContent = configRecursos.chatAtivo ? '✅ Ativado' : '⛔ Desativado';
+  btn.style.background = configRecursos.chatAtivo ? '#1e3a24' : '#3a1e1e';
+  btn.style.color = configRecursos.chatAtivo ? '#7ee08a' : '#ff8080';
+}
+
+async function alternarChatGeralAdmin(){
+  configRecursos.chatAtivo = !configRecursos.chatAtivo;
+  await db.collection('config').doc('recursos').set({ chatAtivo: configRecursos.chatAtivo }, { merge: true });
+  atualizarBotaoToggleChat();
+  aplicarVisibilidadeChatGeral();
+}
+
+function atualizarBotaoTogglePagamento(){
+  const btn = document.getElementById('btnTogglePagamento');
+  btn.textContent = configRecursos.pagamentoAtivo ? '✅ Ativado' : '⛔ Desativado';
+  btn.style.background = configRecursos.pagamentoAtivo ? '#1e3a24' : '#3a1e1e';
+  btn.style.color = configRecursos.pagamentoAtivo ? '#7ee08a' : '#ff8080';
+}
+async function alternarPagamentoAdmin(){
+  configRecursos.pagamentoAtivo = !configRecursos.pagamentoAtivo;
+  await db.collection('config').doc('recursos').set({ pagamentoAtivo: configRecursos.pagamentoAtivo }, { merge: true });
+  atualizarBotaoTogglePagamento();
+}
+
+function atualizarBotaoToggleCTA(){
+  const btn = document.getElementById('btnToggleCTA');
+  btn.textContent = configRecursos.ctaAtivo ? '✅ Ativado' : '⛔ Desativado';
+  btn.style.background = configRecursos.ctaAtivo ? '#1e3a24' : '#3a1e1e';
+  btn.style.color = configRecursos.ctaAtivo ? '#7ee08a' : '#ff8080';
+}
+async function alternarCTAAdmin(){
+  configRecursos.ctaAtivo = !configRecursos.ctaAtivo;
+  await db.collection('config').doc('recursos').set({ ctaAtivo: configRecursos.ctaAtivo }, { merge: true });
+  atualizarBotaoToggleCTA();
+  aplicarVisibilidadeCTA();
+}
+async function salvarCTAAdmin(){
+  const texto = document.getElementById('inputCTATexto').value.trim();
+  const link = document.getElementById('inputCTALink').value.trim();
+  if(!texto || !link){ aviso('Preencha o texto e o link do botão.'); return; }
+  if(!/^https?:\/\//i.test(link)){ aviso('O link precisa começar com http:// ou https://'); return; }
+  configRecursos.ctaTexto = texto;
+  configRecursos.ctaLink = link;
+  await db.collection('config').doc('recursos').set({ ctaTexto: texto, ctaLink: link }, { merge: true });
+  aplicarVisibilidadeCTA();
+  aviso('Chamada pra ação salva! 📣');
+}
+function aplicarVisibilidadeCTA(){
+  const btn = document.getElementById('fabCTA');
+  if(!btn) return;
+  if(configRecursos.ctaAtivo && configRecursos.ctaTexto && configRecursos.ctaLink){
+    document.getElementById('textoFabCTA').textContent = configRecursos.ctaTexto;
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+function clicouBotaoCTA(){
+  if(configRecursos.ctaLink) window.open(configRecursos.ctaLink, '_blank');
+}
+
+async function definirProdutoCampeao(donoId, itemId){
+  configRecursos.produtoCampeaoDono = donoId;
+  configRecursos.produtoCampeaoId = itemId;
+  await db.collection('config').doc('recursos').set({ produtoCampeaoDono: donoId, produtoCampeaoId: itemId }, { merge: true });
+  carregarAjustesAdmin();
+  aviso('Produto campeão definido! 👑🔥');
+}
+
+async function removerProdutoCampeao(){
+  configRecursos.produtoCampeaoDono = null;
+  configRecursos.produtoCampeaoId = null;
+  await db.collection('config').doc('recursos').set({
+    produtoCampeaoDono: firebase.firestore.FieldValue.delete(),
+    produtoCampeaoId: firebase.firestore.FieldValue.delete()
+  }, { merge: true });
+  carregarAjustesAdmin();
+}
+
+function aplicarVisibilidadeChatGeral(){
+  const btn = document.getElementById('fabChatGeral');
+  if(!btn) return;
+  btn.style.display = configRecursos.chatAtivo ? 'flex' : 'none';
+}
+
+let unsubscribeConfigRecursos = null;
+function escutarConfigRecursos(){
+  if(unsubscribeConfigRecursos) unsubscribeConfigRecursos();
+  unsubscribeConfigRecursos = db.collection('config').doc('recursos').onSnapshot(doc => {
+    const c = doc.exists ? doc.data() : {};
+    configRecursos = { chatAtivo: c.chatAtivo !== false, pagamentoAtivo: c.pagamentoAtivo !== false, ctaAtivo: c.ctaAtivo === true, ctaTexto: c.ctaTexto || '', ctaLink: c.ctaLink || '', produtoCampeaoDono: c.produtoCampeaoDono || null, produtoCampeaoId: c.produtoCampeaoId || null };
+    aplicarVisibilidadeChatGeral();
+    aplicarVisibilidadeCTA();
+  }, () => {});
+}
+
+async function carregarConfigRecursos(){
+  try{
+    const doc = await db.collection('config').doc('recursos').get();
+    const c = doc.exists ? doc.data() : {};
+    configRecursos = { chatAtivo: c.chatAtivo !== false, pagamentoAtivo: c.pagamentoAtivo !== false, ctaAtivo: c.ctaAtivo === true, ctaTexto: c.ctaTexto || '', ctaLink: c.ctaLink || '', produtoCampeaoDono: c.produtoCampeaoDono || null, produtoCampeaoId: c.produtoCampeaoId || null };
+  }catch(err){
+    configRecursos = { chatAtivo: true, pagamentoAtivo: true, ctaAtivo: false, ctaTexto: '', ctaLink: '', produtoCampeaoDono: null, produtoCampeaoId: null };
+  }
+  aplicarVisibilidadeChatGeral();
+  aplicarVisibilidadeCTA();
+}
+
+function ehProdutoCampeao(donoId, itemId){
+  return configRecursos.produtoCampeaoDono === donoId && configRecursos.produtoCampeaoId === itemId;
+}
+
+function carregarCatalogosAdmin(){
+  db.collectionGroup('catalogo').get().then(snap => {
+    const el = document.getElementById('listaCatalogosAdmin');
+    if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum produto em catálogo ainda.</div>'; return; }
+    el.innerHTML = '';
+    snap.forEach(doc => {
+      const p = doc.data();
+      const userId = doc.ref.parent.parent.id;
+      const div = document.createElement('div');
+      div.className = 'produto-card';
+      div.innerHTML = `
+        <img src="${p.img || 'https://via.placeholder.com/70'}">
+        <div class="produto-info">
+          <div>${p.nome || 'Sem nome'}</div>
+          <div class="preco">R$ ${p.preco || '--'}</div>
+          <div style="font-size:10px;color:var(--muted);">dono: ${userId.slice(0,8)}...</div>
+        </div>
+        <button onclick="excluirItemCatalogoAdmin('${userId}','${doc.id}')" style="color:#ff5c5c;background:none;border:none;">🗑️</button>
+      `;
+      el.appendChild(div);
+    });
+  });
+}
+function excluirItemCatalogoAdmin(userId, itemId){
+  if(!confirm('Excluir este produto do catálogo desse afiliado?')) return;
+  db.collection('usuarios').doc(userId).collection('catalogo').doc(itemId).delete()
+    .then(() => carregarCatalogosAdmin());
+}
+
+/* ---------------- ASSINATURA VIRALIZE PRO (admin) ---------------- */
+async function carregarConfigAssinaturaAdmin(){
+  const doc = await db.collection('config').doc('pagamento').get();
+  const c = doc.exists ? doc.data() : {};
+  document.getElementById('configChavePix').value = c.chavePix || '';
+  document.getElementById('configPrecoAssinatura').value = c.precoAssinatura || '15';
+}
+async function salvarConfigAssinatura(){
+  await db.collection('config').doc('pagamento').set({
+    chavePix: document.getElementById('configChavePix').value.trim(),
+    precoAssinatura: document.getElementById('configPrecoAssinatura').value.trim()
+  }, { merge: true });
+  aviso('Configuração da assinatura salva!');
+}
+
+function carregarAssinaturasPendentes(){
+  db.collection('assinaturas').where('status','==','pendente')
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaAssinaturasPendentes');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhuma solicitação pendente.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const a = d.data();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="top"><div class="autor">${a.autorNome||'Afiliado'}</div></div>
+          <div class="conteudo">Quer assinar o Viralize Pro — R$ ${a.valor}/mês</div>
+          <div class="acoes" style="gap:10px;">
+            <button onclick="aprovarAssinatura('${d.id}')" style="background:#1e9e5e;color:#fff;padding:8px 14px;border-radius:8px;">✅ Confirmar pagamento e ativar</button>
+            <button onclick="recusarAssinatura('${d.id}')" style="background:#3a1e1e;color:#ff8080;padding:8px 14px;border-radius:8px;">✕ Recusar</button>
+          </div>
+        `;
+        el.appendChild(div);
+      });
+    });
+}
+
+async function aprovarAssinatura(assinaturaId){
+  const doc = await db.collection('assinaturas').doc(assinaturaId).get();
+  const a = doc.data();
+  await db.collection('usuarios').doc(a.userId).update({ plano: 'pago' });
+  await db.collection('assinaturas').doc(assinaturaId).update({ status: 'aprovado' });
+  criarNotificacao(a.userId, '⭐ Sua assinatura do Viralize Pro foi confirmada! Catálogo ilimitado e loja sem marca liberados.');
+}
+function recusarAssinatura(assinaturaId){
+  db.collection('assinaturas').doc(assinaturaId).get().then(doc => {
+    const a = doc.data();
+    db.collection('assinaturas').doc(assinaturaId).update({ status: 'recusado' });
+    if(a) criarNotificacao(a.userId, '❌ Seu pedido de assinatura não foi confirmado. Fale com o suporte se já pagou.');
+  });
+}
+
+function carregarAssinantesAtivos(){
+  db.collection('usuarios').where('plano','==','pago')
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaAssinantesAtivos');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum assinante ativo ainda.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const u = d.data();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="top"><div class="autor">⭐ ${u.nome||'Afiliado'}</div></div>
+          <button onclick="cancelarAssinatura('${d.id}')" style="background:#3a1e1e;color:#ff8080;border:none;padding:8px 14px;border-radius:8px;font-size:12px;">Cancelar assinatura</button>
+        `;
+        el.appendChild(div);
+      });
+    });
+}
+function cancelarAssinatura(userId){
+  if(!confirm('Cancelar a assinatura Pro desse afiliado?')) return;
+  db.collection('usuarios').doc(userId).update({ plano: 'gratis' });
+  criarNotificacao(userId, 'ℹ️ Sua assinatura do Viralize Pro foi cancelada.');
+}
+
+/* ---------------- GALERIA DE CAPAS (admin) ---------------- */
+async function enviarImagemGaleria(){
+  const arquivo = document.getElementById('inputGaleriaCapa').files[0];
+  if(!arquivo){ aviso('Selecione uma imagem primeiro.'); return; }
+  const statusEl = document.getElementById('statusUploadGaleria');
+  try{
+    statusEl.textContent = 'Enviando...';
+    const url = await subirArquivoR2(arquivo);
+    await db.collection('galeriaCapas').add({ url, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
+    statusEl.textContent = '';
+    document.getElementById('inputGaleriaCapa').value = '';
+    aviso('Imagem adicionada à galeria!');
+  }catch(err){
+    statusEl.textContent = '';
+    aviso('Erro: ' + err.message);
+  }
+}
+function carregarGaleriaAdmin(){
+  db.collection('galeriaCapas').orderBy('criadoEm','desc')
+    .onSnapshot(snap => {
+      const el = document.getElementById('listaGaleriaAdmin');
+      if(snap.empty){ el.innerHTML = '<div class="vazio" style="grid-column:1/-1;">Galeria vazia ainda.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const g = d.data();
+        const div = document.createElement('div');
+        div.style.cssText = 'position:relative;';
+        div.innerHTML = `
+          <img src="${g.url}" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;">
+          <button onclick="excluirImagemGaleria('${d.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;padding:2px 6px;font-size:11px;">🗑️</button>
+        `;
+        el.appendChild(div);
+      });
+    });
+}
+function excluirImagemGaleria(id){
+  if(!confirm('Remover essa imagem da galeria?')) return;
+  db.collection('galeriaCapas').doc(id).delete();
+}
+
+/* ---------------- ASSINATURA VIRALIZE PRO (lado do afiliado) ---------------- */
+async function abrirModalAssinatura(){
+  if(!configRecursos.pagamentoAtivo){
+    aviso('As assinaturas estão temporariamente indisponíveis. Tente novamente mais tarde.');
+    return;
+  }
+  fecharModalPerfil();
+  const doc = await db.collection('config').doc('pagamento').get();
+  const c = doc.exists ? doc.data() : { chavePix:'(não configurada)', precoAssinatura:'15' };
+  document.getElementById('infoAssinatura').innerHTML = `
+    <p style="font-size:14px;">⭐ Viralize Pro: <b>R$ ${c.precoAssinatura}/mês</b></p>
+    <p style="font-size:13px;color:var(--muted);">Catálogo ilimitado, loja sem a marca Viralize, capa personalizada (upload, link ou galeria) e edição de nome/descrição da loja. Envie o Pix e toque em "Já paguei" — sua solicitação vai pra aprovação do admin.</p>
+    <div style="background:#1e222b;border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <span style="font-size:13px;word-break:break-all;">${c.chavePix}</span>
+      <button onclick="navigator.clipboard.writeText('${c.chavePix}');aviso('Chave Pix copiada!')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:12px;">Copiar</button>
+    </div>
+  `;
+  window.precoAssinaturaAtual = c.precoAssinatura;
+  document.getElementById('modalAssinatura').style.display = 'flex';
+}
+function fecharModalAssinatura(){ document.getElementById('modalAssinatura').style.display = 'none'; }
+
+async function confirmarPagamentoAssinatura(){
+  const doc = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+  const nomeAutor = doc.exists ? doc.data().nome : 'Afiliado';
+
+  await db.collection('assinaturas').add({
+    userId: usuarioAtual.uid,
+    autorNome: nomeAutor,
+    valor: window.precoAssinaturaAtual || '15',
+    status: 'pendente',
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  fecharModalAssinatura();
+  abrirChatSuporte(`Olá! Acabei de pagar o Pix da assinatura Viralize Pro (R$ ${window.precoAssinaturaAtual || '15'}/mês). Pode confirmar? 🙏`);
+}
+
+function carregarAdminUsuarios(){
+  db.collection('usuarios').orderBy('pontos','desc').limit(100)
+    .onSnapshot(snap => {
+      const el = document.getElementById('adminUsuarios');
+      if(snap.empty){ el.innerHTML = '<div class="vazio">Nenhum usuário ainda.</div>'; return; }
+      el.innerHTML = '';
+      snap.forEach(d => {
+        const u = d.data();
+        const ehPro = u.plano === 'pago';
+        el.innerHTML += `<div class="rank-item">
+          <div class="avatar">${(u.nome||'A')[0].toUpperCase()}</div>
+          <div style="flex:1;">${ehPro ? '⭐ ' : ''}${u.nome||'Afiliado'}<br><small style="color:var(--muted)">${u.pontos||0} pontos${u.dominioPersonalizado ? ' · 🌐 ' + u.dominioPersonalizado : ''}</small></div>
+          <button onclick="definirDominioAdmin('${d.id}', '${(u.dominioPersonalizado||'').replace(/'/g,"\\'")}')" style="background:#1e2a3a;color:#7ec6ff;border:none;border-radius:8px;padding:8px 10px;font-size:11px;white-space:nowrap;">🌐 Domínio</button>
+          <button onclick="alternarProAdmin('${d.id}', ${ehPro})" style="background:${ehPro ? '#3a1e1e' : '#1e3a24'};color:${ehPro ? '#ff8080' : '#7ee08a'};border:none;border-radius:8px;padding:8px 10px;font-size:11px;white-space:nowrap;">${ehPro ? 'Remover Pro' : 'Conceder Pro'}</button>
+        </div>`;
+      });
+    });
+}
+async function definirDominioAdmin(userId, dominioAtual){
+  const novoDominio = prompt('Domínio personalizado desse afiliado (ex: lojadocarlos.com.br)\nDeixe em branco pra remover.\n\nLembre-se: o domínio também precisa ser adicionado manualmente ao projeto na Vercel.', dominioAtual || '');
+  if(novoDominio === null) return; // cancelou
+
+  const limpo = novoDominio.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/$/,'');
+  if(!limpo){
+    await db.collection('usuarios').doc(userId).update({ dominioPersonalizado: firebase.firestore.FieldValue.delete() });
+    aviso('Domínio removido.');
+    return;
+  }
+  await db.collection('usuarios').doc(userId).update({ dominioPersonalizado: limpo });
+  aviso(`Domínio salvo: ${limpo}\n\nNão esqueça de adicionar esse mesmo domínio no painel da Vercel (Project Settings → Domains) apontando pro projeto Viralize.`, '🌐');
+}
+function alternarProAdmin(userId, ehProAtualmente){
+  const novoPlano = ehProAtualmente ? 'gratis' : 'pago';
+  db.collection('usuarios').doc(userId).update({ plano: novoPlano });
+  criarNotificacao(userId, novoPlano === 'pago'
+    ? '⭐ O admin liberou o Viralize Pro pra você! Catálogo ilimitado e loja sem marca já estão ativos.'
+    : 'ℹ️ Seu acesso ao Viralize Pro foi removido pelo admin.');
+}
+</script>
 </body>
 </html>
