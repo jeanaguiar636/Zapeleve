@@ -689,56 +689,19 @@
     };
 
     // TOQUE DE TELEFONE ALTO E REALISTA
+    const toqueAudio = new Audio('toque.mp3');
+    toqueAudio.loop = true;
+    toqueAudio.preload = 'auto';
+
     function iniciarSomCampainha(tipo = 'tocar') {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (ringInterval) clearInterval(ringInterval);
-
-        const tocarToqueRealista = () => {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            // Frequências duplas típicas de telefone analógico/celular (Ring standard)
-            const freq1 = tipo === 'tocar' ? 950 : 440;
-            const freq2 = tipo === 'tocar' ? 1400 : 480;
-            const volumeMaximo = 0.6; // Bem alto para garantir destaque
-
-            const agora = audioCtx.currentTime;
-
-            // Pulso 1
-            const osc1 = audioCtx.createOscillator();
-            const gain1 = audioCtx.createGain();
-            osc1.type = 'square'; // Som mais cortante/audível
-            osc1.frequency.setValueAtTime(freq1, agora);
-            osc1.connect(gain1);
-            gain1.connect(audioCtx.destination);
-            gain1.gain.setValueAtTime(volumeMaximo, agora);
-            gain1.gain.exponentialRampToValueAtTime(0.001, agora + 0.18);
-            osc1.start(agora);
-            osc1.stop(agora + 0.18);
-
-            // Pulso 2
-            const osc2 = audioCtx.createOscillator();
-            const gain2 = audioCtx.createGain();
-            osc2.type = 'square';
-            osc2.frequency.setValueAtTime(freq2, agora + 0.2);
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-            gain2.gain.setValueAtTime(volumeMaximo, agora + 0.2);
-            gain2.gain.exponentialRampToValueAtTime(0.001, agora + 0.38);
-            osc2.start(agora + 0.2);
-            osc2.stop(agora + 0.38);
-        };
-
-        tocarToqueRealista();
-        ringInterval = setInterval(tocarToqueRealista, tipo === 'tocar' ? 2000 : 3000);
+        toqueAudio.volume = tipo === 'tocar' ? 1 : 0.5;
+        toqueAudio.currentTime = 0;
+        toqueAudio.play().catch(() => {});
     }
 
     function pararSomCampainha() {
-        if (ringInterval) {
-            clearInterval(ringInterval);
-            ringInterval = null;
-        }
+        toqueAudio.pause();
+        toqueAudio.currentTime = 0;
     }
 
     window.alternarModoEscuro = () => {
@@ -1076,7 +1039,7 @@
         } catch (err) {
             pararSomCampainha();
             alert("Erro ao aceder à câmara/microfone. Verifique as permissões do navegador: " + err.message);
-            encerrarChamadaLocal();
+            fecharTelaChamadaUI();
         }
     };
 
