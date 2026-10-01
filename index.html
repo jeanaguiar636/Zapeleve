@@ -459,7 +459,17 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Segurança: escape de HTML e validação de URLs
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const urlSegura = (u, midia = false) => {
+        u = String(u || '').trim();
+        if (/^https?:\/\//i.test(u)) return u;
+        if (midia && /^data:(image|video|audio)\/[a-z0-9.+-]+;base64,/i.test(u)) return u;
+        return '';
+    };
+    const contatosCache = {};
 
     let audioCtx = null;
     let ringInterval = null;
@@ -572,7 +582,14 @@
         const linkSalvo = dados.linkPessoal || "";
         const linkContainer = document.getElementById('perfil-link-container');
         if (linkSalvo) {
-            linkContainer.innerHTML = `<a href="${linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo}" target="_blank" style="color: #0275d8; text-decoration: underline;">${linkSalvo}</a>`;
+            linkContainer.innerHTML = '';
+            const aLink = document.createElement('a');
+            aLink.href = urlSegura(linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo) || '#';
+            aLink.target = '_blank';
+            aLink.rel = 'noopener noreferrer';
+            aLink.style.cssText = 'color: #0275d8; text-decoration: underline;';
+            aLink.textContent = linkSalvo;
+            linkContainer.appendChild(aLink);
         } else {
             linkContainer.innerText = "Nenhum link ou vídeo configurado.";
         }
@@ -610,7 +627,14 @@
         const linkSalvo = dados.linkPessoal || "";
         const linkContainer = document.getElementById('perfil-link-container');
         if (linkSalvo) {
-            linkContainer.innerHTML = `<a href="${linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo}" target="_blank" style="color: #0275d8; text-decoration: underline;">${linkSalvo}</a>`;
+            linkContainer.innerHTML = '';
+            const aLink = document.createElement('a');
+            aLink.href = urlSegura(linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo) || '#';
+            aLink.target = '_blank';
+            aLink.rel = 'noopener noreferrer';
+            aLink.style.cssText = 'color: #0275d8; text-decoration: underline;';
+            aLink.textContent = linkSalvo;
+            linkContainer.appendChild(aLink);
         } else {
             linkContainer.innerText = "Este usuário ainda não adicionou nenhum link.";
         }
@@ -757,24 +781,26 @@
         }
     };
 
-    async function carregarVitrineSegregada() {
+    async function carregarVitrineSegregada(forcar = false) {
         const container = document.getElementById('lista-produtos-vitrine');
         container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar vitrine...</p>";
         try {
-            let limiteUsuario = 10;
-            if (usuarioAtual) {
-                const userSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
-                if (userSnap.exists() && userSnap.data().limiteProdutos) {
-                    limiteUsuario = Number(userSnap.data().limiteProdutos);
+            if (!forcar && vitrineCacheTs && Date.now() - vitrineCacheTs < 600000) {
+                renderizarProdutosVitrine(cacheProdutosVitrine);
+                return;
+            }
+            if (limiteUsuarioCache === null) {
+                limiteUsuarioCache = 10;
+                if (usuarioAtual) {
+                    const userSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+                    if (userSnap.exists() && userSnap.data().limiteProdutos) limiteUsuarioCache = Number(userSnap.data().limiteProdutos);
                 }
             }
-            const querySnapshot = await getDocs(collection(db, "produtos"));
+            const querySnapshot = await getDocs(query(collection(db, "produtos"), orderBy("criadoEm", "desc"), limit(limiteUsuarioCache)));
             cacheProdutosVitrine = [];
-            querySnapshot.forEach((docItem) => {
-                cacheProdutosVitrine.push({ id: docItem.id, ...docItem.data() });
-            });
-            const produtosLimitados = cacheProdutosVitrine.slice(0, limiteUsuario);
-            renderizarProdutosVitrine(produtosLimitados);
+            querySnapshot.forEach((docItem) => { cacheProdutosVitrine.push({ id: docItem.id, ...docItem.data() }); });
+            vitrineCacheTs = Date.now();
+            renderizarProdutosVitrine(cacheProdutosVitrine);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
         }
@@ -793,7 +819,7 @@
             document.getElementById('admin-prod-preco').value = '';
             document.getElementById('admin-prod-img').value = '';
             document.getElementById('admin-prod-link').value = '';
-            carregarVitrineSegregada();
+            carregarVitrineSegregada(true);
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
         }
@@ -803,7 +829,7 @@
         if (!confirm("Deseja apagar este produto?")) return;
         try {
             await deleteDoc(doc(db, "produtos", idProduto));
-            carregarVitrineSegregada();
+            carregarVitrineSegregada(true);
         } catch (e) {
             alert("Erro ao apagar: " + e.message);
         }
@@ -813,15 +839,15 @@
         const div = document.getElementById('lista-usuarios-admin');
         div.innerHTML = "<p style='font-size:11px; text-align:center;'>A carregar...</p>";
         try {
-            const snapshot = await getDocs(collection(db, "usuarios"));
+            const snapshot = await getDocs(query(collection(db, "usuarios"), limit(50)));
             div.innerHTML = "";
             snapshot.forEach((docItem) => {
                 const u = docItem.data();
                 const limiteAtual = u.limiteProdutos || 10;
                 div.innerHTML += `
                     <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
-                        <span><b>${u.nome || u.email}</b></span>
-                        <select onchange="atualizarLimiteUsuario('${docItem.id}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
+                        <span><b>${esc(u.nome || u.email)}</b></span>
+                        <select onchange="atualizarLimiteUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
                             <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
                             <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
                             <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
@@ -855,19 +881,25 @@
             container.innerHTML += `
                 <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:8px; border-radius:6px; font-size:12px; border: 1px solid var(--border-color);">
                     <div style="display:flex; gap:8px; align-items:center; overflow:hidden;">
-                        ${prod.imagem ? `<img src="${prod.imagem}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦'}
+                        ${urlSegura(prod.imagem) ? `<img src="${esc(urlSegura(prod.imagem))}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦'}
                         <div>
-                            <b>${prod.titulo || 'Produto'}</b><br>
-                            <span style="opacity:0.7;">R$ ${prod.preco || '0.00'}</span>
+                            <b>${esc(prod.titulo || 'Produto')}</b><br>
+                            <span style="opacity:0.7;">R$ ${esc(prod.preco || '0.00')}</span>
                         </div>
                     </div>
                     <div style="display:flex; gap:4px;">
-                        <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoVitrine('${encodeURIComponent(prod.titulo || '')}', '${prod.imagem || ''}', '${prod.link || ''}')">Enviar 🛒</button>
-                        ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:5px 6px; font-size:10px; margin:0;" onclick="apagarProdutoFirebase('${prod.id}')">🗑️</button>` : ''}
+                        <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>
+                        ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:5px 6px; font-size:10px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
                     </div>
                 </div>`;
         });
     }
+
+    window.enviarProdutoPorId = (id) => {
+        const p = cacheProdutosVitrine.find((x) => x.id === id);
+        if (!p) return;
+        window.enviarProdutoVitrine(encodeURIComponent(p.titulo || ''), urlSegura(p.imagem), urlSegura(p.link));
+    };
 
     window.filtrarProdutosLocais = () => {
         const termo = document.getElementById('filtro-vitrine').value.toLowerCase();
@@ -899,7 +931,7 @@
         const barra = document.getElementById('barra-atalhos-rapidos');
         let html = `<button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>`;
         atalhosRapidos.forEach((item, index) => {
-            html += `<button class="quick-chip" onclick="usarAtalhosRapidos(${index})">${item.titulo}</button>`;
+            html += `<button class="quick-chip" onclick="usarAtalhosRapidos(${index})">${esc(item.titulo)}</button>`;
         });
         barra.innerHTML = html;
     };
@@ -920,7 +952,7 @@
         atalhosRapidos.forEach((item, index) => {
             div.innerHTML += `
                 <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:6px; border-radius:4px; font-size:12px;">
-                    <div><b>${item.titulo}</b></div>
+                    <div><b>${esc(item.titulo)}</b></div>
                     <button class="btn-danger" style="width:auto; padding:2px 6px; font-size:10px;" onclick="apagarAtalho(${index})">Apagar</button>
                 </div>`;
         });
@@ -980,6 +1012,10 @@
     let usuarioAtual = null;
     let contatoSelecionado = null;
     let unsubscribeChat = null;
+    let unsubChamadasEntrantes = null;
+    let limiteMsgs = 30;
+    let vitrineCacheTs = 0;
+    let limiteUsuarioCache = null;
 
     let peerConnection = null;
     let localStream = null;
@@ -1074,7 +1110,8 @@
 
     function escutarChamadasEntrantes(uidUsuario) {
         const q = query(collection(db, "chamadas"), where("destinatario", "==", uidUsuario));
-        onSnapshot(q, (snapshot) => {
+        if (unsubChamadasEntrantes) unsubChamadasEntrantes();
+        unsubChamadasEntrantes = onSnapshot(q, (snapshot) => {
             let chamouAinda = false;
             snapshot.forEach((docItem) => {
                 const data = docItem.data();
@@ -1274,24 +1311,31 @@
         try { await signInWithEmailAndPassword(auth, email, senha); } catch (e) { alert(e.message); }
     };
 
-    window.sair = async () => { await signOut(auth); };
+    window.sair = async () => {
+        if (unsubChamadasEntrantes) { unsubChamadasEntrantes(); unsubChamadasEntrantes = null; }
+        if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
+        limiteUsuarioCache = null; vitrineCacheTs = 0;
+        await signOut(auth);
+    };
 
     function carregarContatos() {
-        onSnapshot(collection(db, "usuarios"), (snapshot) => {
+        getDocs(query(collection(db, "usuarios"), limit(100))).then((snapshot) => {
             const listaDiv = document.getElementById('lista-contatos');
             listaDiv.innerHTML = "";
             snapshot.forEach((docItem) => {
                 const dados = docItem.data();
                 if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
+                    const nomeContato = dados.nome || dados.email.split('@')[0];
+                    contatosCache[docItem.id] = { nome: nomeContato, foto: dados.fotoUrl || '' };
                     const avatarHtml = dados.fotoUrl ? 
-                        `<img src="${dados.fotoUrl}" class="avatar">` : 
-                        `<div class="avatar">${(dados.nome || dados.email).charAt(0).toUpperCase()}</div>`;
+                        `<img src="${esc(urlSegura(dados.fotoUrl, true))}" class="avatar">` : 
+                        `<div class="avatar">${esc((dados.nome || dados.email).charAt(0).toUpperCase())}</div>`;
 
                     listaDiv.innerHTML += `
-                        <div class="contact-item" onclick="abrirChat('${docItem.id}', '${dados.nome || dados.email.split('@')[0]}', '${dados.fotoUrl || ''}')">
+                        <div class="contact-item" onclick="abrirChatPorId('${esc(docItem.id)}')">
                             <div class="contact-info">
                                 ${avatarHtml}
-                                <span class="contact-name">${dados.nome || dados.email.split('@')[0]}</span>
+                                <span class="contact-name">${esc(nomeContato)}</span>
                             </div>
                             <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
                         </div>`;
@@ -1299,6 +1343,11 @@
             });
         });
     }
+
+    window.abrirChatPorId = (id) => {
+        const c = contatosCache[id];
+        if (c) window.abrirChat(id, c.nome, c.foto);
+    };
 
     window.abrirChat = (uidContato, nomeContato, fotoContato) => {
         contatoSelecionado = { uid: uidContato, nome: nomeContato, fotoUrl: fotoContato };
@@ -1318,7 +1367,15 @@
 
         document.getElementById('contacts-screen').classList.add('hidden');
         document.getElementById('chat-screen').classList.remove('hidden');
+        limiteMsgs = 30;
         escutarMensagensPrivadas();
+    };
+
+    window.verMaisMensagens = () => { limiteMsgs += 30; escutarMensagensPrivadas(); };
+
+    window.filtrarMensagensLocais = () => {
+        const t = document.getElementById('input-busca-msg').value.toLowerCase();
+        document.querySelectorAll('#mensagens .msg').forEach((m) => { m.style.display = m.innerText.toLowerCase().includes(t) ? '' : 'none'; });
     };
 
     window.voltarParaContatos = () => {
@@ -1349,17 +1406,18 @@
 
     function escutarMensagensPrivadas() {
         const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "asc"));
+        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "desc"), limit(limiteMsgs));
         if (unsubscribeChat) unsubscribeChat();
         unsubscribeChat = onSnapshot(q, (snapshot) => {
             let cacheMensagensAtuais = [];
             snapshot.forEach((docItem) => { cacheMensagensAtuais.push({ id: docItem.id, ...docItem.data() }); });
-            renderizarListaMensagens(cacheMensagensAtuais);
+            renderizarListaMensagens(cacheMensagensAtuais.reverse(), snapshot.size >= limiteMsgs);
         });
     }
 
     function formatarTextoComMidia(texto) {
         if (!texto) return '';
+        texto = esc(texto);
         const padraoUrl = /((https?:\/\/[^\s]+)|(www\.[^\s]+))/g;
         let textoFormatado = texto.replace(padraoUrl, (url) => {
             let urlCompleta = url;
@@ -1385,27 +1443,27 @@
         return textoFormatado + embedHtml;
     }
 
-    function renderizarListaMensagens(lista) {
+    function renderizarListaMensagens(lista, temMais) {
         const box = document.getElementById('mensagens');
-        box.innerHTML = "";
+        box.innerHTML = temMais ? '<button onclick="verMaisMensagens()" style="width:auto; align-self:center; padding:6px 14px; font-size:12px; border-radius:16px; margin:0 0 6px;">⬆ Ver anteriores</button>' : '';
         lista.forEach((data) => {
             const eMinha = data.remetente === usuarioAtual.email;
             let conteudoHtml = `<div style="font-size: 14px;">${formatarTextoComMidia(data.texto)}</div>`;
             
             if (data.tipo === 'produto') {
                 let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
-                if (data.imagemUrlProduto) cartaoHtml += `<img src="${data.imagemUrlProduto}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem('${data.imagemUrlProduto}')">`;
-                if (data.linkAfiliado) cartaoHtml += `<a href="${data.linkAfiliado}" target="_blank" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
+                if (urlSegura(data.imagemUrlProduto, true)) cartaoHtml += `<img src="${esc(urlSegura(data.imagemUrlProduto, true))}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem(this.src)">`;
+                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
                 conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
             } else if (data.tipo === 'imagem') {
-                let imgSrc = data.imagemUrlLocal || data.imagemBase64 || '';
-                conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem('${imgSrc}')" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
+                let imgSrc = esc(urlSegura(data.imagemUrlLocal || data.imagemBase64, true));
+                conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem(this.src)" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
             } else if (data.tipo === 'video') {
-                let vidSrc = data.videoUrlLocal || data.videoBase64 || '';
+                let vidSrc = esc(urlSegura(data.videoUrlLocal || data.videoBase64, true));
                 conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar Vídeo</a>`;
             } else if (data.tipo === 'audio') {
                 const audioId = "audio_" + data.id;
-                let audSrc = data.audioUrlLocal || data.audioBase64 || '';
+                let audSrc = esc(urlSegura(data.audioUrlLocal || data.audioBase64, true));
                 conteudoHtml += `
                     <div class="wa-audio-player">
                         <button class="wa-play-btn" id="btn_${audioId}" onclick="tocarAudioLocal('${audioId}')">▶</button>
@@ -1473,40 +1531,51 @@
         inputEl.value = "";
     };
 
-    window.enviarImagemGlobal = async (inputElement) => {
-        const file = inputElement.files[0];
+    const R2_WORKER = 'https://SEU-WORKER.workers.dev'; // troque pela URL do seu Worker
+    const MAX_VIDEO_MB = 15;
+
+    async function subirParaR2(blob, ext) {
+        const token = await auth.currentUser.getIdToken();
+        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });
+        if (!r.ok) throw new Error('Falha no upload (' + r.status + ')');
+        return (await r.json()).url;
+    }
+
+    function comprimirImagem(file, maxLado = 1280, qualidade = 0.75) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const k = Math.min(1, maxLado / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                URL.revokeObjectURL(img.src);
+                c.toBlob((b) => b ? resolve(b) : reject(new Error('Falha ao comprimir')), 'image/webp', qualidade);
+            };
+            img.onerror = () => reject(new Error('Imagem inválida'));
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    async function enviarMidia(blob, ext, tipo, texto, campo) {
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const url = await subirParaR2(blob, ext);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), { texto, [campo]: url, remetente: usuarioAtual.email, tipo, criadoEm: serverTimestamp() });
+    }
+
+    window.enviarImagemGlobal = async (input) => {
+        const file = input.files[0]; input.value = '';
         if (!file || !contatoSelecionado) return;
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const base64Data = e.target.result;
-            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                texto: "📷 Imagem", 
-                imagemBase64: base64Data, 
-                remetente: usuarioAtual.email, 
-                tipo: "imagem", 
-                criadoEm: serverTimestamp()
-            });
-        };
-        reader.readAsDataURL(file);
+        try { await enviarMidia(await comprimirImagem(file), 'webp', 'imagem', '📷 Imagem', 'imagemUrlLocal'); }
+        catch (e) { alert('Erro ao enviar imagem: ' + e.message); }
     };
 
-    window.enviarVideoGlobal = async (inputElement) => {
-        const file = inputElement.files[0];
+    window.enviarVideoGlobal = async (input) => {
+        const file = input.files[0]; input.value = '';
         if (!file || !contatoSelecionado) return;
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const base64Data = e.target.result;
-            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                texto: "📹 Vídeo", 
-                videoBase64: base64Data, 
-                remetente: usuarioAtual.email, 
-                tipo: "video", 
-                criadoEm: serverTimestamp()
-            });
-        };
-        reader.readAsDataURL(file);
+        if (file.size > MAX_VIDEO_MB * 1048576) return alert(`Vídeo muito grande (máx. ${MAX_VIDEO_MB} MB).`);
+        try { await enviarMidia(file, file.type.includes('webm') ? 'webm' : 'mp4', 'video', '📹 Vídeo', 'videoUrlLocal'); }
+        catch (e) { alert('Erro ao enviar vídeo: ' + e.message); }
     };
 
     let mediaRecorder = null, audioChunks = [];
@@ -1530,19 +1599,8 @@
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = async () => {
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        const base64Audio = e.target.result;
-                        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-                        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                            texto: "🎙️ Áudio", 
-                            audioBase64: base64Audio, 
-                            remetente: usuarioAtual.email, 
-                            tipo: "audio", 
-                            criadoEm: serverTimestamp()
-                        });
-                    };
-                    reader.readAsDataURL(blob);
+                    try { await enviarMidia(blob, 'webm', 'audio', '🎙️ Áudio', 'audioUrlLocal'); }
+                    catch (e) { alert('Erro ao enviar áudio: ' + e.message); }
                 };
                 mediaRecorder.start();
                 btnAudio.classList.add('gravando');
