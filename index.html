@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00a884">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <style>
         :root {
@@ -226,6 +228,10 @@
             <!-- Botão Flutuante de Instalação no Perfil (se não instalado) -->
             <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
                 📲 Baixar e Instalar Aplicativo
+            </button>
+
+            <button id="btn-ativar-push" class="hidden" style="background: #ea6a00; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;" onclick="ativarNotificacoes()">
+                🔔 Ativar avisos de chamada
             </button>
 
             <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 5px; text-align: left; border: 1px solid var(--border-color);">
@@ -461,6 +467,8 @@
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+
     // Segurança: escape de HTML e validação de URLs
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const urlSegura = (u, midia = false) => {
@@ -491,6 +499,11 @@
     }
 
     function atualizarVisibilidadeBotaoInstalacao() {
+        const btnPush = document.getElementById('btn-ativar-push');
+        if (btnPush) {
+            if ('Notification' in window && Notification.permission !== 'granted') btnPush.classList.remove('hidden');
+            else btnPush.classList.add('hidden');
+        }
         const btnInstalar = document.getElementById('btn-instalar-no-perfil');
         if (!btnInstalar) return;
         if (!verificarSeEstaInstalado()) {
@@ -523,6 +536,46 @@
     window.fecharInstalacao = () => {
         document.getElementById('modal-instalar').style.display = 'none';
     };
+
+    // Push de chamadas (app fechado)
+    const VAPID_KEY = 'BCawnk4OcT7_geAcyKsPZb8EKiYzIsFoFWvdu4qnjwIXdS1f9eEkOxSAscZFCpfIbBXdiS0-WrB3bfmUQ00_L1M';
+
+    async function registrarPush() {
+        if (!usuarioAtual || !('serviceWorker' in navigator) || !('Notification' in window)) return false;
+        const reg = await navigator.serviceWorker.register('sw.js');
+        await navigator.serviceWorker.ready;
+        const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+        // só grava no Firestore se o token mudou (economiza escritas)
+        if (token && localStorage.getItem('zapleve_fcm_' + usuarioAtual.uid) !== token) {
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fcmToken: token });
+            localStorage.setItem('zapleve_fcm_' + usuarioAtual.uid, token);
+        }
+        return !!token;
+    }
+
+    window.ativarNotificacoes = async () => {
+        try {
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') return alert('Permissão negada. Ative as notificações deste site nas configurações do navegador.');
+            await registrarPush();
+            alert('Avisos de chamada ativados!');
+            atualizarVisibilidadeBotaoInstalacao();
+        } catch (e) { alert('Erro ao ativar avisos: ' + e.message); }
+    };
+
+    function registrarPushSePermitido() {
+        if ('Notification' in window && Notification.permission === 'granted') registrarPush().catch(() => {});
+    }
+
+    async function enviarPushChamada(comVideo) {
+        try {
+            const c = contatosCache[contatoSelecionado.uid];
+            if (!c || !c.token) { alert('DEBUG: este contato ainda não tem aviso ativado (ou feche e abra o app para atualizar a lista de contatos).'); return; }
+            const idToken = await auth.currentUser.getIdToken();
+            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: c.token, nome: meuNomeAtual, video: !!comVideo }) });
+            if (!r.ok) alert('DEBUG: push falhou ' + r.status + ' ' + (await r.text()).slice(0, 300));
+        } catch (e) { alert('DEBUG: erro no push: ' + e.message); }
+    }
 
     // Zoom de Imagem
     window.ampliarImagem = (src) => {
@@ -1035,6 +1088,7 @@
                 status: 'pendente'
             });
 
+            enviarPushChamada(comVideo);
             escutarRespostaChamada(callDoc);
         } catch (err) {
             pararSomCampainha();
@@ -1248,6 +1302,7 @@
             escutarChamadasEntrantes(user.uid);
             carregarContatos();
             atualizarBarraAtalhos();
+            registrarPushSePermitido();
         } else {
             usuarioAtual = null;
             document.getElementById('auth-screen').classList.remove('hidden');
@@ -1289,7 +1344,7 @@
                 const dados = docItem.data();
                 if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
                     const nomeContato = dados.nome || dados.email.split('@')[0];
-                    contatosCache[docItem.id] = { nome: nomeContato, foto: dados.fotoUrl || '' };
+                    contatosCache[docItem.id] = { nome: nomeContato, foto: dados.fotoUrl || '', token: dados.fcmToken || '' };
                     const avatarHtml = dados.fotoUrl ? 
                         `<img src="${esc(urlSegura(dados.fotoUrl, true))}" class="avatar">` : 
                         `<div class="avatar">${esc((dados.nome || dados.email).charAt(0).toUpperCase())}</div>`;
