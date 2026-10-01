@@ -459,7 +459,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     let audioCtx = null;
     let ringInterval = null;
@@ -1073,7 +1073,7 @@
     }
 
     function escutarChamadasEntrantes(uidUsuario) {
-        const q = query(collection(db, "chamadas"));
+        const q = query(collection(db, "chamadas"), where("destinatario", "==", uidUsuario));
         onSnapshot(q, (snapshot) => {
             let chamouAinda = false;
             snapshot.forEach((docItem) => {
