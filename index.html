@@ -253,6 +253,7 @@
                 <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
                 
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
+                <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
             </div>
 
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
@@ -563,6 +564,28 @@
         } catch (e) { alert('Erro ao ativar avisos: ' + e.message); }
     };
 
+    window.testarAviso = async () => {
+        const rel = [];
+        try {
+            rel.push('Permissão: ' + (('Notification' in window) ? Notification.permission : 'sem suporte'));
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                return alert(rel.join('\n') + '\n\nToque em "Ativar avisos de chamada" primeiro.');
+            }
+            const reg = await navigator.serviceWorker.register('sw.js');
+            await navigator.serviceWorker.ready;
+            rel.push('Service worker: ok');
+            const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+            rel.push('Token: ' + (token ? 'gerado' : 'vazio'));
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fcmToken: token });
+            localStorage.setItem('zapleve_fcm_' + usuarioAtual.uid, token);
+            rel.push('Salvo no Firestore: sim');
+            const idToken = await auth.currentUser.getIdToken();
+            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token, nome: 'Teste', video: false, teste: true }) });
+            rel.push('Worker: ' + r.status + ' ' + (await r.text()).slice(0, 200));
+        } catch (e) { rel.push('ERRO: ' + e.message); }
+        alert(rel.join('\n'));
+    };
+
     function registrarPushSePermitido() {
         if ('Notification' in window && Notification.permission === 'granted') registrarPush().catch(() => {});
     }
@@ -570,9 +593,15 @@
     async function enviarPushChamada(comVideo) {
         try {
             const c = contatosCache[contatoSelecionado.uid];
-            if (!c || !c.token) { alert('DEBUG: este contato ainda não tem aviso ativado (ou feche e abra o app para atualizar a lista de contatos).'); return; }
+            let tk = c && c.token;
+            if (!tk) { // lista pode estar desatualizada: lê 1 vez o perfil do contato
+                const snap = await getDoc(doc(db, "usuarios", contatoSelecionado.uid));
+                tk = snap.exists() ? (snap.data().fcmToken || '') : '';
+                if (tk && c) c.token = tk;
+            }
+            if (!tk) { alert('DEBUG: este contato ainda não ativou os avisos. No celular dele: abrir o app, tocar na foto e em "Ativar avisos de chamada".'); return; }
             const idToken = await auth.currentUser.getIdToken();
-            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: c.token, nome: meuNomeAtual, video: !!comVideo }) });
+            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, nome: meuNomeAtual, video: !!comVideo }) });
             if (!r.ok) alert('DEBUG: push falhou ' + r.status + ' ' + (await r.text()).slice(0, 300));
         } catch (e) { alert('DEBUG: erro no push: ' + e.message); }
     }
