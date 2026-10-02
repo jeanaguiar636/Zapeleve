@@ -395,7 +395,7 @@
             </div>
             <div style="display:flex; gap:6px; align-items: center;">
                 <button class="btn-topo-padrao" style="background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
-                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()">Sair</button>
+                <button class="btn-topo-padrao btn-topo-sair btn-sair hidden" onclick="sair()">Sair</button>
             </div>
         </div>
         <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
@@ -427,7 +427,7 @@
                 <button class="btn-topo-padrao btn-topo-limpar" onclick="limparConversaAtual()" title="Limpar Conversa">Limpar</button>
                 <button class="btn-topo-padrao btn-topo-video" onclick="iniciarChamada(true)" title="Vídeo Chamada">📹 Vídeo</button>
                 <button class="btn-topo-padrao btn-topo-telefone" onclick="iniciarChamada(false)" title="Chamada de Áudio">📞 Áudio</button>
-                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()" title="Sair">Sair</button>
+                <button class="btn-topo-padrao btn-topo-sair btn-sair hidden" onclick="sair()" title="Sair">Sair</button>
             </div>
         </div>
 
@@ -1405,6 +1405,7 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             usuarioAtual = user;
+            document.querySelectorAll('.btn-sair').forEach((b) => b.classList.toggle('hidden', user.email !== EMAIL_ADMIN));
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.add('hidden');
             document.getElementById('contacts-screen').classList.remove('hidden');
