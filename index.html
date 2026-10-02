@@ -328,7 +328,7 @@
             </div>
 
             <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
-            <div id="lista-produtos-vitrine" style="max-height: 200px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+            <div id="lista-produtos-vitrine" style="max-height: 60vh; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
                 <p style="text-align:center; font-size:12px;">A carregar...</p>
             </div>
             <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
@@ -402,7 +402,7 @@
             <div class="contact-list" id="lista-contatos">
                 <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
             </div>
-            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📢 Convidar Amigo</button>
+            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📤 Compartilhar / Convidar Amigo</button>
         </div>
     </div>
 
@@ -969,18 +969,19 @@
             return;
         }
         lista.forEach((prod) => {
+            const img = urlSegura(prod.imagem);
             container.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:8px; border-radius:6px; font-size:12px; border: 1px solid var(--border-color);">
-                    <div style="display:flex; gap:8px; align-items:center; overflow:hidden;">
-                        ${urlSegura(prod.imagem) ? `<img src="${esc(urlSegura(prod.imagem))}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦'}
-                        <div>
-                            <b>${esc(prod.titulo || 'Produto')}</b><br>
-                            <span style="opacity:0.7;">R$ ${esc(prod.preco || '0.00')}</span>
+                <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:13px;">
+                    ${img
+                        ? `<img src="${esc(img)}" onclick="ampliarImagem(this.src)" title="Toque para ampliar" style="width:100%; height:200px; object-fit:cover; display:block; cursor:pointer; margin:0; border-radius:0;">`
+                        : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:36px; background:rgba(0,0,0,0.05);">📦</div>`}
+                    <div style="padding:10px;">
+                        <b style="font-size:15px;">${esc(prod.titulo || 'Produto')}</b><br>
+                        <span style="font-size:16px; font-weight:bold; color: var(--header-bg);">R$ ${esc(prod.preco || '0.00')}</span>
+                        <div style="display:flex; gap:6px; margin-top:8px;">
+                            <button class="btn-alt" style="flex:1; padding:10px; font-size:13px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>
+                            ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:10px 14px; font-size:13px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
                         </div>
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>
-                        ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:5px 6px; font-size:10px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
                     </div>
                 </div>`;
         });
@@ -1779,7 +1780,17 @@
             btnAudio.innerText = "🎙️";
         }
     };
-    window.indicarAmigo = () => { prompt("Copie o link:", window.location.href); };
+    window.indicarAmigo = async () => {
+        const url = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
+        const dados = { title: 'Zap Leve', text: 'Venha conversar comigo no Zap Leve! Chat e chamadas grátis ⚡💬', url };
+        try {
+            if (navigator.share) { await navigator.share(dados); return; }
+            await navigator.clipboard.writeText(dados.text + ' ' + url);
+            alert('Link copiado! Cole no WhatsApp ou onde quiser compartilhar.');
+        } catch (e) {
+            if (e.name !== 'AbortError') prompt('Copie o link:', url);
+        }
+    };
 </script>
 
 </body>
