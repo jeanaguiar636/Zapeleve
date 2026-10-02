@@ -105,6 +105,7 @@
         .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
         .close-modal { background: #ea0038; padding: 8px 15px; margin-top: 15px; display: block; text-align: center; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
 
+        #lista-produtos-vitrine > p, #lista-produtos-vitrine > .col-total { grid-column: 1 / -1; }
         .contact-list { flex: 1; border: none; overflow-y: auto; padding: 0; margin-bottom: 10px; background: var(--bg-app); }
         .contact-item { padding: 12px 10px; margin-bottom: 2px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg-app); }
         .contact-item:hover { opacity: 0.8; }
@@ -330,7 +331,7 @@
             </div>
 
             <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
-            <div id="lista-produtos-vitrine" style="max-height: 60vh; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+            <div id="lista-produtos-vitrine" style="max-height: 62vh; overflow-y: auto; margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;">
                 <p style="text-align:center; font-size:12px;">A carregar...</p>
             </div>
             <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
@@ -1002,7 +1003,7 @@
             }
             if (loja.vazio) {
                 document.getElementById('painel-admin-geral').classList.add('hidden');
-                container.innerHTML = `<div style="text-align:center; padding:12px;"><p style="font-size:13px; line-height:1.4;">Você ainda não tem loja.<br>Crie a sua para os seus contatos verem seus produtos. Enquanto você não criar, eles veem as ofertas do Zap Leve.</p><button class="btn-alt" onclick="criarMinhaLoja()">🏪 Criar minha loja</button></div>`;
+                container.innerHTML = `<div class="col-total" style="text-align:center; padding:12px;"><p style="font-size:13px; line-height:1.4;">Você ainda não tem loja.<br>Crie a sua para os seus contatos verem seus produtos. Enquanto você não criar, eles veem as ofertas do Zap Leve.</p><button class="btn-alt" onclick="criarMinhaLoja()">🏪 Criar minha loja</button></div>`;
                 return;
             }
             cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
@@ -1110,18 +1111,19 @@
         lista.forEach((prod) => {
             const img = urlSegura(prod.imagem);
             const link = urlSegura(prod.link);
+            const btn = 'display:block; text-align:center; padding:8px; border-radius:6px; font-size:12px; font-weight:bold; margin:0; text-decoration:none;';
             container.innerHTML += `
-                <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:13px;">
+                <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column; flex-shrink:0;">
                     ${img
-                        ? `<img src="${esc(img)}" onclick="ampliarImagem(this.src)" title="Toque para ampliar" style="width:100%; height:200px; object-fit:cover; display:block; cursor:pointer; margin:0; border-radius:0;">`
-                        : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:36px; background:rgba(0,0,0,0.05);">📦</div>`}
-                    <div style="padding:10px;">
-                        <b style="font-size:15px;">${esc(prod.titulo || 'Produto')}</b><br>
-                        <span style="font-size:16px; font-weight:bold; color: var(--header-bg);">R$ ${esc(prod.preco || '0.00')}</span>
-                        <div style="display:flex; gap:6px; margin-top:8px;">
-                            ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="flex:1; display:block; text-align:center; background:#00a884; color:white; padding:10px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:13px;">Ver oferta 🔗</a>` : ''}
-                            ${enviar ? `<button class="btn-alt" style="flex:1; padding:10px; font-size:13px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
-                            ${dono ? `<button class="btn-danger" style="width:auto; padding:10px 14px; font-size:13px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
+                        ? `<img src="${esc(img)}" onclick="ampliarImagem(this.src)" title="Toque para ampliar" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">`
+                        : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05);">📦</div>`}
+                    <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
+                        <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
+                        ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(prod.preco)}</span>` : ''}
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-top:auto;">
+                            ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
+                            ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
+                            ${dono ? `<button class="btn-danger" style="${btn} width:100%;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️ Apagar</button>` : ''}
                         </div>
                     </div>
                 </div>`;
