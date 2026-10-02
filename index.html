@@ -255,6 +255,7 @@
                 
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
                 <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%;" onclick="copiarMeuLink()">🔗 Copiar meu link de atendimento</button>
             </div>
 
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
@@ -398,7 +399,7 @@
             </div>
         </div>
         <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8; display: flex; justify-content: space-between;">Conversas e Contactos: <span onclick="atualizarContatos()" style="cursor:pointer; color:#00a884; font-size:12px;">🔄 Atualizar</span></p>
+            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8; display: flex; justify-content: space-between;">Conversas e Contactos: </p>
             <div class="contact-list" id="lista-contatos">
                 <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
             </div>
@@ -497,28 +498,78 @@
         const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
         if (!snap.exists()) return { email: usuarioAtual.email };
         const d = snap.data();
-        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, email: d.email || usuarioAtual.email };
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
         return p;
     }
 
-    // Diretório: UM documento com nome/foto de todos (1 leitura em vez de 1 por usuário)
-    async function registrarNoDiretorio(p) {
-        const e = entradaDir(p);
-        const chave = 'zl_dirmeu_' + usuarioAtual.uid;
-        if (localStorage.getItem(chave) === JSON.stringify(e)) return;
-        try {
-            await setDoc(doc(db, "diretorio", "lista"), { u: { [usuarioAtual.uid]: e } }, { merge: true });
-            localStorage.setItem(chave, JSON.stringify(e));
-        } catch (err) { console.warn('Diretório:', err.message); }
+    // Contatos PRIVADOS: cada usuário tem a própria agenda (1 documento) e um link de atendimento
+    const gerarHandle = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+    const perfilPublico = (p) => ({ uid: usuarioAtual.uid, ...entradaDir(p) });
+    let unsubAgenda = null;
+
+    (function () { // link de convite: ?u=codigo
+        const h = new URLSearchParams(location.search).get('u');
+        if (h && /^[a-z0-9]{6,12}$/.test(h)) { localStorage.setItem('zl_convite', h); history.replaceState(null, '', location.pathname); }
+    })();
+
+    async function garantirHandle(p) {
+        if (p.handle) return p.handle;
+        if (p.limiteProdutos === undefined) return ''; // conta ainda sendo criada
+        for (let i = 0; i < 3; i++) {
+            const h = gerarHandle();
+            try {
+                await setDoc(doc(db, "perfis", h), perfilPublico(p));
+                await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { handle: h });
+                p.handle = h;
+                salvarCache('zl_perfil_' + usuarioAtual.uid, p);
+                localStorage.setItem('zl_pubmeu_' + usuarioAtual.uid, JSON.stringify(perfilPublico(p)));
+                return h;
+            } catch (err) { console.warn('Link de atendimento:', err.message); }
+        }
+        return '';
     }
 
-    async function migrarDiretorio() {
-        const snap = await getDocs(collection(db, "usuarios"));
-        const u = {};
-        snap.forEach((d) => { const x = d.data(); if (!x.bloqueado) u[d.id] = entradaDir(x); });
-        try { await setDoc(doc(db, "diretorio", "lista"), { u }); } catch (err) { console.warn('Diretório:', err.message); }
-        return u;
+    async function sincronizarPerfilPublico(p) {
+        if (!p.handle) return;
+        const pub = perfilPublico(p);
+        const chave = 'zl_pubmeu_' + usuarioAtual.uid;
+        if (localStorage.getItem(chave) === JSON.stringify(pub)) return;
+        try { await setDoc(doc(db, "perfis", p.handle), pub); localStorage.setItem(chave, JSON.stringify(pub)); }
+        catch (err) { console.warn('Perfil público:', err.message); }
+    }
+
+    // Coloca "eu" na agenda do outro (com meu token de aviso) para ele poder me chamar
+    async function apresentarAoContato(uidOutro) {
+        const meu = await obterMeuPerfil();
+        const base = entradaDir({ ...meu, email: usuarioAtual.email });
+        const k = (localStorage.getItem('zapleve_fcm_' + usuarioAtual.uid) || '').slice(0, 400);
+        const sig = JSON.stringify({ ...base, k });
+        const chave = 'zl_hs_' + usuarioAtual.uid + '_' + uidOutro;
+        if (localStorage.getItem(chave) === sig) return;
+        await setDoc(doc(db, "agenda", uidOutro), { c: { [usuarioAtual.uid]: { ...base, k, t: Date.now() } } }, { merge: true });
+        localStorage.setItem(chave, sig);
+    }
+
+    async function processarConvite() {
+        const h = localStorage.getItem('zl_convite');
+        if (!h || !usuarioAtual) return;
+        localStorage.removeItem('zl_convite');
+        try {
+            const snap = await getDoc(doc(db, "perfis", h));
+            if (!snap.exists()) return alert('Link de convite inválido ou expirado.');
+            const p = snap.data();
+            if (p.uid === usuarioAtual.uid) return;
+            await setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { [p.uid]: { n: p.n || 'Usuário', f: p.f || '', l: p.l || '', t: Date.now() } } }, { merge: true });
+            await apresentarAoContato(p.uid);
+            window.abrirChat(p.uid, p.n || 'Usuário', p.f || '');
+        } catch (e) { alert('Erro ao abrir o convite: ' + e.message); }
+    }
+
+    async function meuLinkAtendimento() {
+        let url = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
+        try { const p = await obterMeuPerfil(); const h = p.handle || await garantirHandle(p); if (h) url += '?u=' + h; } catch (_) {}
+        return url;
     }
 
     let audioCtx = null;
@@ -644,12 +695,7 @@
     async function enviarPushChamada(comVideo) {
         try {
             const c = contatosCache[contatoSelecionado.uid];
-            let tk = c && c.token;
-            if (!tk) { // lista pode estar desatualizada: lê 1 vez o perfil do contato
-                const snap = await getDoc(doc(db, "usuarios", contatoSelecionado.uid));
-                tk = snap.exists() ? (snap.data().fcmToken || '') : '';
-                if (tk && c) c.token = tk;
-            }
+            const tk = c && c.token;
             if (!tk) { console.log('Contato sem aviso de chamada ativado.'); return; }
             const idToken = await auth.currentUser.getIdToken();
             const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, nome: meuNomeAtual, video: !!comVideo }) });
@@ -736,7 +782,7 @@
 
     window.abrirPerfilContatoSelecionado = async () => {
         if (!contatoSelecionado) return;
-        const eC = (lerCache('zl_dir', Infinity) || {})[contatoSelecionado.uid] || {};
+        const eC = (lerCache('zl_agenda_' + usuarioAtual.uid, Infinity) || {})[contatoSelecionado.uid] || {};
         const dados = { fotoUrl: eC.f || '', linkPessoal: eC.l || '', email: '' };
 
         const avatarGrande = document.getElementById('perfil-avatar-grande');
@@ -803,7 +849,7 @@
             }
             const perfil = { ...(await obterMeuPerfil()), ...dadosAtualizacao };
             salvarCache('zl_perfil_' + usuarioAtual.uid, perfil);
-            await registrarNoDiretorio(perfil);
+            await sincronizarPerfilPublico(perfil);
             alert("Perfil atualizado com sucesso!");
             fecharPerfilUsuario();
         } catch (e) {
@@ -1380,10 +1426,10 @@
             }
 
             escutarChamadasEntrantes(user.uid);
-            carregarContatos();
+            iniciarAgenda();
             atualizarBarraAtalhos();
             registrarPushSePermitido();
-            registrarNoDiretorio(perfilMeu);
+            (async () => { await garantirHandle(perfilMeu); await sincronizarPerfilPublico(perfilMeu); processarConvite(); })();
         } else {
             usuarioAtual = null;
             document.getElementById('auth-screen').classList.remove('hidden');
@@ -1398,7 +1444,10 @@
         if (!email || !senha) return alert("Preencha e-mail e senha.");
         try {
             const cred = await createUserWithEmailAndPassword(auth, email, senha);
-            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: email.split('@')[0], bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "" });
+            const nomeInicial = email.split('@')[0];
+            const h = gerarHandle();
+            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: nomeInicial, bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "", handle: h });
+            try { await setDoc(doc(db, "perfis", h), { uid: cred.user.uid, n: nomeInicial.slice(0, 60), f: '', l: '' }); } catch (_) {}
             alert("Conta criada!");
         } catch (e) { alert(e.message); }
     };
@@ -1412,47 +1461,46 @@
 
     window.sair = async () => {
         if (unsubChamadasEntrantes) { unsubChamadasEntrantes(); unsubChamadasEntrantes = null; }
+        if (unsubAgenda) { unsubAgenda(); unsubAgenda = null; }
         if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
         limiteUsuarioCache = null; vitrineCacheTs = 0;
         Object.keys(localStorage).filter((k) => k.startsWith('zl_m_')).forEach((k) => localStorage.removeItem(k));
         await signOut(auth);
     };
 
-    async function carregarContatos(forcar = false) {
+    function renderizarAgenda(dados) {
         const listaDiv = document.getElementById('lista-contatos');
-        let dir = forcar ? null : lerCache('zl_dir', 6 * 3600 * 1000);
-        if (!dir) {
-            try {
-                const snap = await getDoc(doc(db, "diretorio", "lista"));
-                if (snap.exists()) dir = snap.data().u || {};
-                else if (usuarioAtual.email === EMAIL_ADMIN) dir = await migrarDiretorio();
-                else dir = {};
-                salvarCache('zl_dir', dir);
-            } catch (err) { dir = lerCache('zl_dir', Infinity) || {}; }
-        }
+        const itens = Object.entries(dados).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
         listaDiv.innerHTML = "";
-        Object.entries(dir)
-            .filter(([uid]) => uid !== usuarioAtual.uid)
-            .sort((a, b) => (a[1].n || '').localeCompare(b[1].n || ''))
-            .forEach(([uid, e]) => {
-                const nomeContato = e.n || 'Usuário';
-                contatosCache[uid] = { nome: nomeContato, foto: e.f || '', token: (contatosCache[uid] && contatosCache[uid].token) || '' };
-                const avatarHtml = e.f ?
-                    `<img src="${esc(urlSegura(e.f, true))}" class="avatar">` :
-                    `<div class="avatar">${esc(nomeContato.charAt(0).toUpperCase())}</div>`;
-                listaDiv.innerHTML += `
-                    <div class="contact-item" onclick="abrirChatPorId('${esc(uid)}')">
-                        <div class="contact-info">
-                            ${avatarHtml}
-                            <span class="contact-name">${esc(nomeContato)}</span>
-                        </div>
-                        <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
-                    </div>`;
-            });
-        if (!listaDiv.innerHTML) listaDiv.innerHTML = "<p style='text-align:center; opacity:0.6; font-size:13px; margin-top:20px;'>Nenhum contato ainda.</p>";
+        itens.forEach(([uid, e]) => {
+            const nomeContato = e.n || 'Usuário';
+            contatosCache[uid] = { nome: nomeContato, foto: e.f || '', token: e.k || '' };
+            const avatarHtml = e.f ?
+                `<img src="${esc(urlSegura(e.f, true))}" class="avatar">` :
+                `<div class="avatar">${esc(nomeContato.charAt(0).toUpperCase())}</div>`;
+            listaDiv.innerHTML += `
+                <div class="contact-item" onclick="abrirChatPorId('${esc(uid)}')">
+                    <div class="contact-info">
+                        ${avatarHtml}
+                        <span class="contact-name">${esc(nomeContato)}</span>
+                    </div>
+                    <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
+                </div>`;
+        });
+        if (!itens.length) listaDiv.innerHTML = "<p style='text-align:center; opacity:0.7; font-size:13px; margin:20px 10px;'>Você ainda não tem contatos.<br>Toque em <b>Compartilhar</b> para enviar o seu link de atendimento.</p>";
     }
 
-    window.atualizarContatos = () => carregarContatos(true);
+    function iniciarAgenda() {
+        if (unsubAgenda) unsubAgenda();
+        const chave = 'zl_agenda_' + usuarioAtual.uid;
+        const c = lerCache(chave, Infinity);
+        if (c) renderizarAgenda(c);
+        unsubAgenda = onSnapshot(doc(db, "agenda", usuarioAtual.uid), (snap) => {
+            const dados = snap.exists() ? (snap.data().c || {}) : {};
+            salvarCache(chave, dados);
+            renderizarAgenda(dados);
+        }, (err) => console.warn('Agenda:', err.message));
+    }
 
     window.abrirChatPorId = (id) => {
         const c = contatosCache[id];
@@ -1461,6 +1509,7 @@
 
     window.abrirChat = (uidContato, nomeContato, fotoContato) => {
         contatoSelecionado = { uid: uidContato, nome: nomeContato, fotoUrl: fotoContato };
+        apresentarAoContato(uidContato).catch((e) => console.warn('Apresentação:', e.message));
         document.getElementById('chat-title').innerText = nomeContato;
         
         const chatAvatar = document.getElementById('chat-avatar-topo');
@@ -1781,8 +1830,8 @@
         }
     };
     window.indicarAmigo = async () => {
-        const url = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
-        const dados = { title: 'Zap Leve', text: 'Venha conversar comigo no Zap Leve! Chat e chamadas grátis ⚡💬', url };
+        const url = await meuLinkAtendimento();
+        const dados = { title: 'Zap Leve', text: 'Fale comigo no Zap Leve! Chat e chamadas grátis ⚡💬', url };
         try {
             if (navigator.share) { await navigator.share(dados); return; }
             await navigator.clipboard.writeText(dados.text + ' ' + url);
@@ -1790,6 +1839,12 @@
         } catch (e) {
             if (e.name !== 'AbortError') prompt('Copie o link:', url);
         }
+    };
+
+    window.copiarMeuLink = async () => {
+        const url = await meuLinkAtendimento();
+        try { await navigator.clipboard.writeText(url); alert('Link de atendimento copiado!\n' + url); }
+        catch (e) { prompt('Copie o link:', url); }
     };
 </script>
 
