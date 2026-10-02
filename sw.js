@@ -21,7 +21,7 @@ self.addEventListener('push', (event) => {
       if (!teste && await visivel()) break; // app aberto: o toque já toca dentro dele
       await self.registration.showNotification(titulo, {
         body: corpo, tag: 'chamada', renotify: true, requireInteraction: true, silent: false,
-        icon: 'icon-192.png', badge: 'icon-192.png',
+        icon: 'icon-192.png', badge: 'badge.png',
         vibrate: [500, 250, 500, 250, 500],
       });
       await new Promise((r) => setTimeout(r, 4000));
