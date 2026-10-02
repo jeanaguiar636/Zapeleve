@@ -398,7 +398,7 @@
             </div>
         </div>
         <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8;">Conversas e Contactos:</p>
+            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8; display: flex; justify-content: space-between;">Conversas e Contactos: <span onclick="atualizarContatos()" style="cursor:pointer; color:#00a884; font-size:12px;">🔄 Atualizar</span></p>
             <div class="contact-list" id="lista-contatos">
                 <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
             </div>
@@ -467,7 +467,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -480,6 +480,46 @@
         return '';
     };
     const contatosCache = {};
+    const lerCache = (k, ttl) => { try { const o = JSON.parse(localStorage.getItem(k)); if (o && Date.now() - o.ts < ttl) return o.d; } catch (_) {} return null; };
+    const salvarCache = (k, d) => { try { localStorage.setItem(k, JSON.stringify({ ts: Date.now(), d })); } catch (_) {} };
+    const entradaDir = (x) => ({
+        n: String(x.nome || String(x.email || '').split('@')[0] || 'Usuário').slice(0, 60),
+        f: /^https?:\/\//i.test(x.fotoUrl || '') ? String(x.fotoUrl).slice(0, 300) : '',
+        l: String(x.linkPessoal || '').slice(0, 200)
+    });
+    let msgsAtuais = [], msgsChave = '', msgsBase = 0, temAnteriores = false, tokenEscuta = 0;
+
+    // Perfil próprio em cache (24 h): evita ler o Firestore a cada abertura
+    async function obterMeuPerfil(forcar = false) {
+        const chave = 'zl_perfil_' + usuarioAtual.uid;
+        const c = forcar ? null : lerCache(chave, 24 * 3600 * 1000);
+        if (c) return c;
+        const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+        if (!snap.exists()) return { email: usuarioAtual.email };
+        const d = snap.data();
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, email: d.email || usuarioAtual.email };
+        salvarCache(chave, p);
+        return p;
+    }
+
+    // Diretório: UM documento com nome/foto de todos (1 leitura em vez de 1 por usuário)
+    async function registrarNoDiretorio(p) {
+        const e = entradaDir(p);
+        const chave = 'zl_dirmeu_' + usuarioAtual.uid;
+        if (localStorage.getItem(chave) === JSON.stringify(e)) return;
+        try {
+            await setDoc(doc(db, "diretorio", "lista"), { u: { [usuarioAtual.uid]: e } }, { merge: true });
+            localStorage.setItem(chave, JSON.stringify(e));
+        } catch (err) { console.warn('Diretório:', err.message); }
+    }
+
+    async function migrarDiretorio() {
+        const snap = await getDocs(collection(db, "usuarios"));
+        const u = {};
+        snap.forEach((d) => { const x = d.data(); if (!x.bloqueado) u[d.id] = entradaDir(x); });
+        try { await setDoc(doc(db, "diretorio", "lista"), { u }); } catch (err) { console.warn('Diretório:', err.message); }
+        return u;
+    }
 
     let audioCtx = null;
     let ringInterval = null;
@@ -643,8 +683,7 @@
 
     window.abrirMeuPerfil = async () => {
         if (!usuarioAtual) return;
-        const userDoc = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
-        const dados = userDoc.exists() ? userDoc.data() : {};
+        const dados = await obterMeuPerfil();
         
         const avatarGrande = document.getElementById('perfil-avatar-grande');
         const imgGrande = document.getElementById('perfil-img-grande');
@@ -697,8 +736,8 @@
 
     window.abrirPerfilContatoSelecionado = async () => {
         if (!contatoSelecionado) return;
-        const userDoc = await getDoc(doc(db, "usuarios", contatoSelecionado.uid));
-        const dados = userDoc.exists() ? userDoc.data() : {};
+        const eC = (lerCache('zl_dir', Infinity) || {})[contatoSelecionado.uid] || {};
+        const dados = { fotoUrl: eC.f || '', linkPessoal: eC.l || '', email: '' };
 
         const avatarGrande = document.getElementById('perfil-avatar-grande');
         const imgGrande = document.getElementById('perfil-img-grande');
@@ -747,35 +786,26 @@
         const novoNome = document.getElementById('input-meu-nome').value.trim();
         const novoLink = document.getElementById('input-meu-link').value.trim();
         const fileInput = document.getElementById('input-foto-perfil');
-        
         if (!novoNome) return alert("O nome de usuário não pode estar vazio.");
-
         try {
-            let dadosAtualizacao = { nome: novoNome, linkPessoal: novoLink };
+            const dadosAtualizacao = { nome: novoNome, linkPessoal: novoLink };
+            if (fileInput.files && fileInput.files[0]) {
+                const blob = await comprimirImagem(fileInput.files[0], 256, 0.8);
+                dadosAtualizacao.fotoUrl = await subirParaR2(blob, 'webp');
+            }
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
             meuNomeAtual = novoNome;
             document.getElementById('user-display-contacts').innerText = novoNome;
-
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    const base64Image = e.target.result;
-                    dadosAtualizacao.fotoUrl = base64Image;
-                    await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
-                    
-                    document.getElementById('meu-img-topo').src = base64Image;
-                    document.getElementById('meu-img-topo').classList.remove('hidden');
-                    document.getElementById('meu-avatar-topo').classList.add('hidden');
-
-                    alert("Perfil atualizado com sucesso!");
-                    fecharPerfilUsuario();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
-                alert("Perfil atualizado com sucesso!");
-                fecharPerfilUsuario();
+            if (dadosAtualizacao.fotoUrl) {
+                document.getElementById('meu-img-topo').src = dadosAtualizacao.fotoUrl;
+                document.getElementById('meu-img-topo').classList.remove('hidden');
+                document.getElementById('meu-avatar-topo').classList.add('hidden');
             }
+            const perfil = { ...(await obterMeuPerfil()), ...dadosAtualizacao };
+            salvarCache('zl_perfil_' + usuarioAtual.uid, perfil);
+            await registrarNoDiretorio(perfil);
+            alert("Perfil atualizado com sucesso!");
+            fecharPerfilUsuario();
         } catch (e) {
             alert("Erro ao atualizar perfil: " + e.message);
         }
@@ -837,25 +867,30 @@
         }
     };
 
+    async function migrarProdutosAntigos() {
+        const snap = await getDocs(collection(db, "produtos"));
+        const itens = [];
+        snap.forEach((d) => { const x = d.data(); itens.push({ id: d.id, titulo: x.titulo || '', preco: x.preco || '', imagem: x.imagem || '', link: x.link || '', criadoEm: (x.criadoEm && x.criadoEm.toMillis) ? x.criadoEm.toMillis() : 0 }); });
+        try { await setDoc(doc(db, "vitrine", "produtos"), { itens }); } catch (err) { console.warn('Vitrine:', err.message); }
+        return itens;
+    }
+
     async function carregarVitrineSegregada(forcar = false) {
         const container = document.getElementById('lista-produtos-vitrine');
         container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar vitrine...</p>";
         try {
-            if (!forcar && vitrineCacheTs && Date.now() - vitrineCacheTs < 600000) {
-                renderizarProdutosVitrine(cacheProdutosVitrine);
-                return;
+            let itens = forcar ? null : lerCache('zl_vitrine', 6 * 3600 * 1000);
+            if (!itens) {
+                const snap = await getDoc(doc(db, "vitrine", "produtos"));
+                if (snap.exists()) itens = snap.data().itens || [];
+                else if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) itens = await migrarProdutosAntigos();
+                else itens = [];
+                itens.sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+                salvarCache('zl_vitrine', itens);
             }
-            if (limiteUsuarioCache === null) {
-                limiteUsuarioCache = 10;
-                if (usuarioAtual) {
-                    const userSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
-                    if (userSnap.exists() && userSnap.data().limiteProdutos) limiteUsuarioCache = Number(userSnap.data().limiteProdutos);
-                }
-            }
-            const querySnapshot = await getDocs(query(collection(db, "produtos"), orderBy("criadoEm", "desc"), limit(limiteUsuarioCache)));
-            cacheProdutosVitrine = [];
-            querySnapshot.forEach((docItem) => { cacheProdutosVitrine.push({ id: docItem.id, ...docItem.data() }); });
-            vitrineCacheTs = Date.now();
+            const perfil = await obterMeuPerfil();
+            const limite = Number(perfil.limiteProdutos) || 10;
+            cacheProdutosVitrine = (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) ? itens : itens.slice(0, limite);
             renderizarProdutosVitrine(cacheProdutosVitrine);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
@@ -869,12 +904,10 @@
         const link = document.getElementById('admin-prod-link').value.trim();
         if (!titulo) return alert("Digite o nome do produto.");
         try {
-            await addDoc(collection(db, "produtos"), { titulo, preco, imagem, link, criadoEm: serverTimestamp() });
+            const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo, preco, imagem, link, criadoEm: Date.now() };
+            await setDoc(doc(db, "vitrine", "produtos"), { itens: arrayUnion(item) }, { merge: true });
             alert("Produto cadastrado com sucesso!");
-            document.getElementById('admin-prod-titulo').value = '';
-            document.getElementById('admin-prod-preco').value = '';
-            document.getElementById('admin-prod-img').value = '';
-            document.getElementById('admin-prod-link').value = '';
+            ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link'].forEach((id) => { document.getElementById(id).value = ''; });
             carregarVitrineSegregada(true);
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
@@ -884,7 +917,9 @@
     window.apagarProdutoFirebase = async (idProduto) => {
         if (!confirm("Deseja apagar este produto?")) return;
         try {
-            await deleteDoc(doc(db, "produtos", idProduto));
+            const item = cacheProdutosVitrine.find((p) => p.id === idProduto);
+            if (!item) return;
+            await updateDoc(doc(db, "vitrine", "produtos"), { itens: arrayRemove(item) });
             carregarVitrineSegregada(true);
         } catch (e) {
             alert("Erro ao apagar: " + e.message);
@@ -1076,6 +1111,9 @@
     let peerConnection = null;
     let localStream = null;
     let unsubscribeCall = null;
+    let unsubCandidatos = null;
+    const candidatosMeus = [];
+    const nomeSub = (p, n) => n ? p + '_' + n : (p === 'o' ? 'offerCandidates' : 'answerCandidates');
     const serversConfig = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
 
     window.iniciarChamada = async (comVideo) => {
@@ -1108,11 +1146,12 @@
 
             const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
             const callDoc = doc(db, "chamadas", idChamada);
-            const offerCandidates = collection(callDoc, "offerCandidates");
+            const nonce = Date.now().toString(36);
+            const offerCandidates = collection(callDoc, nomeSub('o', nonce));
 
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    addDoc(offerCandidates, event.candidate.toJSON());
+                    addDoc(offerCandidates, event.candidate.toJSON()).then((r) => candidatosMeus.push(r)).catch(() => {});
                 }
             };
 
@@ -1125,11 +1164,13 @@
                 remetenteNome: meuNomeAtual || usuarioAtual.email.split('@')[0],
                 destinatario: contatoSelecionado.uid,
                 comVideo: comVideo,
+                n: nonce,
+                ts: Date.now(),
                 status: 'pendente'
             });
 
             enviarPushChamada(comVideo);
-            escutarRespostaChamada(callDoc);
+            escutarRespostaChamada(callDoc, nonce);
         } catch (err) {
             pararSomCampainha();
             alert("Erro ao aceder à câmara/microfone. Verifique as permissões do navegador: " + err.message);
@@ -1137,7 +1178,7 @@
         }
     };
 
-    function escutarRespostaChamada(callDoc) {
+    function escutarRespostaChamada(callDoc, nonce) {
         unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
             const data = snapshot.data();
             if (!data) {
@@ -1155,7 +1196,7 @@
             }
         });
 
-        onSnapshot(collection(callDoc, "answerCandidates"), (snapshot) => {
+        unsubCandidatos = onSnapshot(collection(callDoc, nomeSub('a', nonce)), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added' && peerConnection) {
                     const candidate = new RTCIceCandidate(change.doc.data());
@@ -1172,6 +1213,7 @@
             let chamouAinda = false;
             snapshot.forEach((docItem) => {
                 const data = docItem.data();
+                if (data.ts && Date.now() - data.ts > 60000) { deleteDoc(docItem.ref).catch(() => {}); return; }
                 if (data.destinatario === uidUsuario && data.status === 'pendente') {
                     chamouAinda = true;
                     if (window.chamadaEntranteDocId !== docItem.id) {
@@ -1219,10 +1261,10 @@
                 document.getElementById('remote-video').srcObject = event.streams[0];
             };
 
-            const answerCandidates = collection(callDoc, "answerCandidates");
+            const answerCandidates = collection(callDoc, nomeSub('a', data.n));
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    addDoc(answerCandidates, event.candidate.toJSON());
+                    addDoc(answerCandidates, event.candidate.toJSON()).then((r) => candidatosMeus.push(r)).catch(() => {});
                 }
             };
 
@@ -1243,7 +1285,7 @@
                 }
             });
 
-            onSnapshot(collection(callDoc, "offerCandidates"), (snapshot) => {
+            unsubCandidatos = onSnapshot(collection(callDoc, nomeSub('o', data.n)), (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added' && peerConnection) {
                         const candidate = new RTCIceCandidate(change.doc.data());
@@ -1287,6 +1329,8 @@
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         if (peerConnection) { peerConnection.close(); peerConnection = null; }
         if (unsubscribeCall) { unsubscribeCall(); unsubscribeCall = null; }
+        if (unsubCandidatos) { unsubCandidatos(); unsubCandidatos = null; }
+        candidatosMeus.splice(0).forEach((r) => deleteDoc(r).catch(() => {}));
         document.getElementById('call-screen').classList.add('hidden');
         document.getElementById('modal-incoming-call').style.display = 'none';
         document.getElementById('remote-video').srcObject = null;
@@ -1318,14 +1362,9 @@
             document.getElementById('chat-screen').classList.add('hidden');
             document.getElementById('contacts-screen').classList.remove('hidden');
             
-            const userDocRef = doc(db, "usuarios", user.uid);
-            const userSnap = await getDoc(userDocRef);
-            let nomeExibicao = user.email.split('@')[0];
-            let fotoUrl = "";
-            if (userSnap.exists()) {
-                if (userSnap.data().nome) nomeExibicao = userSnap.data().nome;
-                if (userSnap.data().fotoUrl) fotoUrl = userSnap.data().fotoUrl;
-            }
+            const perfilMeu = await obterMeuPerfil();
+            let nomeExibicao = perfilMeu.nome || user.email.split('@')[0];
+            let fotoUrl = perfilMeu.fotoUrl || "";
             meuNomeAtual = nomeExibicao;
             document.getElementById('user-display-contacts').innerText = nomeExibicao;
             
@@ -1343,6 +1382,7 @@
             carregarContatos();
             atualizarBarraAtalhos();
             registrarPushSePermitido();
+            registrarNoDiretorio(perfilMeu);
         } else {
             usuarioAtual = null;
             document.getElementById('auth-screen').classList.remove('hidden');
@@ -1373,34 +1413,45 @@
         if (unsubChamadasEntrantes) { unsubChamadasEntrantes(); unsubChamadasEntrantes = null; }
         if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
         limiteUsuarioCache = null; vitrineCacheTs = 0;
+        Object.keys(localStorage).filter((k) => k.startsWith('zl_m_')).forEach((k) => localStorage.removeItem(k));
         await signOut(auth);
     };
 
-    function carregarContatos() {
-        getDocs(query(collection(db, "usuarios"), limit(100))).then((snapshot) => {
-            const listaDiv = document.getElementById('lista-contatos');
-            listaDiv.innerHTML = "";
-            snapshot.forEach((docItem) => {
-                const dados = docItem.data();
-                if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
-                    const nomeContato = dados.nome || dados.email.split('@')[0];
-                    contatosCache[docItem.id] = { nome: nomeContato, foto: dados.fotoUrl || '', token: dados.fcmToken || '' };
-                    const avatarHtml = dados.fotoUrl ? 
-                        `<img src="${esc(urlSegura(dados.fotoUrl, true))}" class="avatar">` : 
-                        `<div class="avatar">${esc((dados.nome || dados.email).charAt(0).toUpperCase())}</div>`;
-
-                    listaDiv.innerHTML += `
-                        <div class="contact-item" onclick="abrirChatPorId('${esc(docItem.id)}')">
-                            <div class="contact-info">
-                                ${avatarHtml}
-                                <span class="contact-name">${esc(nomeContato)}</span>
-                            </div>
-                            <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
-                        </div>`;
-                }
+    async function carregarContatos(forcar = false) {
+        const listaDiv = document.getElementById('lista-contatos');
+        let dir = forcar ? null : lerCache('zl_dir', 6 * 3600 * 1000);
+        if (!dir) {
+            try {
+                const snap = await getDoc(doc(db, "diretorio", "lista"));
+                if (snap.exists()) dir = snap.data().u || {};
+                else if (usuarioAtual.email === EMAIL_ADMIN) dir = await migrarDiretorio();
+                else dir = {};
+                salvarCache('zl_dir', dir);
+            } catch (err) { dir = lerCache('zl_dir', Infinity) || {}; }
+        }
+        listaDiv.innerHTML = "";
+        Object.entries(dir)
+            .filter(([uid]) => uid !== usuarioAtual.uid)
+            .sort((a, b) => (a[1].n || '').localeCompare(b[1].n || ''))
+            .forEach(([uid, e]) => {
+                const nomeContato = e.n || 'Usuário';
+                contatosCache[uid] = { nome: nomeContato, foto: e.f || '', token: (contatosCache[uid] && contatosCache[uid].token) || '' };
+                const avatarHtml = e.f ?
+                    `<img src="${esc(urlSegura(e.f, true))}" class="avatar">` :
+                    `<div class="avatar">${esc(nomeContato.charAt(0).toUpperCase())}</div>`;
+                listaDiv.innerHTML += `
+                    <div class="contact-item" onclick="abrirChatPorId('${esc(uid)}')">
+                        <div class="contact-info">
+                            ${avatarHtml}
+                            <span class="contact-name">${esc(nomeContato)}</span>
+                        </div>
+                        <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
+                    </div>`;
             });
-        });
+        if (!listaDiv.innerHTML) listaDiv.innerHTML = "<p style='text-align:center; opacity:0.6; font-size:13px; margin-top:20px;'>Nenhum contato ainda.</p>";
     }
+
+    window.atualizarContatos = () => carregarContatos(true);
 
     window.abrirChatPorId = (id) => {
         const c = contatosCache[id];
@@ -1429,7 +1480,23 @@
         escutarMensagensPrivadas();
     };
 
-    window.verMaisMensagens = () => { limiteMsgs += 30; escutarMensagensPrivadas(); };
+    window.verMaisMensagens = async () => {
+        try {
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const maisAntiga = msgsAtuais.length ? msgsAtuais[0].t : Date.now();
+            const snap = await getDocs(query(collection(db, "conversas", idSala, "mensagens"), where("criadoEm", "<", Timestamp.fromMillis(maisAntiga)), orderBy("criadoEm", "desc"), limit(30)));
+            let cortou = false;
+            snap.docs.forEach((d) => {
+                if (cortou) return;
+                const m = sanitizarMsg(d.id, d.data());
+                if (m.tipo === 'limpar') { cortou = true; return; }
+                if (!msgsAtuais.some((x) => x.id === m.id)) msgsAtuais.push(m);
+            });
+            temAnteriores = snap.size >= 30 && !cortou;
+            salvarMsgsCache();
+            renderizarListaMensagens(msgsAtuais, temAnteriores);
+        } catch (e) { alert("Erro ao carregar mensagens anteriores: " + e.message); }
+    };
 
     window.filtrarMensagensLocais = () => {
         const t = document.getElementById('input-busca-msg').value.toLowerCase();
@@ -1437,6 +1504,7 @@
     };
 
     window.voltarParaContatos = () => {
+        tokenEscuta++;
         if (unsubscribeChat) unsubscribeChat();
         document.getElementById('chat-screen').classList.add('hidden');
         document.getElementById('contacts-screen').classList.remove('hidden');
@@ -1449,28 +1517,64 @@
         if (!confirm("Tem certeza que deseja apagar todas as mensagens, áudios, fotos e vídeos desta conversa?")) return;
         try {
             const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            const mensagensRef = collection(db, "conversas", idSala, "mensagens");
-            const snapshot = await getDocs(mensagensRef);
-            const promessasDeDelete = [];
-            snapshot.forEach((documento) => {
-                promessasDeDelete.push(deleteDoc(doc(db, "conversas", idSala, "mensagens", documento.id)));
-            });
-            await Promise.all(promessasDeDelete);
+            const ids = msgsAtuais.map((m) => m.id);
+            // marcador: faz o outro celular limpar o cache local sem ler nada
+            await addDoc(collection(db, "conversas", idSala, "mensagens"), { tipo: 'limpar', texto: '', remetente: usuarioAtual.email, criadoEm: serverTimestamp() });
+            await Promise.all(ids.map((id) => deleteDoc(doc(db, "conversas", idSala, "mensagens", id))));
             alert("Conversa limpa com sucesso!");
         } catch (err) {
             alert("Erro ao limpar conversa: " + err.message);
         }
     };
 
-    function escutarMensagensPrivadas() {
+    const sanitizarMsg = (id, d) => { const { criadoEm, ...resto } = d; return { id, ...resto, t: criadoEm && criadoEm.toMillis ? criadoEm.toMillis() : Date.now() }; };
+
+    function salvarMsgsCache() {
+        msgsAtuais.sort((a, b) => a.t - b.t);
+        if (msgsAtuais.length > 300) msgsAtuais = msgsAtuais.slice(-300);
+        const sem = (m) => { const c = { ...m }; ['imagemBase64', 'videoBase64', 'audioBase64'].forEach((k) => delete c[k]); return c; };
+        try { localStorage.setItem(msgsChave, JSON.stringify({ base: msgsBase, msgs: msgsAtuais })); }
+        catch (_) { try { localStorage.setItem(msgsChave, JSON.stringify({ base: msgsBase, msgs: msgsAtuais.slice(-50).map(sem) })); } catch (__) {} }
+    }
+
+    function aplicarMsg(docSnap, tipo) {
+        const m = sanitizarMsg(docSnap.id, docSnap.data({ serverTimestamps: 'estimate' }));
+        if (!docSnap.metadata.hasPendingWrites && m.t > msgsBase) msgsBase = m.t;
+        if (tipo === 'removed') { msgsAtuais = msgsAtuais.filter((x) => x.id !== m.id); return; }
+        if (m.tipo === 'limpar') { msgsAtuais = msgsAtuais.filter((x) => x.t > m.t); temAnteriores = false; return; }
+        const i = msgsAtuais.findIndex((x) => x.id === m.id);
+        if (i >= 0) msgsAtuais[i] = m; else msgsAtuais.push(m);
+    }
+
+    // Abre o chat: mostra o cache local e só lê do Firestore o que é NOVO
+    async function escutarMensagensPrivadas() {
+        const meuToken = ++tokenEscuta;
+        if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
         const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "desc"), limit(limiteMsgs));
-        if (unsubscribeChat) unsubscribeChat();
-        unsubscribeChat = onSnapshot(q, (snapshot) => {
-            let cacheMensagensAtuais = [];
-            snapshot.forEach((docItem) => { cacheMensagensAtuais.push({ id: docItem.id, ...docItem.data() }); });
-            renderizarListaMensagens(cacheMensagensAtuais.reverse(), snapshot.size >= limiteMsgs);
-        });
+        msgsChave = 'zl_m_' + idSala;
+        msgsAtuais = []; msgsBase = 0;
+        try { const c = JSON.parse(localStorage.getItem(msgsChave)); if (c) { msgsAtuais = c.msgs || []; msgsBase = c.base || 0; } } catch (_) {}
+        temAnteriores = msgsAtuais.length >= 30;
+        renderizarListaMensagens(msgsAtuais, temAnteriores);
+        const ref = collection(db, "conversas", idSala, "mensagens");
+        try {
+            if (!msgsBase) { // primeira vez neste aparelho: 1 leitura única das últimas 30
+                const snap = await getDocs(query(ref, orderBy("criadoEm", "desc"), limit(30)));
+                if (meuToken !== tokenEscuta) return;
+                temAnteriores = snap.size >= 30;
+                snap.docs.slice().reverse().forEach((d) => aplicarMsg(d, 'added'));
+                salvarMsgsCache();
+                renderizarListaMensagens(msgsAtuais, temAnteriores);
+            }
+            const q = query(ref, where("criadoEm", ">", Timestamp.fromMillis(msgsBase + 1)), orderBy("criadoEm", "asc"));
+            unsubscribeChat = onSnapshot(q, (snapshot) => {
+                const mudancas = snapshot.docChanges();
+                if (!mudancas.length) return;
+                mudancas.forEach((ch) => aplicarMsg(ch.doc, ch.type));
+                salvarMsgsCache();
+                renderizarListaMensagens(msgsAtuais, temAnteriores);
+            });
+        } catch (e) { console.warn('Chat:', e.message); }
     }
 
     function formatarTextoComMidia(texto) {
