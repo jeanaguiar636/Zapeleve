@@ -317,7 +317,9 @@
                     <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Adicionar Produto:</p>
                     <input type="text" id="admin-prod-titulo" placeholder="Nome do Produto" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-preco" placeholder="Preço (ex: 49.90)" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                    <input type="text" id="admin-prod-img" placeholder="URL da Imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <label style="font-size:11px; opacity:0.8;">📷 Foto do produto (da galeria):</label>
+                    <input type="file" id="admin-prod-foto" accept="image/*" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-img" placeholder="ou cole o link da imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
                 </div>
@@ -885,6 +887,12 @@
         document.body.classList.add('dark-mode');
     }
 
+    const DOMINIOS_OK = ['shopee.com.br', 'shp.ee', 'mercadolivre.com.br', 'mercadolivre.com', 'mercadolibre.com', 'meli.la', 'amazon.com.br', 'amazon.com', 'amzn.to', 'magazinevoce.com.br', 'magalu.com', 'aliexpress.com', 'shein.com', 'shein.com.br', 'shein.top', 'shope.ee', 'amzn.com', 'a.co'];
+    const linkPermitido = (u) => {
+        try { const h = new URL(u).hostname.toLowerCase(); return /^https?:$/.test(new URL(u).protocol) && DOMINIOS_OK.some((d) => h === d || h.endsWith('.' + d)); }
+        catch (_) { return false; }
+    };
+
     let lojaCtx = { modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' };
     const ehAdminApp = () => !!(usuarioAtual && usuarioAtual.email === EMAIL_ADMIN);
     const noChat = () => !!contatoSelecionado && !document.getElementById('chat-screen').classList.contains('hidden');
@@ -1032,10 +1040,18 @@
     window.salvarProdutoFirebase = async () => {
         const titulo = document.getElementById('admin-prod-titulo').value.trim();
         const preco = document.getElementById('admin-prod-preco').value.trim();
-        const imagem = document.getElementById('admin-prod-img').value.trim();
+        let imagem = document.getElementById('admin-prod-img').value.trim();
         const link = document.getElementById('admin-prod-link').value.trim();
+        const fotoInput = document.getElementById('admin-prod-foto');
         if (!titulo) return alert("Digite o nome do produto.");
+        if (lojaCtx.modo === 'minha') {
+            if (!link) return alert("Cole o link de afiliado do produto.");
+            if (!linkPermitido(link)) return alert("Use um link de Shopee, Mercado Livre, Amazon, Shein, Magalu ou AliExpress (começando com https://).");
+        }
         try {
+            if (fotoInput.files && fotoInput.files[0]) {
+                imagem = await subirParaR2(await comprimirImagem(fotoInput.files[0], 800, 0.8), 'webp');
+            }
             if (lojaCtx.modo === 'minha') {
                 const p = await obterMeuPerfil();
                 const limite = Number(p.limiteProdutos) || 10;
@@ -1044,7 +1060,7 @@
             const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
             await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
             alert("Produto cadastrado com sucesso!");
-            ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link'].forEach((id) => { document.getElementById(id).value = ''; });
+            ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-foto'].forEach((id) => { document.getElementById(id).value = ''; });
             recarregarLojaAtual();
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
@@ -1110,7 +1126,7 @@
         }
         lista.forEach((prod) => {
             const img = urlSegura(prod.imagem);
-            const link = urlSegura(prod.link);
+            const link = modo === 'admin' ? urlSegura(prod.link) : (linkPermitido(prod.link) ? urlSegura(prod.link) : '');
             const btn = 'display:block; text-align:center; padding:8px; border-radius:6px; font-size:12px; font-weight:bold; margin:0; text-decoration:none;';
             container.innerHTML += `
                 <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column; flex-shrink:0;">
