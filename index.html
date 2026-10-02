@@ -256,6 +256,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
                 <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%;" onclick="copiarMeuLink()">🔗 Copiar meu link de atendimento</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
@@ -301,12 +302,12 @@
     <div id="modal-vitrine" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3 style="margin:0;">🛍️ Vitrine de Produtos</h3>
+                <h3 id="titulo-loja" style="margin:0;">🛍️ Vitrine de Produtos</h3>
                 <button id="btn-abrir-admin" class="btn-alt hidden" style="width:auto; padding:4px 8px; font-size:10px; margin:0; background:#d4a24c;" onclick="togglePainelAdmin()">⚙️ Painel Admin</button>
             </div>
 
             <div id="painel-admin-geral" class="hidden" style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color);">
-                <div style="display:flex; gap:4px; margin-bottom:8px;">
+                <div id="abas-admin" style="display:flex; gap:4px; margin-bottom:8px;">
                     <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0;" onclick="mudarAbaAdmin('produtos')">📦 Produtos</button>
                     <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdmin('utilizadores')">👥 Limites Usuários</button>
                 </div>
@@ -446,6 +447,7 @@
                     <button class="clip-btn" onclick="toggleMenuAnexos(event)" title="Anexar Mídia">📎</button>
 
                     <div id="menu-anexos">
+                        <div class="anexo-opcao" onclick="abrirMinhaLoja()">🛍️ Meus produtos</div>
                         <label class="anexo-opcao">
                             📷 Enviar Imagem
                             <input type="file" id="imagem-input" accept="image/*" style="display: none;" onchange="enviarImagemGlobal(this); fecharMenuAnexos();">
@@ -882,12 +884,26 @@
         document.body.classList.add('dark-mode');
     }
 
-    window.abrirVitrineAfiliado = async () => {
+    let lojaCtx = { modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' };
+    const ehAdminApp = () => !!(usuarioAtual && usuarioAtual.email === EMAIL_ADMIN);
+    const noChat = () => !!contatoSelecionado && !document.getElementById('chat-screen').classList.contains('hidden');
+
+    function configurarModalLoja(ctx) {
+        lojaCtx = ctx;
+        document.getElementById('titulo-loja').innerText = ctx.titulo;
+        const admin = ctx.modo === 'admin' && ehAdminApp();
+        document.getElementById('btn-abrir-admin').classList.toggle('hidden', !admin);
+        document.getElementById('painel-admin-geral').classList.toggle('hidden', ctx.modo !== 'minha');
+        document.getElementById('abas-admin').classList.toggle('hidden', ctx.modo === 'minha');
+        if (ctx.modo === 'minha') mudarAbaAdmin('produtos');
         document.getElementById('modal-vitrine').style.display = 'flex';
-        if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) {
-            document.getElementById('btn-abrir-admin').classList.remove('hidden');
-        }
-        await carregarVitrineSegregada();
+    }
+
+    // Carrinho: no chat abre a loja do contato; fora do chat abre a minha
+    window.abrirVitrineAfiliado = async () => {
+        if (!usuarioAtual) return alert('Entre na sua conta para ver as lojas.');
+        if (noChat()) return abrirLojaDoContato(contatoSelecionado.uid, contatoSelecionado.nome);
+        return window.abrirMinhaLoja();
     };
 
     window.fecharVitrineAfiliado = () => {
@@ -929,18 +945,87 @@
             if (!itens) {
                 const snap = await getDoc(doc(db, "vitrine", "produtos"));
                 if (snap.exists()) itens = snap.data().itens || [];
-                else if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) itens = await migrarProdutosAntigos();
+                else if (ehAdminApp()) itens = await migrarProdutosAntigos();
                 else itens = [];
                 itens.sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
                 salvarCache('zl_vitrine', itens);
             }
             const perfil = await obterMeuPerfil();
             const limite = Number(perfil.limiteProdutos) || 10;
-            cacheProdutosVitrine = (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) ? itens : itens.slice(0, limite);
+            cacheProdutosVitrine = ehAdminApp() ? itens : itens.slice(0, limite);
             renderizarProdutosVitrine(cacheProdutosVitrine);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
         }
+    }
+
+    // Loja de outra pessoa (1 leitura, cache de 1 h). Sem loja: mostra as ofertas do admin.
+    async function abrirLojaDoContato(uid, nome) {
+        configurarModalLoja({ modo: 'ver', titulo: '🏪 Loja de ' + nome });
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar loja...</p>";
+        try {
+            let loja = lerCache('zl_loja_' + uid, 3600 * 1000);
+            if (!loja) {
+                const snap = await getDoc(doc(db, "lojas", uid));
+                loja = snap.exists() ? snap.data() : { vazio: true };
+                salvarCache('zl_loja_' + uid, loja);
+            }
+            if (loja.vazio) {
+                configurarModalLoja({ modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' });
+                return carregarVitrineSegregada();
+            }
+            cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar a loja.</p>";
+        }
+    }
+
+    window.abrirMinhaLoja = async () => {
+        if (!usuarioAtual) return;
+        fecharPerfilUsuario();
+        if (ehAdminApp()) { configurarModalLoja({ modo: 'admin', titulo: '🛍️ Minha loja (Ofertas do Zap Leve)' }); return carregarVitrineSegregada(); }
+        configurarModalLoja({ modo: 'minha', titulo: '🏪 Minha loja' });
+        await carregarMinhaLoja(false);
+    };
+
+    async function carregarMinhaLoja(forcar = false) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar...</p>";
+        try {
+            let loja = forcar ? null : lerCache('zl_loja_' + usuarioAtual.uid, 6 * 3600 * 1000);
+            if (!loja) {
+                const snap = await getDoc(doc(db, "lojas", usuarioAtual.uid));
+                loja = snap.exists() ? snap.data() : { vazio: true };
+                salvarCache('zl_loja_' + usuarioAtual.uid, loja);
+            }
+            if (loja.vazio) {
+                document.getElementById('painel-admin-geral').classList.add('hidden');
+                container.innerHTML = `<div style="text-align:center; padding:12px;"><p style="font-size:13px; line-height:1.4;">Você ainda não tem loja.<br>Crie a sua para os seus contatos verem seus produtos. Enquanto você não criar, eles veem as ofertas do Zap Leve.</p><button class="btn-alt" onclick="criarMinhaLoja()">🏪 Criar minha loja</button></div>`;
+                return;
+            }
+            cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar sua loja.</p>";
+        }
+    }
+
+    window.criarMinhaLoja = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            await setDoc(doc(db, "lojas", usuarioAtual.uid), { nome: String(p.nome || 'Minha loja').slice(0, 60), itens: [], criadoEm: Date.now() });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            configurarModalLoja({ modo: 'minha', titulo: '🏪 Minha loja' });
+            await carregarMinhaLoja(true);
+        } catch (e) { alert('Erro ao criar a loja: ' + e.message); }
+    };
+
+    const docLojaAtual = () => lojaCtx.modo === 'minha' ? doc(db, "lojas", usuarioAtual.uid) : doc(db, "vitrine", "produtos");
+    async function recarregarLojaAtual() {
+        if (lojaCtx.modo === 'minha') { localStorage.removeItem('zl_loja_' + usuarioAtual.uid); await carregarMinhaLoja(true); }
+        else await carregarVitrineSegregada(true);
     }
 
     window.salvarProdutoFirebase = async () => {
@@ -950,11 +1035,16 @@
         const link = document.getElementById('admin-prod-link').value.trim();
         if (!titulo) return alert("Digite o nome do produto.");
         try {
-            const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo, preco, imagem, link, criadoEm: Date.now() };
-            await setDoc(doc(db, "vitrine", "produtos"), { itens: arrayUnion(item) }, { merge: true });
+            if (lojaCtx.modo === 'minha') {
+                const p = await obterMeuPerfil();
+                const limite = Number(p.limiteProdutos) || 10;
+                if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos.`);
+            }
+            const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
+            await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
             alert("Produto cadastrado com sucesso!");
             ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link'].forEach((id) => { document.getElementById(id).value = ''; });
-            carregarVitrineSegregada(true);
+            recarregarLojaAtual();
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
         }
@@ -965,8 +1055,8 @@
         try {
             const item = cacheProdutosVitrine.find((p) => p.id === idProduto);
             if (!item) return;
-            await updateDoc(doc(db, "vitrine", "produtos"), { itens: arrayRemove(item) });
-            carregarVitrineSegregada(true);
+            await updateDoc(docLojaAtual(), { itens: arrayRemove(item) });
+            recarregarLojaAtual();
         } catch (e) {
             alert("Erro ao apagar: " + e.message);
         }
@@ -1009,13 +1099,17 @@
     function renderizarProdutosVitrine(lista) {
         const container = document.getElementById('lista-produtos-vitrine');
         container.innerHTML = "";
-        const isAdmin = usuarioAtual && usuarioAtual.email === EMAIL_ADMIN;
+        const modo = lojaCtx.modo;
+        const dono = modo === 'minha' || (modo === 'admin' && ehAdminApp());
+        const enviar = noChat() && (modo === 'minha' || modo === 'admin');
+        const ver = modo === 'ver' || (modo === 'admin' && !ehAdminApp());
         if (lista.length === 0) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
             return;
         }
         lista.forEach((prod) => {
             const img = urlSegura(prod.imagem);
+            const link = urlSegura(prod.link);
             container.innerHTML += `
                 <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:13px;">
                     ${img
@@ -1025,8 +1119,9 @@
                         <b style="font-size:15px;">${esc(prod.titulo || 'Produto')}</b><br>
                         <span style="font-size:16px; font-weight:bold; color: var(--header-bg);">R$ ${esc(prod.preco || '0.00')}</span>
                         <div style="display:flex; gap:6px; margin-top:8px;">
-                            <button class="btn-alt" style="flex:1; padding:10px; font-size:13px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>
-                            ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:10px 14px; font-size:13px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
+                            ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="flex:1; display:block; text-align:center; background:#00a884; color:white; padding:10px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:13px;">Ver oferta 🔗</a>` : ''}
+                            ${enviar ? `<button class="btn-alt" style="flex:1; padding:10px; font-size:13px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
+                            ${dono ? `<button class="btn-danger" style="width:auto; padding:10px 14px; font-size:13px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
                         </div>
                     </div>
                 </div>`;
