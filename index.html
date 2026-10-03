@@ -196,6 +196,19 @@
     </style>
 </head>
 <body>
+<script>
+// Aviso na tela se o app não carregar ou der erro (ajuda a descobrir por que "congelou")
+(function () {
+    function mostrar(t) {
+        var b = document.getElementById('zl-erro');
+        if (!b) { b = document.createElement('div'); b.id = 'zl-erro'; b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;font:12px sans-serif;padding:8px 10px;z-index:99999;'; document.body.appendChild(b); }
+        b.textContent = t;
+    }
+    window.addEventListener('error', function (e) { mostrar('Erro: ' + (e.message || 'falha ao carregar')); });
+    window.addEventListener('unhandledrejection', function (e) { mostrar('Erro: ' + ((e.reason && e.reason.message) || e.reason)); });
+    setTimeout(function () { if (typeof window.entrar !== 'function') mostrar('O app não terminou de carregar. Verifique a internet e atualize a página.'); }, 8000);
+})();
+</script>
 
 <div class="container">
     <!-- Modal de Ampliação de Imagem -->
@@ -260,6 +273,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 03/10 · extrator ML</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -321,6 +335,8 @@
                     <input type="file" id="admin-prod-foto" accept="image/*" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-img" placeholder="ou cole o link da imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
+                    <button class="btn-alt" id="btn-extrair-ml" style="padding:6px; font-size:11px; margin:0 0 4px 0; background:#ffb300; color:#222;" onclick="extrairProdutoML()">🔍 Preencher automaticamente (Mercado Livre)</button>
+                    <p style="font-size:10px; opacity:0.85; margin:0 0 6px 0; line-height:1.3;">⚠️ O preenchimento automático só funciona com links do <b>Mercado Livre</b>. Para Shopee, Amazon e Shein, preencha à mão.</p>
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
                 </div>
 
@@ -893,6 +909,34 @@
         catch (_) { return false; }
     };
 
+    const EXTRATOR_ML = 'https://extrator-ml-alibr.vercel.app/api/extract-list';
+    const ehLinkML = (u) => {
+        try { const x = new URL(u); const h = x.hostname.toLowerCase(); return x.protocol === 'https:' && (h === 'meli.la' || /(^|\.)mercadolivre\.com(\.br)?$/.test(h)); }
+        catch (_) { return false; }
+    };
+    const fmtPreco = (p) => /^\d+(\.\d+)?$/.test(String(p)) ? Number(p).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(p);
+
+    window.extrairProdutoML = async () => {
+        const link = document.getElementById('admin-prod-link').value.trim();
+        if (!ehLinkML(link)) return alert('O preenchimento automático só funciona com links do Mercado Livre (mercadolivre.com.br ou meli.la). Para os outros sites, preencha à mão.');
+        const btn = document.getElementById('btn-extrair-ml');
+        const texto = btn.innerText;
+        btn.innerText = '⏳ Buscando dados...'; btn.disabled = true;
+        try {
+            const r = await fetch(`${EXTRATOR_ML}?url=${encodeURIComponent(link)}`);
+            const d = await r.json();
+            const lista = d.products || [];
+            if (!lista.length) return alert(d.error || 'Não consegui ler esse link. Preencha à mão.');
+            if (lista.length > 1) return alert('Esse link é de uma lista de produtos. Cole o link de UM produto.');
+            const p = lista[0];
+            if (p.nome) document.getElementById('admin-prod-titulo').value = String(p.nome).slice(0, 100);
+            if (p.preco) document.getElementById('admin-prod-preco').value = p.preco;
+            if (p.linkImagem) document.getElementById('admin-prod-img').value = p.linkImagem;
+            alert('Dados preenchidos! Confira nome, preço e foto antes de salvar. O seu link de afiliado foi mantido.');
+        } catch (e) { alert('Erro ao buscar os dados: ' + e.message + '\nPreencha à mão.'); }
+        finally { btn.innerText = texto; btn.disabled = false; }
+    };
+
     let lojaCtx = { modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' };
     const ehAdminApp = () => !!(usuarioAtual && usuarioAtual.email === EMAIL_ADMIN);
     const noChat = () => !!contatoSelecionado && !document.getElementById('chat-screen').classList.contains('hidden');
@@ -1135,7 +1179,7 @@
                         : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05);">📦</div>`}
                     <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
                         <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
-                        ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(prod.preco)}</span>` : ''}
+                        ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
                         <div style="display:flex; flex-direction:column; gap:4px; margin-top:auto;">
                             ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
                             ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
