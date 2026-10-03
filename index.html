@@ -6,8 +6,8 @@
     <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00a884">
-    <link rel="icon" type="image/png" href="icon-192.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" href="icon-192-2.png">
+    <link rel="apple-touch-icon" href="icon-192-2.png">
     <style>
         :root {
             --bg-app: #ffffff;
@@ -923,7 +923,8 @@
         const texto = btn.innerText;
         btn.innerText = '⏳ Buscando dados...'; btn.disabled = true;
         try {
-            const r = await fetch(`${EXTRATOR_ML}?url=${encodeURIComponent(link)}`);
+            const idToken = await auth.currentUser.getIdToken();
+            const r = await fetch(`${R2_WORKER}/extrair?url=${encodeURIComponent(link)}`, { headers: { Authorization: 'Bearer ' + idToken } });
             const d = await r.json();
             const lista = d.products || [];
             if (!lista.length) return alert(d.error || 'Não consegui ler esse link. Preencha à mão.');
