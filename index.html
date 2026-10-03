@@ -335,8 +335,9 @@
                     <input type="file" id="admin-prod-foto" accept="image/*" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-img" placeholder="ou cole o link da imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
+                    <input type="text" id="admin-prod-link-ml" placeholder="Link normal do produto no Mercado Livre (só para preencher)" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <button class="btn-alt" id="btn-extrair-ml" style="padding:6px; font-size:11px; margin:0 0 4px 0; background:#ffb300; color:#222;" onclick="extrairProdutoML()">🔍 Preencher automaticamente (Mercado Livre)</button>
-                    <p style="font-size:10px; opacity:0.85; margin:0 0 6px 0; line-height:1.3;">⚠️ O preenchimento automático só funciona com links do <b>Mercado Livre</b>. Para Shopee, Amazon e Shein, preencha à mão.</p>
+                    <p style="font-size:10px; opacity:0.85; margin:0 0 6px 0; line-height:1.3;">⚠️ O preenchimento automático só funciona com links do <b>Mercado Livre</b>. Para Shopee, Amazon e Shein, preencha à mão.<br>Cole acima o <b>link normal</b> do produto (o que abre o anúncio). O seu link de afiliado vai no campo "Link de Afiliado".</p>
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
                 </div>
 
@@ -917,7 +918,7 @@
     const fmtPreco = (p) => /^\d+(\.\d+)?$/.test(String(p)) ? Number(p).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(p);
 
     window.extrairProdutoML = async () => {
-        const link = document.getElementById('admin-prod-link').value.trim();
+        const link = (document.getElementById('admin-prod-link-ml').value.trim() || document.getElementById('admin-prod-link').value.trim());
         if (!ehLinkML(link)) return alert('O preenchimento automático só funciona com links do Mercado Livre (mercadolivre.com.br ou meli.la). Para os outros sites, preencha à mão.');
         const btn = document.getElementById('btn-extrair-ml');
         const texto = btn.innerText;
@@ -1105,7 +1106,7 @@
             const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
             await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
             alert("Produto cadastrado com sucesso!");
-            ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-foto'].forEach((id) => { document.getElementById(id).value = ''; });
+            ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-link-ml', 'admin-prod-foto'].forEach((id) => { document.getElementById(id).value = ''; });
             recarregarLojaAtual();
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
