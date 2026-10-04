@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zap Leve</title>
+<script>
+  // GitHub Pages não tem rotas: /nomedaloja cai aqui e é enviado ao app com o nome da loja
+  var p = location.pathname.replace(/^\/+|\/+$/g, '');
+  location.replace('/' + (p ? '?s=' + encodeURIComponent(p) : ''));
+</script>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding-top:40vh;">Abrindo…</body>
+</html>
