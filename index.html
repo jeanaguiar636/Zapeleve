@@ -211,6 +211,20 @@
 </script>
 
 <div class="container">
+    <!-- Detalhe do produto (ao tocar na foto do catálogo) -->
+    <div id="modal-produto" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.93); flex-direction:column; align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
+        <img id="mp-img" src="" alt="" style="max-width:100%; max-height:52vh; object-fit:contain; border-radius:6px; background:#fff; margin:0;">
+        <div id="mp-sem-img" style="display:none; font-size:80px;">📦</div>
+        <div style="color:white; text-align:center; margin-top:12px; max-width:420px;">
+            <b id="mp-titulo" style="font-size:16px; line-height:1.3;"></b><br>
+            <span id="mp-preco" style="font-size:20px; font-weight:bold; color:#7be0b8;"></span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin-top:16px;">
+            <button id="mp-btn-falar" style="background:#00a884; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="falarSobreProduto()">💬 Falar com o vendedor</button>
+            <button style="background:#5f6b73; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="fecharDetalheProduto()">↩ Voltar para o catálogo</button>
+        </div>
+    </div>
+
     <!-- Página pública da loja (zapleve.alibr.com.br/nomedaloja) -->
     <div id="loja-publica" class="hidden" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; background: var(--bg-app); overflow-y:auto;">
         <div style="background: var(--header-bg); color:white; padding:14px; display:flex; align-items:center; gap:10px;">
@@ -289,7 +303,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 05/10 · perfil corrigido</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 05/10b · falar sobre o produto</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -570,6 +584,8 @@
         return s;
     })();
     let lojaPublica = null;
+    let lojaPublicaItens = [];
+    let detalheProduto = null;
     const RESERVADOS = ['admin', 'api', 'app', 'index', 'login', 'sw', 'manifest', 'toque', 'icon', 'badge', 'cname', 'loja', 'lojas', 'perfil', 'config', 'u', 'www'];
     const limparSlug = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
 
@@ -663,6 +679,7 @@
             if (foto) { img.src = foto; img.classList.remove('hidden'); ini.classList.add('hidden'); }
             else { ini.innerText = nome.charAt(0).toUpperCase(); ini.classList.remove('hidden'); img.classList.add('hidden'); }
             const itens = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            lojaPublicaItens = itens;
             if (!itens.length) { lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px; opacity:0.7;'>Esta loja ainda não tem produtos.</p>"; return; }
             lista.innerHTML = '';
             itens.forEach((prod) => {
@@ -670,7 +687,7 @@
                 const link = linkPermitido(prod.link) ? urlSegura(prod.link) : '';
                 lista.innerHTML += `
                     <div style="background: var(--input-bg); border-radius:10px; border:1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column;">
-                        ${im ? `<img src="${esc(im)}" onclick="ampliarImagem(this.src)" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">` : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05);">📦</div>`}
+                        ${im ? `<img src="${esc(im)}" onclick="abrirDetalheProduto('${esc(prod.id)}', true)" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">` : `<div onclick="abrirDetalheProduto('${esc(prod.id)}', true)" style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05); cursor:pointer;">📦</div>`}
                         <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
                             <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
                             ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
@@ -685,19 +702,81 @@
 
     window.fecharLojaPublica = () => { document.getElementById('loja-publica').classList.add('hidden'); };
 
-    async function conectarComVendedor(p) {
+    // Foto do catálogo -> tela do produto com "Falar com o vendedor" e "Voltar para o catálogo"
+    window.abrirDetalheProduto = (id, publica = false) => {
+        const lista = publica ? lojaPublicaItens : cacheProdutosVitrine;
+        const prod = lista.find((p) => p.id === id);
+        if (!prod) return;
+        const origem = publica ? 'publica' : (lojaCtx.modo === 'ver' && noChat() ? 'chat' : 'ver');
+        detalheProduto = { prod, origem };
+        const im = urlSegura(prod.imagem, true);
+        const img = document.getElementById('mp-img'), sem = document.getElementById('mp-sem-img');
+        if (im) { img.src = im; img.style.display = 'block'; sem.style.display = 'none'; }
+        else { img.style.display = 'none'; sem.style.display = 'block'; }
+        document.getElementById('mp-titulo').innerText = prod.titulo || 'Produto';
+        document.getElementById('mp-preco').innerText = prod.preco ? 'R$ ' + fmtPreco(prod.preco) : '';
+        const meuProprio = origem === 'publica' && usuarioAtual && lojaPublica && lojaPublica.uid === usuarioAtual.uid;
+        document.getElementById('mp-btn-falar').style.display = ((origem === 'chat' || origem === 'publica') && !meuProprio) ? 'block' : 'none';
+        document.getElementById('modal-produto').style.display = 'flex';
+    };
+
+    window.fecharDetalheProduto = () => { document.getElementById('modal-produto').style.display = 'none'; };
+
+    // Manda o cartão do produto (com o botão Comprar) para o chat com o vendedor
+    async function enviarInteresseProduto(prod) {
+        if (!contatoSelecionado || !usuarioAtual || !prod) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const preco = prod.preco ? ' — R$ ' + fmtPreco(prod.preco) : '';
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: `Olá! Tenho interesse neste produto: ${String(prod.titulo || 'produto').slice(0, 100)}${preco}`,
+            imagemUrlProduto: urlSegura(prod.imagem, true) ? String(prod.imagem).slice(0, 500) : '',
+            linkAfiliado: linkPermitido(prod.link) ? String(prod.link).slice(0, 500) : '',
+            remetente: usuarioAtual.email,
+            tipo: 'produto',
+            criadoEm: serverTimestamp()
+        });
+    }
+
+    window.falarSobreProduto = async () => {
+        const d = detalheProduto;
+        if (!d) return;
+        try {
+            if (d.origem === 'chat') {
+                await enviarInteresseProduto(d.prod);
+                window.fecharDetalheProduto();
+                window.fecharVitrineAfiliado();
+                return;
+            }
+            if (!usuarioAtual) { // visitante sem conta: guarda o produto e o vendedor para depois do login
+                localStorage.setItem('zl_convite_slug', lojaPublica.slug);
+                localStorage.setItem('zl_produto_pendente', JSON.stringify({ titulo: d.prod.titulo || '', preco: d.prod.preco || '', imagem: d.prod.imagem || '', link: d.prod.link || '' }));
+                window.fecharDetalheProduto();
+                window.fecharLojaPublica();
+                const av = document.getElementById('aviso-convite');
+                av.textContent = '💬 Entre ou abra uma conta para falar com ' + lojaPublica.n + ' sobre este produto';
+                av.classList.remove('hidden');
+                return;
+            }
+            window.fecharDetalheProduto();
+            await conectarComVendedor(lojaPublica, d.prod);
+        } catch (e) { alert('Erro ao falar com o vendedor: ' + e.message); }
+    };
+
+    async function conectarComVendedor(p, prod) {
         if (p.uid === usuarioAtual.uid) return alert('Esta é a sua loja.');
         const nome = p.n || 'Vendedor';
         await setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { [p.uid]: { n: nome, f: p.f || '', l: '', t: Date.now() } } }, { merge: true });
         await apresentarAoContato(p.uid);
         window.fecharLojaPublica();
         window.abrirChat(p.uid, nome, p.f || '');
+        if (prod) await enviarInteresseProduto(prod);
     }
 
     window.falarComVendedor = async () => {
         if (!lojaPublica) return;
         if (!usuarioAtual) {
             localStorage.setItem('zl_convite_slug', lojaPublica.slug);
+            localStorage.removeItem('zl_produto_pendente');
             window.fecharLojaPublica();
             const av = document.getElementById('aviso-convite');
             av.textContent = '💬 Entre ou abra uma conta para falar com ' + lojaPublica.n;
@@ -715,7 +794,10 @@
             const sp = await getDoc(doc(db, "slugs", sl));
             if (!sp.exists()) return;
             const p = sp.data();
-            await conectarComVendedor({ uid: p.uid, n: p.n, f: p.f, slug: sl });
+            let prod = null;
+            try { prod = JSON.parse(localStorage.getItem('zl_produto_pendente') || 'null'); } catch (_) {}
+            localStorage.removeItem('zl_produto_pendente');
+            await conectarComVendedor({ uid: p.uid, n: p.n, f: p.f, slug: sl }, prod);
         } catch (e) { alert('Erro ao abrir a loja: ' + e.message); }
     }
 
@@ -1426,8 +1508,8 @@
             container.innerHTML += `
                 <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column; flex-shrink:0;">
                     ${img
-                        ? `<img src="${esc(img)}" onclick="ampliarImagem(this.src)" title="Toque para ampliar" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">`
-                        : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05);">📦</div>`}
+                        ? `<img src="${esc(img)}" onclick="abrirDetalheProduto('${esc(prod.id)}')" title="Toque para ver o produto" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">`
+                        : `<div onclick="abrirDetalheProduto('${esc(prod.id)}')" style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05); cursor:pointer;">📦</div>`}
                     <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
                         <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
                         ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
@@ -2074,7 +2156,7 @@
             if (data.tipo === 'produto') {
                 let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
                 if (urlSegura(data.imagemUrlProduto, true)) cartaoHtml += `<img src="${esc(urlSegura(data.imagemUrlProduto, true))}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem(this.src)">`;
-                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
+                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Comprar 🛒</a>`;
                 conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
             } else if (data.tipo === 'imagem') {
                 let imgSrc = esc(urlSegura(data.imagemUrlLocal || data.imagemBase64, true));
