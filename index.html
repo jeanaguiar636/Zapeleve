@@ -211,6 +211,22 @@
 </script>
 
 <div class="container">
+    <!-- Página pública da loja (zapleve.alibr.com.br/nomedaloja) -->
+    <div id="loja-publica" class="hidden" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; background: var(--bg-app); overflow-y:auto;">
+        <div style="background: var(--header-bg); color:white; padding:14px; display:flex; align-items:center; gap:10px;">
+            <img id="lp-foto" class="avatar hidden" src="" alt="">
+            <div id="lp-inicial" class="avatar">?</div>
+            <div>
+                <div id="lp-nome" style="font-weight:bold; font-size:17px;">Loja</div>
+                <div style="font-size:11px; opacity:0.85;">Loja no Zap Leve ⚡</div>
+            </div>
+        </div>
+        <div id="lp-lista" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 12px 100px 12px;"></div>
+        <div style="position:fixed; left:0; right:0; bottom:0; padding:10px; background: var(--bg-app); border-top:1px solid var(--border-color); display:flex; gap:8px;">
+            <button onclick="falarComVendedor()" style="flex:2; margin:0; padding:12px; border-radius:20px; font-size:14px;">💬 Falar com o vendedor</button>
+            <button class="btn-alt" onclick="fecharLojaPublica()" style="flex:1; margin:0; padding:12px; border-radius:20px; font-size:13px;">Abrir app</button>
+        </div>
+    </div>
     <!-- Modal de Ampliação de Imagem -->
     <div id="modal-zoom-imagem" onclick="fecharZoomImagem()">
         <img id="imagem-zoom-src" src="">
@@ -273,7 +289,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 03/10 · extrator ML</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 04/10 · páginas de loja</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -324,7 +340,7 @@
             <div id="painel-admin-geral" class="hidden" style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color);">
                 <div id="abas-admin" style="display:flex; gap:4px; margin-bottom:8px;">
                     <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0;" onclick="mudarAbaAdmin('produtos')">📦 Produtos</button>
-                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdmin('utilizadores')">👥 Limites Usuários</button>
+                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdmin('utilizadores')">👥 Usuários e recursos</button>
                 </div>
 
                 <div id="aba-admin-produtos">
@@ -335,13 +351,19 @@
                     <input type="file" id="admin-prod-foto" accept="image/*" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-img" placeholder="ou cole o link da imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
+                    <div id="bloco-extrator" class="hidden">
                     <input type="text" id="admin-prod-link-ml" placeholder="Link normal do produto no Mercado Livre (só para preencher)" style="font-size:11px; padding:6px; margin-bottom:4px;">
                     <button class="btn-alt" id="btn-extrair-ml" style="padding:6px; font-size:11px; margin:0 0 4px 0; background:#ffb300; color:#222;" onclick="extrairProdutoML()">🔍 Preencher automaticamente (Mercado Livre)</button>
                     <p style="font-size:10px; opacity:0.85; margin:0 0 6px 0; line-height:1.3;">⚠️ O preenchimento automático só funciona com links do <b>Mercado Livre</b>. Para Shopee, Amazon e Shein, preencha à mão.<br>Cole acima o <b>link normal</b> do produto (o que abre o anúncio). O seu link de afiliado vai no campo "Link de Afiliado".</p>
+                    </div>
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
                 </div>
 
                 <div id="aba-admin-utilizadores" class="hidden">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:bold; margin:0 0 8px 0; padding:8px; background: var(--bg-app); border-radius:6px; cursor:pointer;">
+                        <input type="checkbox" id="chk-extrator" style="width:auto; margin:0;" onchange="alternarExtratorML(this.checked)">
+                        🔍 Mostrar o extrator do Mercado Livre para os usuários
+                    </label>
                     <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Definir Limite de Vitrine por Usuário:</p>
                     <div id="lista-usuarios-admin" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
                         <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
@@ -349,6 +371,7 @@
                 </div>
             </div>
 
+            <div id="linha-endereco-loja" class="hidden" style="font-size:12px; background: var(--input-bg); padding:8px; border-radius:6px; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"></div>
             <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
             <div id="lista-produtos-vitrine" style="max-height: 62vh; overflow-y: auto; margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;">
                 <p style="text-align:center; font-size:12px;">A carregar...</p>
@@ -365,6 +388,7 @@
             <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e utilitários integrados</p>
         </div>
         
+        <p id="aviso-convite" class="hidden" style="background:#e8f5e9; color:#1b5e20; padding:8px 10px; border-radius:6px; font-size:12px; font-weight:bold; text-align:center; margin:0 0 6px 0;"></p>
         <input type="email" id="email" placeholder="Seu e-mail">
         <input type="password" id="password" placeholder="Sua senha">
         
@@ -520,7 +544,7 @@
         const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
         if (!snap.exists()) return { email: usuarioAtual.email };
         const d = snap.data();
-        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', email: d.email || usuarioAtual.email };
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', slug: d.slug || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
         return p;
     }
@@ -529,6 +553,17 @@
     const gerarHandle = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
     const perfilPublico = (p) => ({ uid: usuarioAtual.uid, ...entradaDir(p) });
     let unsubAgenda = null;
+
+    const slugInicial = (function () {
+        let s = new URLSearchParams(location.search).get('s') || location.pathname.replace(/^\/+|\/+$/g, '');
+        s = String(s || '').toLowerCase();
+        if (!/^[a-z0-9-]{3,30}$/.test(s)) return '';
+        history.replaceState(null, '', '/' + s);
+        return s;
+    })();
+    let lojaPublica = null;
+    const RESERVADOS = ['admin', 'api', 'app', 'index', 'login', 'sw', 'manifest', 'toque', 'icon', 'badge', 'cname', 'loja', 'lojas', 'perfil', 'config', 'u', 'www'];
+    const limparSlug = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
 
     (function () { // link de convite: ?u=codigo
         const h = new URLSearchParams(location.search).get('u');
@@ -589,9 +624,91 @@
     }
 
     async function meuLinkAtendimento() {
-        let url = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
-        try { const p = await obterMeuPerfil(); const h = p.handle || await garantirHandle(p); if (h) url += '?u=' + h; } catch (_) {}
+        let url = window.location.origin + '/';
+        try {
+            const p = await obterMeuPerfil();
+            if (p.slug) return url + p.slug;
+            const h = p.handle || await garantirHandle(p);
+            if (h) url += '?u=' + h;
+        } catch (_) {}
         return url;
+    }
+
+    // ---------- página pública da loja ----------
+    async function abrirLojaPublica(slug) {
+        const ov = document.getElementById('loja-publica');
+        const lista = document.getElementById('lp-lista');
+        ov.classList.remove('hidden');
+        lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px;'>Carregando loja...</p>";
+        try {
+            const sp = await getDoc(doc(db, "slugs", slug));
+            if (!sp.exists()) { lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px;'>Loja não encontrada.</p>"; return; }
+            const p = sp.data();
+            lojaPublica = { uid: p.uid, n: p.n || 'Loja', f: p.f || '', slug };
+            const lp = await getDoc(doc(db, "lojas", p.uid));
+            const loja = lp.exists() ? lp.data() : { itens: [] };
+            const nome = loja.nome || p.n || 'Loja';
+            document.getElementById('lp-nome').innerText = nome;
+            document.title = nome + ' - Zap Leve';
+            const foto = urlSegura(p.f, true);
+            const img = document.getElementById('lp-foto'), ini = document.getElementById('lp-inicial');
+            if (foto) { img.src = foto; img.classList.remove('hidden'); ini.classList.add('hidden'); }
+            else { ini.innerText = nome.charAt(0).toUpperCase(); ini.classList.remove('hidden'); img.classList.add('hidden'); }
+            const itens = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            if (!itens.length) { lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px; opacity:0.7;'>Esta loja ainda não tem produtos.</p>"; return; }
+            lista.innerHTML = '';
+            itens.forEach((prod) => {
+                const im = urlSegura(prod.imagem);
+                const link = linkPermitido(prod.link) ? urlSegura(prod.link) : '';
+                lista.innerHTML += `
+                    <div style="background: var(--input-bg); border-radius:10px; border:1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column;">
+                        ${im ? `<img src="${esc(im)}" onclick="ampliarImagem(this.src)" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">` : `<div style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05);">📦</div>`}
+                        <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
+                            <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
+                            ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
+                            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="margin-top:auto; display:block; text-align:center; background:#00a884; color:white; padding:8px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:12px;">Ver mais 🔗</a>` : ''}
+                        </div>
+                    </div>`;
+            });
+        } catch (e) {
+            lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px; color:red;'>Não foi possível carregar a loja.</p>";
+        }
+    }
+
+    window.fecharLojaPublica = () => { document.getElementById('loja-publica').classList.add('hidden'); };
+
+    async function conectarComVendedor(p) {
+        if (p.uid === usuarioAtual.uid) return alert('Esta é a sua loja.');
+        const nome = p.n || 'Vendedor';
+        await setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { [p.uid]: { n: nome, f: p.f || '', l: '', t: Date.now() } } }, { merge: true });
+        await apresentarAoContato(p.uid);
+        window.fecharLojaPublica();
+        window.abrirChat(p.uid, nome, p.f || '');
+    }
+
+    window.falarComVendedor = async () => {
+        if (!lojaPublica) return;
+        if (!usuarioAtual) {
+            localStorage.setItem('zl_convite_slug', lojaPublica.slug);
+            window.fecharLojaPublica();
+            const av = document.getElementById('aviso-convite');
+            av.textContent = '💬 Entre ou abra uma conta para falar com ' + lojaPublica.n;
+            av.classList.remove('hidden');
+            return;
+        }
+        try { await conectarComVendedor(lojaPublica); } catch (e) { alert('Erro ao conectar: ' + e.message); }
+    };
+
+    async function processarConviteSlug() {
+        const sl = localStorage.getItem('zl_convite_slug');
+        if (!sl || !usuarioAtual) return;
+        localStorage.removeItem('zl_convite_slug');
+        try {
+            const sp = await getDoc(doc(db, "slugs", sl));
+            if (!sp.exists()) return;
+            const p = sp.data();
+            await conectarComVendedor({ uid: p.uid, n: p.n, f: p.f, slug: sl });
+        } catch (e) { alert('Erro ao abrir a loja: ' + e.message); }
     }
 
     let audioCtx = null;
@@ -872,6 +989,7 @@
             const perfil = { ...(await obterMeuPerfil()), ...dadosAtualizacao };
             salvarCache('zl_perfil_' + usuarioAtual.uid, perfil);
             await sincronizarPerfilPublico(perfil);
+            if (perfil.slug) { try { await setDoc(doc(db, "slugs", perfil.slug), { uid: usuarioAtual.uid, n: String(perfil.nome || 'Loja').slice(0, 60), f: /^https?:\/\//i.test(perfil.fotoUrl || '') ? String(perfil.fotoUrl).slice(0, 300) : '' }); } catch (_) {} }
             alert("Perfil atualizado com sucesso!");
             fecharPerfilUsuario();
         } catch (e) {
@@ -939,6 +1057,36 @@
         finally { btn.innerText = texto; btn.disabled = false; }
     };
 
+    async function obterConfig(forcar = false) {
+        let c = forcar ? null : lerCache('zl_config', 30 * 60 * 1000);
+        if (!c) {
+            try {
+                const snap = await getDoc(doc(db, "config", "app"));
+                c = snap.exists() ? snap.data() : {};
+                salvarCache('zl_config', c);
+            } catch (_) { c = lerCache('zl_config', Infinity) || {}; }
+        }
+        return c;
+    }
+
+    // O admin sempre vê o extrator; os usuários só veem se o admin ligar
+    async function aplicarVisibilidadeExtrator() {
+        const bloco = document.getElementById('bloco-extrator');
+        if (!bloco) return;
+        const cfg = await obterConfig();
+        bloco.classList.toggle('hidden', !(ehAdminApp() || cfg.extratorML === true));
+        const chk = document.getElementById('chk-extrator');
+        if (chk) chk.checked = cfg.extratorML === true;
+    }
+
+    window.alternarExtratorML = async (ligado) => {
+        try {
+            await setDoc(doc(db, "config", "app"), { extratorML: !!ligado }, { merge: true });
+            salvarCache('zl_config', { ...(lerCache('zl_config', Infinity) || {}), extratorML: !!ligado });
+            alert(ligado ? 'Extrator do Mercado Livre LIGADO para os usuários (pode levar até 30 min para aparecer para todos).' : 'Extrator do Mercado Livre DESLIGADO para os usuários.');
+        } catch (e) { alert('Erro ao salvar: ' + e.message); }
+    };
+
     let lojaCtx = { modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' };
     const ehAdminApp = () => !!(usuarioAtual && usuarioAtual.email === EMAIL_ADMIN);
     const noChat = () => !!contatoSelecionado && !document.getElementById('chat-screen').classList.contains('hidden');
@@ -950,8 +1098,10 @@
         document.getElementById('btn-abrir-admin').classList.toggle('hidden', !admin);
         document.getElementById('painel-admin-geral').classList.toggle('hidden', ctx.modo !== 'minha');
         document.getElementById('abas-admin').classList.toggle('hidden', ctx.modo === 'minha');
+        document.getElementById('linha-endereco-loja').classList.add('hidden');
         if (ctx.modo === 'minha') mudarAbaAdmin('produtos');
         document.getElementById('modal-vitrine').style.display = 'flex';
+        aplicarVisibilidadeExtrator();
     }
 
     // Carrinho: no chat abre a loja do contato; fora do chat abre a minha
@@ -1062,15 +1212,61 @@
             }
             cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
             renderizarProdutosVitrine(cacheProdutosVitrine);
+            mostrarEnderecoLoja((await obterMeuPerfil()).slug);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar sua loja.</p>";
         }
     }
 
+    // Reserva o endereço zapleve.alibr.com.br/<nome> (único: as regras do Firebase impedem repetir)
+    async function reservarEndereco(bruto, p, antigo) {
+        const slug = limparSlug(bruto);
+        if (!/^[a-z0-9-]{3,30}$/.test(slug) || RESERVADOS.includes(slug)) { alert('Nome inválido. Use de 3 a 30 letras minúsculas, números ou hífen.'); return ''; }
+        if (slug === antigo) return slug;
+        try {
+            await setDoc(doc(db, "slugs", slug), { uid: usuarioAtual.uid, n: String(p.nome || 'Loja').slice(0, 60), f: /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '' });
+        } catch (e) { console.warn('Endereço:', e.message); alert('Esse nome já está em uso (ou as regras ainda não foram publicadas). Tente outro.'); return ''; }
+        if (antigo) { try { await deleteDoc(doc(db, "slugs", antigo)); } catch (_) {} }
+        await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { slug });
+        salvarCache('zl_perfil_' + usuarioAtual.uid, { ...p, slug });
+        return slug;
+    }
+
+    function mostrarEnderecoLoja(slug) {
+        const el = document.getElementById('linha-endereco-loja');
+        el.classList.remove('hidden');
+        el.innerHTML = slug
+            ? `🔗 <b>${esc(location.host)}/${esc(slug)}</b> <button class="btn-alt" style="width:auto; padding:4px 8px; margin:0; font-size:11px;" onclick="copiarEnderecoLoja()">Copiar</button> <button class="btn-alt" style="width:auto; padding:4px 8px; margin:0; font-size:11px; background:#d4a24c;" onclick="definirEnderecoLoja()">Alterar</button>`
+            : `<button class="btn-alt" style="width:auto; padding:6px 10px; margin:0; font-size:12px; background:#d4a24c;" onclick="definirEnderecoLoja()">🔗 Definir o endereço da minha loja</button>`;
+    }
+
+    window.copiarEnderecoLoja = async () => {
+        const p = await obterMeuPerfil();
+        const url = location.origin + '/' + p.slug;
+        try { await navigator.clipboard.writeText(url); alert('Endereço da loja copiado!\n' + url); } catch (_) { prompt('Copie o endereço:', url); }
+    };
+
+    window.definirEnderecoLoja = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            const bruto = prompt('Escolha o endereço da sua loja (letras, números e hífen).\nEx.: modaflor  →  ' + location.host + '/modaflor', p.slug || '');
+            if (bruto === null) return;
+            const slug = await reservarEndereco(bruto, p, p.slug || '');
+            if (!slug) return;
+            await updateDoc(doc(db, "lojas", usuarioAtual.uid), { slug });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            await carregarMinhaLoja(true);
+        } catch (e) { alert('Erro ao definir o endereço: ' + e.message); }
+    };
+
     window.criarMinhaLoja = async () => {
         try {
             const p = await obterMeuPerfil();
-            await setDoc(doc(db, "lojas", usuarioAtual.uid), { nome: String(p.nome || 'Minha loja').slice(0, 60), itens: [], criadoEm: Date.now() });
+            const bruto = prompt('Escolha o endereço da sua loja (letras, números e hífen).\nEx.: modaflor  →  ' + location.host + '/modaflor');
+            if (bruto === null) return;
+            const slug = await reservarEndereco(bruto, p, '');
+            if (!slug) return;
+            await setDoc(doc(db, "lojas", usuarioAtual.uid), { nome: String(p.nome || 'Minha loja').slice(0, 60), itens: [], criadoEm: Date.now(), slug });
             localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
             configurarModalLoja({ modo: 'minha', titulo: '🏪 Minha loja' });
             await carregarMinhaLoja(true);
@@ -1589,7 +1785,7 @@
             iniciarAgenda();
             atualizarBarraAtalhos();
             registrarPushSePermitido();
-            (async () => { await garantirHandle(perfilMeu); await sincronizarPerfilPublico(perfilMeu); processarConvite(); })();
+            (async () => { await garantirHandle(perfilMeu); await sincronizarPerfilPublico(perfilMeu); processarConvite(); processarConviteSlug(); })();
         } else {
             usuarioAtual = null;
             document.getElementById('auth-screen').classList.remove('hidden');
@@ -2006,6 +2202,7 @@
         try { await navigator.clipboard.writeText(url); alert('Link de atendimento copiado!\n' + url); }
         catch (e) { prompt('Copie o link:', url); }
     };
+    if (slugInicial) abrirLojaPublica(slugInicial);
 </script>
 
 </body>
