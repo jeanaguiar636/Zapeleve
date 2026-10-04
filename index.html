@@ -289,7 +289,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 04/10c · nome da loja</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 04/10d · apagar produto</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -1298,7 +1298,19 @@
         else await carregarVitrineSegregada(true);
     }
 
+    let salvandoProduto = false;
+
+    // Atualiza a lista guardada no celular sem ler o Firebase de novo
+    function atualizarCachesLoja(fn) {
+        const chave = lojaCtx.modo === 'minha' ? 'zl_loja_' + usuarioAtual.uid : 'zl_vitrine';
+        const c = lerCache(chave, Infinity);
+        if (!c) return;
+        if (Array.isArray(c)) salvarCache(chave, fn(c));
+        else if (c.itens) salvarCache(chave, { ...c, itens: fn(c.itens) });
+    }
+
     window.salvarProdutoFirebase = async () => {
+        if (salvandoProduto) return;
         const titulo = document.getElementById('admin-prod-titulo').value.trim();
         const preco = document.getElementById('admin-prod-preco').value.trim();
         let imagem = document.getElementById('admin-prod-img').value.trim();
@@ -1309,6 +1321,11 @@
             if (!link) return alert("Cole o link de afiliado do produto.");
             if (!linkPermitido(link)) return alert("Use um link de Shopee, Mercado Livre, Amazon, Shein, Magalu ou AliExpress (começando com https://).");
         }
+        const repetido = cacheProdutosVitrine.some((p) => (link && p.link === link) || String(p.titulo || '').toLowerCase() === titulo.toLowerCase());
+        if (repetido && !confirm('Já existe um produto com esse nome ou link na lista. Cadastrar mesmo assim?')) return;
+        const btn = document.querySelector('button[onclick="salvarProdutoFirebase()"]');
+        salvandoProduto = true;
+        if (btn) { btn.disabled = true; btn.dataset.t = btn.innerText; btn.innerText = '⏳ Salvando...'; }
         try {
             if (fotoInput.files && fotoInput.files[0]) {
                 imagem = await subirParaR2(await comprimirImagem(fotoInput.files[0], 800, 0.8), 'webp');
@@ -1320,21 +1337,28 @@
             }
             const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
             await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
-            alert("Produto cadastrado com sucesso!");
+            cacheProdutosVitrine.unshift(item);
+            atualizarCachesLoja((l) => [item, ...l]);
+            renderizarProdutosVitrine(cacheProdutosVitrine);
             ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-link-ml', 'admin-prod-foto'].forEach((id) => { document.getElementById(id).value = ''; });
-            recarregarLojaAtual();
+            alert("Produto cadastrado com sucesso!");
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
+        } finally {
+            salvandoProduto = false;
+            if (btn) { btn.disabled = false; btn.innerText = btn.dataset.t || '➕ Salvar Produto'; }
         }
     };
 
     window.apagarProdutoFirebase = async (idProduto) => {
-        if (!confirm("Deseja apagar este produto?")) return;
+        const item = cacheProdutosVitrine.find((p) => p.id === idProduto);
+        if (!item) return;
+        if (!confirm('Apagar "' + (item.titulo || 'este produto') + '"?')) return;
         try {
-            const item = cacheProdutosVitrine.find((p) => p.id === idProduto);
-            if (!item) return;
             await updateDoc(docLojaAtual(), { itens: arrayRemove(item) });
-            recarregarLojaAtual();
+            cacheProdutosVitrine = cacheProdutosVitrine.filter((p) => p.id !== idProduto);
+            atualizarCachesLoja((l) => l.filter((p) => p.id !== idProduto));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
         } catch (e) {
             alert("Erro ao apagar: " + e.message);
         }
@@ -1385,6 +1409,7 @@
             container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
             return;
         }
+        if (dono) container.innerHTML = `<p style='font-size:11px; opacity:0.8; margin:0; text-align:center;'>🗑️ Para excluir um produto, toque em <b>Apagar</b> no cartão dele.</p>`;
         lista.forEach((prod) => {
             const img = urlSegura(prod.imagem);
             const link = modo === 'admin' ? urlSegura(prod.link) : (linkPermitido(prod.link) ? urlSegura(prod.link) : '');
