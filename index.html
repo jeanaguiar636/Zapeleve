@@ -289,7 +289,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 04/10b · páginas de loja</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 04/10c · nome da loja</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -1212,6 +1212,7 @@
             }
             cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
             renderizarProdutosVitrine(cacheProdutosVitrine);
+            document.getElementById('titulo-loja').innerText = '🏪 ' + (loja.nome || 'Minha loja');
             mostrarEnderecoLoja((await obterMeuPerfil()).slug);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar sua loja.</p>";
@@ -1235,15 +1236,33 @@
     function mostrarEnderecoLoja(slug) {
         const el = document.getElementById('linha-endereco-loja');
         el.classList.remove('hidden');
-        el.innerHTML = slug
-            ? `🔗 <b>${esc(location.host)}/${esc(slug)}</b> <button class="btn-alt" style="width:auto; padding:4px 8px; margin:0; font-size:11px;" onclick="copiarEnderecoLoja()">Copiar</button> <button class="btn-alt" style="width:auto; padding:4px 8px; margin:0; font-size:11px; background:#d4a24c;" onclick="definirEnderecoLoja()">Alterar</button>`
-            : `<button class="btn-alt" style="width:auto; padding:6px 10px; margin:0; font-size:12px; background:#d4a24c;" onclick="definirEnderecoLoja()">🔗 Definir o endereço da minha loja</button>`;
+        const b = 'width:auto; padding:5px 9px; margin:0; font-size:11px;';
+        el.innerHTML = (slug
+            ? `🔗 <b>${esc(location.host)}/${esc(slug)}</b> <button class="btn-alt" style="${b}" onclick="copiarEnderecoLoja()">Copiar</button> <button class="btn-alt" style="${b} background:#d4a24c;" onclick="definirEnderecoLoja()">Alterar endereço</button>`
+            : `<button class="btn-alt" style="${b} background:#d4a24c;" onclick="definirEnderecoLoja()">🔗 Definir o endereço da minha loja</button>`)
+            + ` <button class="btn-alt" style="${b} background:#6c4ab6;" onclick="editarNomeLoja()">✏️ Nome da loja</button>`;
     }
 
     window.copiarEnderecoLoja = async () => {
         const p = await obterMeuPerfil();
         const url = location.origin + '/' + p.slug;
         try { await navigator.clipboard.writeText(url); alert('Endereço da loja copiado!\n' + url); } catch (_) { prompt('Copie o endereço:', url); }
+    };
+
+    window.editarNomeLoja = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            const lojaCache = lerCache('zl_loja_' + usuarioAtual.uid, Infinity) || {};
+            const novo = prompt('Nome da sua loja (aparece na página da loja):', lojaCache.nome || p.nome || '');
+            if (novo === null) return;
+            const nome = novo.trim().slice(0, 60);
+            if (nome.length < 2) return alert('Digite um nome com pelo menos 2 letras.');
+            await updateDoc(doc(db, "lojas", usuarioAtual.uid), { nome });
+            if (p.slug) await setDoc(doc(db, "slugs", p.slug), { uid: usuarioAtual.uid, n: nome, f: /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '' });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            await carregarMinhaLoja(true);
+            alert('Nome da loja atualizado!');
+        } catch (e) { alert('Erro ao editar o nome: ' + e.message); }
     };
 
     window.definirEnderecoLoja = async () => {
