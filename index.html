@@ -289,7 +289,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 04/10d · apagar produto</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 05/10 · perfil corrigido</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -536,13 +536,21 @@
     });
     let msgsAtuais = [], msgsChave = '', msgsBase = 0, temAnteriores = false, tokenEscuta = 0;
 
+    // Contas sem documento de perfil (cadastro interrompido) não conseguem salvar nada: cria só os campos básicos
+    async function garantirDocUsuario() {
+        await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 10 }, { merge: true });
+    }
+
     // Perfil próprio em cache (24 h): evita ler o Firestore a cada abertura
     async function obterMeuPerfil(forcar = false) {
         const chave = 'zl_perfil_' + usuarioAtual.uid;
         const c = forcar ? null : lerCache(chave, 24 * 3600 * 1000);
         if (c) return c;
         const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
-        if (!snap.exists()) return { email: usuarioAtual.email };
+        if (!snap.exists()) {
+            try { await garantirDocUsuario(); } catch (err) { console.warn('Perfil:', err.message); }
+            return { email: usuarioAtual.email };
+        }
         const d = snap.data();
         const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', slug: d.slug || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
@@ -978,7 +986,8 @@
                 const blob = await comprimirImagem(fileInput.files[0], 256, 0.8);
                 dadosAtualizacao.fotoUrl = await subirParaR2(blob, 'webp');
             }
-            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
+            try { await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao); }
+            catch (e1) { await garantirDocUsuario(); await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao); }
             meuNomeAtual = novoNome;
             document.getElementById('user-display-contacts').innerText = novoNome;
             if (dadosAtualizacao.fotoUrl) {
