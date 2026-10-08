@@ -197,16 +197,26 @@
 </head>
 <body>
 <script>
-// Aviso na tela se o app não carregar ou der erro (ajuda a descobrir por que "congelou")
+// Aviso na tela se o app não carregar ou der erro (guarda o motivo do erro)
 (function () {
+    var ultimoErro = '';
     function mostrar(t) {
         var b = document.getElementById('zl-erro');
         if (!b) { b = document.createElement('div'); b.id = 'zl-erro'; b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;font:12px sans-serif;padding:8px 10px;z-index:99999;'; document.body.appendChild(b); }
         b.textContent = t;
     }
-    window.addEventListener('error', function (e) { mostrar('Erro: ' + (e.message || 'falha ao carregar')); });
-    window.addEventListener('unhandledrejection', function (e) { mostrar('Erro: ' + ((e.reason && e.reason.message) || e.reason)); });
-    setTimeout(function () { if (typeof window.entrar !== 'function') mostrar('O app não terminou de carregar. Verifique a internet e atualize a página.'); }, 8000);
+    window.addEventListener('error', function (e) {
+        if (e.target && e.target !== window && e.target.tagName !== 'SCRIPT') return; // ignora imagens quebradas
+        ultimoErro = e.message || (e.target && e.target.src ? 'falha ao carregar ' + e.target.src : 'falha ao carregar');
+        mostrar('Erro: ' + ultimoErro);
+    }, true);
+    window.addEventListener('unhandledrejection', function (e) {
+        ultimoErro = String((e.reason && e.reason.message) || e.reason);
+        mostrar('Erro: ' + ultimoErro);
+    });
+    setTimeout(function () {
+        if (typeof window.entrar !== 'function') mostrar('O app não terminou de carregar. ' + (ultimoErro ? 'Erro: ' + ultimoErro : 'Nenhum erro registrado: verifique a internet e atualize a página.'));
+    }, 8000);
 })();
 </script>
 
@@ -304,7 +314,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #0b5ed7;" onclick="abrirNegocios()">🏢 Zap Leve Negócios (atendentes)</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 06/10 · Negócios fase 1</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 06/10b · Negócios fase 1</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -1581,15 +1591,4 @@
             linkAfiliado: link,
             remetente: usuarioAtual.email,
             tipo: "produto",
-            criadoEm: serverTimestamp()
-        });
-        alert("Produto enviado para o chat!");
-        fecharVitrineAfiliado();
-    };
-
-    let atalhosRapidos = JSON.parse(localStorage.getItem('zapleve_atalhos')) || [
-        { titulo: "👋 Olá", texto: "Olá! Tudo bem?", imagem: "", link: "" }
-    ];
-
-    window.atualizarBarraAtalhos = () => {
-        const barra = docu
+ 
