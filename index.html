@@ -541,23 +541,11 @@
     // Push de chamadas (app fechado)
     const VAPID_KEY = 'BCawnk4OcT7_geAcyKsPZb8EKiYzIsFoFWvdu4qnjwIXdS1f9eEkOxSAscZFCpfIbBXdiS0-WrB3bfmUQ00_L1M';
 
-    async function obterTokenPush() {
-        let reg = await navigator.serviceWorker.register('sw.js');
-        await navigator.serviceWorker.ready;
-        const pedir = (r) => getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: r });
-        try { return await pedir(reg); }
-        catch (e) {
-            // limpa inscrição antiga e tenta mais uma vez
-            try { const sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); await reg.unregister(); } catch (_) {}
-            reg = await navigator.serviceWorker.register('sw.js');
-            await navigator.serviceWorker.ready;
-            return await pedir(reg);
-        }
-    }
-
     async function registrarPush() {
         if (!usuarioAtual || !('serviceWorker' in navigator) || !('Notification' in window)) return false;
-        const token = await obterTokenPush();
+        const reg = await navigator.serviceWorker.register('sw.js');
+        await navigator.serviceWorker.ready;
+        const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
         // só grava no Firestore se o token mudou (economiza escritas)
         if (token && localStorage.getItem('zapleve_fcm_' + usuarioAtual.uid) !== token) {
             await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fcmToken: token });
@@ -583,8 +571,10 @@
             if (!('Notification' in window) || Notification.permission !== 'granted') {
                 return alert(rel.join('\n') + '\n\nToque em "Ativar avisos de chamada" primeiro.');
             }
-            const token = await obterTokenPush();
+            const reg = await navigator.serviceWorker.register('sw.js');
+            await navigator.serviceWorker.ready;
             rel.push('Service worker: ok');
+            const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
             rel.push('Token: ' + (token ? 'gerado' : 'vazio'));
             await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fcmToken: token });
             localStorage.setItem('zapleve_fcm_' + usuarioAtual.uid, token);
@@ -603,17 +593,11 @@
     async function enviarPushChamada(comVideo) {
         try {
             const c = contatosCache[contatoSelecionado.uid];
-            let tk = c && c.token;
-            if (!tk) { // lista pode estar desatualizada: lê 1 vez o perfil do contato
-                const snap = await getDoc(doc(db, "usuarios", contatoSelecionado.uid));
-                tk = snap.exists() ? (snap.data().fcmToken || '') : '';
-                if (tk && c) c.token = tk;
-            }
-            if (!tk) { console.log('Contato sem aviso de chamada ativado.'); return; }
+            if (!c || !c.token) { alert('DEBUG: este contato ainda não tem aviso ativado (ou feche e abra o app para atualizar a lista de contatos).'); return; }
             const idToken = await auth.currentUser.getIdToken();
-            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, nome: meuNomeAtual, video: !!comVideo }) });
-            if (!r.ok) console.warn('Push falhou', r.status, (await r.text()).slice(0, 300));
-        } catch (e) { console.warn('Erro no push:', e.message); }
+            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: c.token, nome: meuNomeAtual, video: !!comVideo }) });
+            if (!r.ok) alert('DEBUG: push falhou ' + r.status + ' ' + (await r.text()).slice(0, 300));
+        } catch (e) { alert('DEBUG: erro no push: ' + e.message); }
     }
 
     // Zoom de Imagem
