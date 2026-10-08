@@ -1591,4 +1591,29 @@
             linkAfiliado: link,
             remetente: usuarioAtual.email,
             tipo: "produto",
+                        <button id="btn-instalar-no-perfil" class="hidden" style="background: #27ae60; padding: 10px; border-radius: 20px; font-size: 14px; margin: 4px 0;">📲 Instalar o App no Telemóvel</button>
+
+            <div style="width: 100%; text-align: left; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                <label style="font-size: 12px; font-weight: bold; opacity: 0.8;">O seu link público da loja:</label>
+                <div style="display: flex; gap: 6px; margin-top: 4px;">
+                    <input type="text" id="perfil-input-link-loja" readonly style="margin: 0; font-size: 12px; background: var(--input-bg);">
+                    <button onclick="copiarLinkLoja()" style="margin: 0; width: auto; padding: 0 14px; font-size: 12px; border-radius: 6px;">Copiar</button>
+                </div>
+            </div>
+
+            <div style="width: 100%; text-align: left; margin-top: 6px;">
+                <label style="font-size: 12px; font-weight: bold; opacity: 0.8;">Editar o seu Nome:</label>
+                <input type="text" id="perfil-input-nome" placeholder="O seu nome" style="margin-top: 4px;">
+                <button onclick="salvarNomePerfil()" style="margin-top: 6px; padding: 10px; font-size: 13px; border-radius: 6px;">Salvar Alterações</button>
+            </div>
+
+            <span class="close-modal" onclick="fecharModalPerfil()" style="width: 100%; text-align: center; margin-top: 15px;">Fechar</span>
+        </div>
+    </div>
+
+</div> <!-- Fim container -->
+
+</body>
+</html>
+
  
