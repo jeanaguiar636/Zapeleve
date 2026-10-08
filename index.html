@@ -206,11 +206,10 @@
         </svg>
     </button>
 
-    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto, botão de instalação e edição do nome de utilizador) -->
+    <!-- Modal de Perfil / Bio -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
             
-            <!-- Aviso Vermelho na Bio -->
             <div id="alerta-perfil-bio" class="hidden" style="background-color: #ea0038; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; width: 100%; text-align: center; margin-bottom: 4px;">
                 ⚠️ Complete o seu perfil (Nome, foto, descrição e links)
             </div>
@@ -223,7 +222,6 @@
             <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
             <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
             
-            <!-- Botão Flutuante de Instalação no Perfil (se não instalado) -->
             <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
                 📲 Baixar e Instalar Aplicativo
             </button>
@@ -233,7 +231,6 @@
                 <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
             </div>
 
-            <!-- Painel de Edição do Perfil (Nome, Foto e Link) -->
             <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
                 <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
                 
@@ -461,7 +458,6 @@
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Segurança: escape de HTML e validação de URLs
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const urlSegura = (u, midia = false) => {
         u = String(u || '').trim();
@@ -478,7 +474,6 @@
     
     const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
 
-    // Instalação PWA
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -524,7 +519,6 @@
         document.getElementById('modal-instalar').style.display = 'none';
     };
 
-    // Zoom de Imagem
     window.ampliarImagem = (src) => {
         document.getElementById('imagem-zoom-src').src = src;
         document.getElementById('modal-zoom-imagem').style.display = 'flex';
@@ -571,7 +565,6 @@
         document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
         document.getElementById('input-meu-nome').value = nomeDoUser;
         
-        // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
         const alertaBio = document.getElementById('alerta-perfil-bio');
         if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal) {
             alertaBio.classList.remove('hidden');
@@ -688,7 +681,6 @@
         }
     };
 
-    // TOQUE DE TELEFONE ALTO E REALISTA
     const toqueAudio = new Audio('toque.mp3');
     toqueAudio.loop = true;
     toqueAudio.preload = 'auto';
@@ -1047,7 +1039,6 @@
         unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
             const data = snapshot.data();
             if (!data) {
-                // Se o documento da chamada sumiu (foi desligada pelo outro lado), fecha aqui também
                 fecharTelaChamadaUI();
                 return;
             }
@@ -1090,7 +1081,6 @@
                     }
                 }
             });
-            // Se a chamada pendente foi cancelada/desligada antes de atender
             if (!chamouAinda && window.chamadaEntranteDocId) {
                 document.getElementById('modal-incoming-call').style.display = 'none';
                 pararSomCampainha();
@@ -1111,8 +1101,6 @@
         if (!callSnap.exists()) return;
         const data = callSnap.data();
 
-        // Identificar o contato que ligou para sincronizar encerramento correto
-        // Buscamos o UID do remetente pelo e-mail ou criamos o chat sala
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
             document.getElementById('local-video').srcObject = localStream;
@@ -1142,7 +1130,6 @@
                 status: 'aceita'
             });
 
-            // Escutar se o chamador desligou
             unsubscribeCall = onSnapshot(callDoc, (snapshot) => {
                 if (!snapshot.exists()) {
                     fecharTelaChamadaUI();
@@ -1174,7 +1161,6 @@
         }
     };
 
-    // BOTÃO DESLIGAR (Sincronizado em ambas as pontas)
     window.encerrarChamada = async () => {
         pararSomCampainha();
         if (contatoSelecionado && usuarioAtual) {
@@ -1494,13 +1480,26 @@
         inputEl.value = "";
     };
 
-    const R2_WORKER = 'https://zapleve-uploader.bmlimp8.workers.dev'; // troque pela URL do seu Worker
+    const R2_WORKER = 'https://zapleve-uploader.bmlimp8.workers.dev'; 
     const MAX_VIDEO_MB = 15;
+
+    async function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
 
     async function subirParaR2(blob, ext) {
         const token = await auth.currentUser.getIdToken();
-        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });
-        if (!r.ok) throw new Error('Falha no upload (' + r.status + ')');
+        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { 
+            method: 'PUT', 
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, 
+            body: blob 
+        });
+        if (!r.ok) throw new Error('Falha no upload R2 (' + r.status + ')');
         return (await r.json()).url;
     }
 
@@ -1520,68 +1519,9 @@
         });
     }
 
-    async function enviarMidia(blob, ext, tipo, texto, campo) {
+    async function enviarMidiaComFallback(blob, ext, tipo, texto, campoUrl, campoBase64) {
         const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        const url = await subirParaR2(blob, ext);
-        await addDoc(collection(db, "conversas", idSala, "mensagens"), { texto, [campo]: url, remetente: usuarioAtual.email, tipo, criadoEm: serverTimestamp() });
-    }
+        let dadosMensagem = { texto, remetente: usuarioAtual.email, tipo, criadoEm: serverTimestamp() };
 
-    window.enviarImagemGlobal = async (input) => {
-        const file = input.files[0]; input.value = '';
-        if (!file || !contatoSelecionado) return;
-        try { await enviarMidia(await comprimirImagem(file), 'webp', 'imagem', '📷 Imagem', 'imagemUrlLocal'); }
-        catch (e) { alert('Erro ao enviar imagem: ' + e.message); }
-    };
-
-    window.enviarVideoGlobal = async (input) => {
-        const file = input.files[0]; input.value = '';
-        if (!file || !contatoSelecionado) return;
-        if (file.size > MAX_VIDEO_MB * 1048576) return alert(`Vídeo muito grande (máx. ${MAX_VIDEO_MB} MB).`);
-        try { await enviarMidia(file, file.type.includes('webm') ? 'webm' : 'mp4', 'video', '📹 Vídeo', 'videoUrlLocal'); }
-        catch (e) { alert('Erro ao enviar vídeo: ' + e.message); }
-    };
-
-    let mediaRecorder = null, audioChunks = [];
-    window.toggleGravarAudio = async () => {
-        const btnAudio = document.getElementById('btn-gravar-audio');
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert("O seu navegador não permite gravação de áudio (necessário HTTPS).");
-                    return;
-                }
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { 
-                        echoCancellation: true, 
-                        noiseSuppression: true, 
-                        autoGainControl: true 
-                    } 
-                });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                    try { await enviarMidia(blob, 'webm', 'audio', '🎙️ Áudio', 'audioUrlLocal'); }
-                    catch (e) { alert('Erro ao enviar áudio: ' + e.message); }
-                };
-                mediaRecorder.start();
-                btnAudio.classList.add('gravando');
-                btnAudio.innerText = "⏹️";
-            } catch (err) {
-                alert("Erro ao aceder ao microfone. Verifique as permissões do seu navegador: " + err.message);
-            }
-        } else {
-            mediaRecorder.stop();
-            if(mediaRecorder.stream) {
-                mediaRecorder.stream.getTracks().forEach(t => t.stop());
-            }
-            btnAudio.classList.remove('gravando');
-            btnAudio.innerText = "🎙️";
-        }
-    };
-    window.indicarAmigo = () => { prompt("Copie o link:", window.location.href); };
-</script>
-
-</body>
-</html>
+        try {
+            // Tenta enviar via Cloudflare R2
