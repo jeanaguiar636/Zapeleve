@@ -1,232 +1,1587 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Zap Leve - Chat P2P</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#00a884"><link rel="icon" href="icon-192.png">
-<style>
-:root{--bg:#fff;--text:#111;--head:#00a884;--chat:#efeae2;--input:#f0f2f5;--msg-eu:#d9fdd3;--msg-out:#fff;--border:#d1d7db}
-body.dark{--bg:#111b21;--text:#e9edef;--head:#202c33;--chat:#0b141a;--input:#2a3942;--msg-eu:#005c4b;--msg-out:#202c33;--border:#222d34}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;height:100vh;height:100dvh;overflow:hidden}
-.container{width:100%;max-width:480px;height:100%;background:var(--bg);display:flex;flex-direction:column;position:relative}
-.hidden{display:none!important}
-.screen{flex:1;display:flex;flex-direction:column;padding:12px;overflow:hidden;width:100%;height:100%}
-.logo{text-align:center;margin:20px 0} .logo h1{color:var(--head);margin:6px 0 0}
-.btn-float{position:fixed;bottom:18px;right:16px;width:52px;height:52px;border-radius:50%;background:#27ae60;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:999;cursor:pointer}
-input,textarea,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid var(--border);font-size:15px;outline:none;background:var(--input);color:var(--text)}
-button{background:var(--head);color:#fff;border:none;font-weight:bold;cursor:pointer}
-.header{display:flex;justify-content:space-between;align-items:center;background:var(--head);color:#fff;padding:10px 14px;flex-shrink:0}
-.avatar{width:42px;height:42px;border-radius:50%;background:#075e54;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;overflow:hidden;flex-shrink:0} .avatar img{width:100%;height:100%;object-fit:cover}
-.list{flex:1;overflow-y:auto} .item{padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.chat{flex:1;overflow-y:auto;padding:12px;background:var(--chat);display:flex;flex-direction:column;gap:6px}
-.msg{padding:8px 12px;border-radius:8px;max-width:85%;box-shadow:0 1px .5px rgba(0,0,0,.13)} .eu{background:var(--msg-eu);margin-left:auto} .out{background:var(--msg-out)}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;padding:16px} .modal-box{background:var(--bg);padding:18px;border-radius:10px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto}
-.card{border:1px solid var(--border);border-radius:8px;padding:8px;display:flex;gap:8px;align-items:center;margin-bottom:8px} .card img{width:60px;height:60px;border-radius:6px;object-fit:cover;background:#eee}
-</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    <style>
+        :root {
+            --bg-app: #ffffff;
+            --text-app: #111111;
+            --header-bg: #00a884;
+            --chat-bg: #efeae2;
+            --input-bg: #f0f2f5;
+            --msg-minha: #d9fdd3;
+            --msg-outra: #ffffff;
+            --border-color: #d1d7db;
+        }
+        body.dark-mode {
+            --bg-app: #111b21;
+            --text-app: #e9edef;
+            --header-bg: #202c33;
+            --chat-bg: #0b141a;
+            --input-bg: #202c33;
+            --msg-minha: #005c4b;
+            --msg-outra: #202c33;
+            --border-color: #222d34;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-app); 
+            color: var(--text-app);
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden; 
+            transition: background 0.3s, color 0.3s;
+        }
+        .container { 
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg-app); 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+        }
+        
+        .hidden { display: none !important; }
+        h2, h3 { color: var(--header-bg); margin-top: 0; }
+        
+        .screen-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            overflow: hidden;
+            background: var(--bg-app);
+            width: 100%;
+            height: 100%;
+        }
+
+        .logo-area { text-align: center; margin: 15px 0; }
+        .logo-area span { font-size: 45px; }
+        .logo-area h1 { font-size: 26px; color: var(--header-bg); margin: 5px 0 0 0; }
+
+        .botao-flutuante-loja {
+            position: fixed;
+            bottom: 125px;
+            right: 18px;
+            background-color: #27ae60;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            z-index: 999;
+            text-decoration: none;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .botao-flutuante-loja:hover { transform: scale(1.08); background-color: #219653; }
+        .botao-flutuante-loja svg { width: 24px; height: 24px; fill: currentColor; }
+        
+        input, textarea, button, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; outline: none; background: var(--input-bg); color: var(--text-app); }
+        input:focus { border-color: #00a884; }
+        button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-alt { background: #075e54; }
+        .btn-danger { background: #ea0038; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+        .close-modal { background: #ea0038; padding: 8px 15px; margin-top: 15px; display: block; text-align: center; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
+
+        .contact-list { flex: 1; border: none; overflow-y: auto; padding: 0; margin-bottom: 10px; background: var(--bg-app); }
+        .contact-item { padding: 12px 10px; margin-bottom: 2px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg-app); }
+        .contact-item:hover { opacity: 0.8; }
+        .contact-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: bold; flex-shrink: 0; cursor: pointer; }
+        .contact-name { font-weight: 500; color: var(--text-app); font-size: 15px; }
+
+        .chat-box { flex: 1; border: none; overflow-y: auto; padding: 12px; margin-bottom: 0; background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; }
+        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); color: var(--text-app); max-width: 88%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); display: flex; gap: 8px; align-items: flex-start; word-break: break-word; position: relative; }
+        .msg-minha { background: var(--msg-minha); margin-left: auto; flex-direction: row-reverse; }
+        .msg-content { flex: 1; overflow: hidden; }
+        
+        .msg-content a { color: #0275d8; text-decoration: underline; word-break: break-all; }
+        body.dark-mode .msg-content a { color: #58a6ff; }
+        
+        .embed-container { margin-top: 6px; border-radius: 6px; overflow: hidden; background: #000; width: 100%; max-width: 320px; aspect-ratio: 16/9; }
+        .embed-container iframe, .embed-container blockquote { width: 100%; height: 100%; border: none; margin: 0; }
+
+        .msg-download-btn { background: #014c8a; border: none; color: #ffffff; padding: 8px 14px; font-size: 13px; border-radius: 6px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .msg-download-btn:hover { background: #003366; }
+        
+        .msg-product-body { padding: 4px 0; display: flex; flex-direction: column; gap: 6px; }
+
+        .wa-audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 20px; margin-top: 4px; min-width: 210px; }
+        .wa-play-btn { width: 36px; height: 36px; border-radius: 50%; background: #00a884; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; margin: 0; }
+        .wa-audio-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .wa-audio-bar { width: 100%; height: 4px; background: #ccc; border-radius: 2px; position: relative; cursor: pointer; }
+        .wa-audio-progress { height: 100%; background: #00a884; width: 0%; border-radius: 2px; transition: width 0.1s linear; }
+        .wa-audio-time { font-size: 10px; opacity: 0.7; font-family: monospace; }
+
+        #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 1000; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; color: white; }
+        .call-videos { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px; background: #0b141a; margin: 10px 0; }
+        #remote-video { width: 100%; height: 100%; object-fit: cover; }
+        #local-video { position: absolute; bottom: 15px; right: 15px; width: 110px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid white; background: #222; }
+        
+        #call-placeholder-info { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; z-index: 2; }
+        .call-avatar-grande { width: 90px; height: 90px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold; border: 3px solid white; }
+
+        .call-controls { display: flex; justify-content: center; gap: 20px; padding: 15px; }
+        .call-btn { width: 56px; height: 56px; border-radius: 50%; border: none; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
+        .btn-hangup { background: #ea0038; }
+        .btn-mic, .btn-cam { background: #333; }
+
+        .chat-input-area { display: flex; flex-direction: column; background: var(--input-bg); padding: 6px 10px; border-top: 1px solid var(--border-color); gap: 4px; }
+        .input-group { display: flex; gap: 6px; align-items: center; width: 100%; position: relative; }
+        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px 10px 42px; border: 1px solid var(--border-color); color: var(--text-app); }
+        
+        .action-btn { width: 38px; height: 38px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; flex-shrink: 0; color: white; border: none; cursor: pointer; }
+        .mic-rec-btn { background: #ff9800; }
+        .mic-rec-btn.gravando { background: #ea0038; animation: pulsar 1.2s infinite; }
+        
+        .clip-btn { position: absolute; left: 6px; background: transparent; border: none; color: #54657f; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; padding: 0; margin: 0; z-index: 5; }
+        .clip-btn:hover { background: rgba(0,0,0,0.05); }
+
+        #menu-anexos { display: none; position: absolute; bottom: 65px; left: 10px; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; flex-direction: column; padding: 6px; width: 160px; }
+        .anexo-opcao { display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: var(--text-app); cursor: pointer; border-radius: 4px; text-decoration: none; }
+        .anexo-opcao:hover { background: var(--input-bg); }
+
+        @keyframes pulsar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); color: white; padding: 10px 14px; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .user-info-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        
+        .texto-voltar { color: #ffffff; font-size: 14px; font-weight: bold; cursor: pointer; background: none; border: none; padding: 0; margin-right: 6px; text-decoration: underline; }
+        .texto-voltar:hover { opacity: 0.8; }
+
+        .usuario-editavel { font-size: 11px; color: #e0f2f1; cursor: pointer; text-decoration: underline; display: inline-block; }
+        .usuario-editavel:hover { color: #ffffff; }
+
+        .btn-topo-padrao { border: none; color: white; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; white-space: nowrap; }
+        .btn-topo-limpar { background: #ea0038; }
+        .btn-topo-video { background: #007bff; }
+        .btn-topo-telefone { background: #28a745; }
+        .btn-topo-sair { background: #ea0038; }
+        
+        .quick-replies { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; white-space: nowrap; align-items: center; scrollbar-width: none; }
+        .quick-replies::-webkit-scrollbar { display: none; }
+        .quick-chip { background: var(--bg-app); border: 1px solid var(--border-color); color: var(--text-app); padding: 4px 10px; border-radius: 16px; font-size: 11px; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .quick-chip:hover { border-color: #00a884; color: #00a884; }
+        .btn-config-quick { background: #075e54; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+
+        video, img.msg-img { max-width: 100%; border-radius: 8px; margin-top: 6px; display: block; }
+        img.msg-img { max-height: 280px; width: 100%; object-fit: cover; background: #000; cursor: pointer; transition: opacity 0.2s; }
+        img.msg-img:hover { opacity: 0.92; }
+
+        #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    </style>
 </head>
 <body>
+
 <div class="container">
-<div class="btn-float" id="btnVitrine">🛒</div>
+    <!-- Modal de Ampliação de Imagem -->
+    <div id="modal-zoom-imagem" onclick="fecharZoomImagem()">
+        <img id="imagem-zoom-src" src="">
+        <span style="color: white; margin-top: 15px; font-size: 13px; background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; cursor: pointer;">Toque em qualquer lugar para fechar</span>
+    </div>
 
-<!-- LOJA -->
-<div id="loja-publica" class="hidden" style="position:fixed;inset:0;z-index:1500;background:var(--bg);overflow-y:auto">
-<div class="header"><div style="display:flex;gap:10px;align-items:center"><div id="lp-inicial" class="avatar">?</div><div><div id="lp-nome" style="font-weight:bold">Loja</div><div id="lp-bio" style="font-size:11px;opacity:.8"></div></div></div><button id="btnFecharLoja" style="width:auto;background:rgba(0,0,0,.3)">X</button></div>
-<div id="lp-lista" style="padding:12px"></div></div>
+    <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine de Produtos">
+        <svg viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+    </button>
 
-<!-- AUTH - SEU LAYOUT ORIGINAL DA FOTO -->
-<div id="auth-screen" class="screen" style="justify-content:center;max-width:380px;margin:0 auto">
-<div class="logo"><div style="font-size:48px">⚡💬</div><h1>Zap Leve</h1><p style="font-size:13px;opacity:.6">Chat P2P e utilitários integrados</p></div>
-<p id="aviso-convite" class="hidden" style="background:#e8f5e9;color:#1b5e20;padding:10px;border-radius:6px;font-size:12px;text-align:center;border:1px solid #a5d6a7"></p>
-<input type="email" id="email" placeholder="Seu e-mail">
-<input type="password" id="password" placeholder="Sua senha (6+ caracteres)">
-<input type="text" id="username-cadastro" placeholder="Seu nome de usuário ex: rafa60 (só ao criar conta)" style="text-transform:lowercase">
-<p id="preview-link" style="font-size:10px;opacity:.6;text-align:center;word-break:break-all;min-height:14px"></p>
-<div style="display:flex;gap:8px"><button style="flex:1;background:#0275d8" id="btnEntrar">Entrar</button><button style="flex:1;background:#28a745" id="btnCadastrar">Abrir Conta</button></div>
-<button style="background:#333;margin-top:8px" id="btnTema">🌓 Alternar Tema Claro / Escuro</button>
-<p id="status-login" style="font-size:12px;text-align:center;min-height:16px;margin-top:8px"></p>
-<p style="font-size:9px;opacity:.4;text-align:center;margin-top:12px">Github Pages + Firebase + Cloudflare R2 • sem faixa vermelha</p>
-</div>
+    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto, botão de instalação e edição do nome de utilizador) -->
+    <div id="modal-perfil-usuario" class="modal">
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
+            
+            <!-- Aviso Vermelho na Bio -->
+            <div id="alerta-perfil-bio" class="hidden" style="background-color: #ea0038; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; width: 100%; text-align: center; margin-bottom: 4px;">
+                ⚠️ Complete o seu perfil (Nome, foto, descrição e links)
+            </div>
 
-<!-- CONTATOS -->
-<div id="contacts-screen" class="hidden screen" style="padding:0">
-<div class="header"><div id="areaMeuPerfil" style="display:flex;gap:10px;align-items:center;cursor:pointer"><div id="meu-avatar-topo" class="avatar">?</div><div><div style="font-weight:bold">Zap Leve ⚡</div><div id="user-display-contacts" style="font-size:11px;opacity:.9"></div><div id="meu-link-indicacao" style="font-size:10px;color:#a5d6a7"></div></div></div><button id="btnSair" style="width:auto;background:#ea0038;padding:6px 10px;font-size:12px">Sair</button></div>
-<div style="padding:12px;flex:1;display:flex;flex-direction:column;overflow:hidden">
-<div class="list" id="lista-contatos"></div>
-<div style="display:flex;gap:6px;margin-top:8px"><button style="flex:1;background:#005c4b;border-radius:20px" id="btnConvidar">📤 Convidar</button><button style="flex:1;background:#333;border-radius:20px" id="btnCopiarLink">🔗 Copiar link</button></div>
-<input type="text" id="input-link-compartilhar" readonly style="font-size:11px;text-align:center;margin-top:6px">
-</div></div>
+            <div id="perfil-avatar-container" style="position: relative;">
+                <div id="perfil-avatar-grande" class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin-bottom: 5px;">?</div>
+                <img id="perfil-img-grande" class="hidden" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid white;" src="">
+            </div>
+            
+            <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
+            <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
+            
+            <!-- Botão Flutuante de Instalação no Perfil (se não instalado) -->
+            <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
+                📲 Baixar e Instalar Aplicativo
+            </button>
 
-<!-- CHAT -->
-<div id="chat-screen" class="hidden screen" style="padding:0">
-<div class="header"><div style="display:flex;gap:8px;align-items:center"><span id="btnVoltar" style="text-decoration:underline;cursor:pointer;font-weight:bold">voltar</span><div id="chat-avatar-topo" class="avatar">?</div><div id="chat-nome-topo" style="font-weight:bold;font-size:14px">Chat</div></div><div style="display:flex;gap:4px"><button id="btnCallAudio" style="width:auto;padding:6px 8px;background:rgba(0,0,0,.2)">📞</button><button id="btnCallVideo" style="width:auto;padding:6px 8px;background:rgba(0,0,0,.2)">📹</button><button id="btnSairChat" style="width:auto;background:#ea0038;padding:6px 10px;font-size:12px">Sair</button></div></div>
-<div class="chat" id="mensagens"></div>
-<div style="display:flex;gap:6px;padding:8px;background:var(--input);border-top:1px solid var(--border);align-items:center">
-<button id="btnAttachImg" style="width:auto;background:transparent;color:var(--text);font-size:20px">📎</button>
-<input type="text" id="mensagem-texto" placeholder="Mensagem..." style="margin:0;border-radius:20px;flex:1">
-<button id="btnAudio" style="width:auto;background:transparent;color:var(--text);font-size:18px">🎤</button>
-<button id="btnEnviar" style="width:auto;border-radius:20px;padding:10px 16px">Enviar</button>
-</div><input type="file" id="fileImgChat" accept="image/*,video/*" class="hidden">
-</div>
+            <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 5px; text-align: left; border: 1px solid var(--border-color);">
+                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold; color: var(--header-bg);">🌐 Link de Afiliado / Perfil do Utilizador:</p>
+                <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
+            </div>
 
-<!-- PERFIL -->
-<div id="modal-perfil-usuario" class="modal"><div class="modal-box" style="text-align:center">
-<h3>Meu Perfil</h3><div id="perfil-foto-preview" class="avatar" style="width:80px;height:80px;margin:0 auto 10px;font-size:28px">?</div>
-<input type="file" id="input-foto-perfil" accept="image/*">
-<input type="text" id="input-perfil-nome" placeholder="Seu nome">
-<input type="text" id="input-perfil-username" placeholder="username ex: rafa60" style="text-transform:lowercase">
-<textarea id="input-perfil-bio" placeholder="Bio / Recado" style="min-height:60px;resize:none"></textarea>
-<p id="status-perfil" style="font-size:11px"></p>
-<button style="background:#28a745" id="btnSalvarPerfil">💾 Salvar Perfil</button>
-<button style="background:#888;margin-top:6px" id="btnFecharPerfil">Fechar</button>
-</div></div>
+            <!-- Painel de Edição do Perfil (Nome, Foto e Link) -->
+            <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
+                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
+                
+                <label style="font-size: 11px; opacity: 0.8;">Meu Nome de Utilizador:</label>
+                <input type="text" id="input-meu-nome" placeholder="Digite seu nome" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
 
-<!-- CATALOGO -->
-<div id="modal-catalogo" class="modal"><div class="modal-box">
-<h3>Meu Catálogo</h3><p style="font-size:11px;opacity:.6">Foto + nome + preço + link afiliado. Vai pro R2/Firebase.</p>
-<input type="file" id="input-prod-foto" accept="image/*">
-<input type="text" id="input-prod-nome" placeholder="Nome do produto">
-<input type="text" id="input-prod-preco" placeholder="Preço ex: R$ 99,90">
-<input type="text" id="input-prod-afiliado" placeholder="Link afiliado https://...">
-<p id="status-prod" style="font-size:11px"></p>
-<button style="background:#28a745" id="btnSalvarProduto">+ Salvar Produto</button>
-<div id="lista-meus-produtos" style="margin-top:12px;max-height:35vh;overflow-y:auto"></div>
-<button style="background:#888;margin-top:10px" id="btnFecharCatalogo">Fechar</button>
-</div></div>
+                <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
+                <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 6px;">
+                
+                <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal / Afiliado / Vídeos:</label>
+                <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+                
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
+            </div>
+
+            <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
+        </div>
+    </div>
+
+    <!-- TELA DE CHAMADA -->
+    <div id="call-screen" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="call-status" style="margin: 0; color: white;">A ligar...</h3>
+            <button class="btn-danger" style="width: auto; padding: 6px 12px; font-size: 12px; border-radius: 4px;" onclick="encerrarChamada()">Desligar</button>
+        </div>
+        <div class="call-videos">
+            <div id="call-placeholder-info">
+                <div id="call-active-avatar" class="call-avatar-grande">?</div>
+                <h2 id="call-active-name" style="margin: 0; color: white; font-size: 22px;">Nome</h2>
+                <p style="margin: 0; color: #aaa; font-size: 13px;">A aguardar resposta...</p>
+            </div>
+            <video id="remote-video" autoplay playsinline></video>
+            <video id="local-video" autoplay playsinline muted></video>
+        </div>
+        <div class="call-controls">
+            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙</button>
+            <button class="call-btn btn-cam" onclick="alternarCamera()" id="btn-toggle-cam">📷</button>
+            <button class="call-btn btn-hangup" onclick="encerrarChamada()">📞</button>
+        </div>
+    </div>
+
+    <!-- MODAL DE CHAMADA ENTRANTE -->
+    <div id="modal-incoming-call" class="modal">
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 25px;">
+            <div id="incoming-caller-avatar" class="avatar" style="width: 75px; height: 75px; font-size: 26px;">?</div>
+            <h3 id="incoming-caller-name" style="margin: 0; font-size: 18px;">Chamada Entrante...</h3>
+            <p style="margin: 0; font-size: 12px; opacity: 0.7;">A receber chamada de voz/vídeo</p>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px; width: 100%;">
+                <button class="btn-danger" style="flex: 1; padding: 10px; border-radius: 6px; margin: 0;" onclick="recusarChamada()">Recusar</button>
+                <button class="btn-alt" style="flex: 1; padding: 10px; border-radius: 6px; background: #00a884; margin: 0;" onclick="aceitarChamada()">Atender</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VITRINE -->
+    <div id="modal-vitrine" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin:0;">🛍️ Vitrine de Produtos</h3>
+                <button id="btn-abrir-admin" class="btn-alt hidden" style="width:auto; padding:4px 8px; font-size:10px; margin:0; background:#d4a24c;" onclick="togglePainelAdmin()">⚙️ Painel Admin</button>
+            </div>
+
+            <div id="painel-admin-geral" class="hidden" style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color);">
+                <div style="display:flex; gap:4px; margin-bottom:8px;">
+                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0;" onclick="mudarAbaAdmin('produtos')">📦 Produtos</button>
+                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdmin('utilizadores')">👥 Limites Usuários</button>
+                </div>
+
+                <div id="aba-admin-produtos">
+                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Adicionar Produto:</p>
+                    <input type="text" id="admin-prod-titulo" placeholder="Nome do Produto" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-preco" placeholder="Preço (ex: 49.90)" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-img" placeholder="URL da Imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
+                    <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
+                </div>
+
+                <div id="aba-admin-utilizadores" class="hidden">
+                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Definir Limite de Vitrine por Usuário:</p>
+                    <div id="lista-usuarios-admin" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                        <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
+                    </div>
+                </div>
+            </div>
+
+            <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
+            <div id="lista-produtos-vitrine" style="max-height: 200px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                <p style="text-align:center; font-size:12px;">A carregar...</p>
+            </div>
+            <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
+        </div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="auth-screen" class="screen-content" style="justify-content: center; max-width: 380px; margin: 0 auto;">
+        <div class="logo-area" style="margin-bottom: 25px;">
+            <span>⚡💬</span>
+            <h1 style="margin: 5px 0 0 0;">Zap Leve</h1>
+            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e utilitários integrados</p>
+        </div>
+        
+        <input type="email" id="email" placeholder="Seu e-mail">
+        <input type="password" id="password" placeholder="Sua senha">
+        
+        <div style="display: flex; gap: 8px; margin: 6px 0;">
+            <button class="btn-alt" style="flex: 1; margin: 0; background: #0275d8;" onclick="entrar()">Entrar</button>
+            <button style="flex: 1; margin: 0; background: #28a745;" onclick="cadastrar()">Abrir Conta</button>
+        </div>
+
+        <button class="btn-alt" style="background: #333; margin-top: 10px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
+    </div>
+
+    <!-- MODAL INSTALAÇÃO -->
+    <div id="modal-instalar" class="modal">
+        <div class="modal-content">
+            <h3>📲 Instalar o Zap Leve</h3>
+            <p id="instrucoes-texto" style="text-align: left; font-size: 13px; line-height: 1.4;"></p>
+            <div class="close-modal" onclick="fecharInstalacao()">Fechar</div>
+        </div>
+    </div>
+
+    <!-- MODAL RESPOSTAS RÁPIDAS -->
+    <div id="modal-quick-config" class="modal">
+        <div class="modal-content">
+            <h3>⚡ Gerir Respostas Rápidas</h3>
+            <div style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid var(--border-color);">
+                <input type="text" id="qr-titulo" placeholder="Nome do Atalho (ex: Olá)" style="font-size: 12px; padding: 8px;">
+                <textarea id="qr-texto" placeholder="Mensagem..." style="font-size: 12px; padding: 8px; height: 50px; resize: vertical;"></textarea>
+                <input type="text" id="qr-img" placeholder="URL da Imagem (Opcional)" style="font-size: 12px; padding: 8px;">
+                <input type="text" id="qr-link" placeholder="Link de Afiliado (Opcional)" style="font-size: 12px; padding: 8px;">
+                <button class="btn-alt" style="padding: 8px; font-size: 12px; margin-top: 4px;" onclick="salvarNovaRespostaRapida()">➕ Salvar Atalho</button>
+            </div>
+            <div id="lista-qr-config" style="max-height: 140px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-app); border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 6px;"></div>
+            <div class="close-modal" onclick="fecharModalQuick()">Concluir</div>
+        </div>
+    </div>
+
+    <!-- TELA DE CONTACTOS -->
+    <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
+        <div class="header-top">
+            <div class="user-info-area" onclick="abrirMeuPerfil()">
+                <div id="meu-avatar-topo-container" style="position:relative;">
+                    <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                    <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
+                    <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
+                </div>
+            </div>
+            <div style="display:flex; gap:6px; align-items: center;">
+                <button class="btn-topo-padrao" style="background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
+                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()">Sair</button>
+            </div>
+        </div>
+        <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8;">Conversas e Contactos:</p>
+            <div class="contact-list" id="lista-contatos">
+                <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
+            </div>
+            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📢 Convidar Amigo</button>
+        </div>
+    </div>
+
+    <!-- TELA DE CHAT -->
+    <div id="chat-screen" class="hidden screen-content" style="padding: 0;">
+        <div class="header-top">
+            <div class="user-info-area">
+                <span class="texto-voltar" onclick="voltarParaContatos()" title="Voltar para Contactos">voltar</span>
+                <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="abrirPerfilContatoSelecionado()">
+                    <div id="chat-avatar-topo-container" style="position:relative;">
+                        <div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                        <img id="chat-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                    </div>
+                    <div>
+                        <h3 id="chat-title" style="margin:0; font-size: 15px; color: white;">Conversando...</h3>
+                        <span style="font-size: 11px; color: #e0f2f1;">ver perfil 👤</span>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:5px; align-items: center;">
+                <button class="btn-topo-padrao btn-topo-limpar" onclick="limparConversaAtual()" title="Limpar Conversa">Limpar</button>
+                <button class="btn-topo-padrao btn-topo-video" onclick="iniciarChamada(true)" title="Vídeo Chamada">📹 Vídeo</button>
+                <button class="btn-topo-padrao btn-topo-telefone" onclick="iniciarChamada(false)" title="Chamada de Áudio">📞 Áudio</button>
+                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()" title="Sair">Sair</button>
+            </div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="padding: 6px 12px; background: var(--input-bg); border-bottom: 1px solid var(--border-color);">
+                <input type="text" id="input-busca-msg" placeholder="🔍 Pesquisar nas mensagens..." oninput="filtrarMensagensLocais()" style="margin:0; padding:6px 10px; font-size:12px; border-radius:12px;">
+            </div>
+
+            <div class="chat-box" id="mensagens"></div>
+            
+            <div class="chat-input-area">
+                <div class="quick-replies" id="barra-atalhos-rapidos">
+                    <button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>
+                </div>
+                <div class="input-group">
+                    <button class="clip-btn" onclick="toggleMenuAnexos(event)" title="Anexar Mídia">📎</button>
+
+                    <div id="menu-anexos">
+                        <label class="anexo-opcao">
+                            📷 Enviar Imagem
+                            <input type="file" id="imagem-input" accept="image/*" style="display: none;" onchange="enviarImagemGlobal(this); fecharMenuAnexos();">
+                        </label>
+                        <label class="anexo-opcao">
+                            📹 Enviar Vídeo
+                            <input type="file" id="video-input" accept="video/*" style="display: none;" onchange="enviarVideoGlobal(this); fecharMenuAnexos();">
+                        </label>
+                    </div>
+
+                    <input type="text" id="mensagem-texto" placeholder="Mensagem ou link (www..., https://...)" onkeypress="if(event.key === 'Enter') enviarMensagemPrivada()">
+                    <button id="btn-gravar-audio" class="action-btn mic-rec-btn" onclick="toggleGravarAudio()" title="Gravar Áudio Global">🎙️</button>
+                </div>
+                <button onclick="enviarMensagemPrivada()" style="padding: 8px; font-size: 13px; border-radius: 20px; background: #00a884;">Enviar Mensagem / Link</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// === CONFIG GITHUB PAGES + FIREBASE + R2 ===
-const TOQUE_R2_URL = ""; // opcional: cole seu link do R2 https://pub-xxxx.r2.dev/toque.mp3
-const firebaseConfig = {
-  apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
-  authDomain: "zapleve.firebaseapp.com",
-  projectId: "zapleve",
-  storageBucket: "zapleve.firebasestorage.app",
-  messagingSenderId: "426242600158",
-  appId: "1:426242600158:web:09b519b9aa014667fc264f"
-};
-const app = initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app); const storage=getStorage(app);
-const $=id=>document.getElementById(id); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); const slug=t=>String(t).toLowerCase().trim().replace(/[^a-z0-9]+/g,'').slice(0,20);
-let currentData=null, chatCom=null;
+    // Segurança: escape de HTML e validação de URLs
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const urlSegura = (u, midia = false) => {
+        u = String(u || '').trim();
+        if (/^https?:\/\//i.test(u)) return u;
+        if (midia && /^data:(image|video|audio)\/[a-z0-9.+-]+;base64,/i.test(u)) return u;
+        return '';
+    };
+    const contatosCache = {};
 
-// CONVITE ?ref=
-const refParam = new URL(location.href).searchParams.get('ref')||''; if(refParam){ localStorage.setItem('zapleve_ref', slug(refParam)); $('aviso-convite').classList.remove('hidden'); $('aviso-convite').innerHTML=`🎉 Convite de <b>@${esc(slug(refParam))}</b>!`; }
-$('username-cadastro').addEventListener('input', ()=>{ const s=slug($('username-cadastro').value)||slug($('email').value.split('@')[0])||'seunome'; $('preview-link').textContent=`Seu link: ${location.origin}${location.pathname.replace('index.html','')}?ref=${s}`; });
+    let audioCtx = null;
+    let ringInterval = null;
+    let cacheProdutosVitrine = [];
+    let meuNomeAtual = "";
+    
+    const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
 
-// FUNÇÕES CORRIGIDAS - SEM FAIXA VERMELHA
-async function entrar(){
-  const email=$('email').value.trim(), senha=$('password').value.trim(), st=$('status-login');
-  if(!email||!senha){ st.style.color='red'; st.textContent='Preencha email e senha'; return; }
-  st.style.color='#00a884'; st.textContent='Entrando...';
-  try{ await signInWithEmailAndPassword(auth,email,senha); st.textContent=''; }
-  catch(e){ st.style.color='red'; let m=e.message; if(e.code==='auth/invalid-credential') m='Email ou senha errados'; if(e.code==='auth/user-not-found') m='Não existe, clique Abrir Conta'; st.textContent='Erro: '+m; }
-}
-async function cadastrar(){
-  const email=$('email').value.trim(), senha=$('password').value.trim(), uRaw=$('username-cadastro').value.trim(), st=$('status-login');
-  const username=slug(uRaw)||slug(email.split('@')[0]);
-  if(!email||!senha||!username){ st.style.color='red'; st.textContent='Email, senha e username'; return; }
-  if(senha.length<6){ st.style.color='red'; st.textContent='Senha 6+'; return; }
-  st.style.color='#00a884'; st.textContent='Criando...';
-  try{
-    const q=query(collection(db,"usuarios"), where("username","==",username)); const s=await getDocs(q); if(!s.empty){ st.style.color='red'; st.textContent='@'+username+' já existe'; return; }
-    const cred=await createUserWithEmailAndPassword(auth,email,senha);
-    const dados={ email, username, nome:username, displayName:username, bio:'', photoURL:'', referralCode:username, indicadoPor:localStorage.getItem('zapleve_ref')||null, criadoEm:Date.now() };
-    await setDoc(doc(db,"usuarios",cred.user.uid), dados); await setDoc(doc(db,"users",cred.user.uid), dados, {merge:true});
-    localStorage.removeItem('zapleve_ref'); st.style.color='green'; st.textContent='✅ Conta @'+username+' criada!';
-  }catch(e){ st.style.color='red'; st.textContent='Erro: '+e.message; }
-}
-$('btnEntrar').addEventListener('click', entrar);
-$('btnCadastrar').addEventListener('click', cadastrar);
-$('btnTema').addEventListener('click', ()=>{ document.body.classList.toggle('dark'); localStorage.setItem('zapleve_dark', document.body.classList.contains('dark')?'1':'0'); });
-if(localStorage.getItem('zapleve_dark')==='1') document.body.classList.add('dark');
+    // Instalação PWA
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        atualizarVisibilidadeBotaoInstalacao();
+    });
 
-function atualizarTela(){
-  if(!currentData) return;
-  const link=`${location.origin}${location.pathname.replace('index.html','')}?ref=${currentData.username}`;
-  $('user-display-contacts').textContent='@'+currentData.username+(currentData.bio?' | '+currentData.bio:''); $('meu-link-indicacao').textContent='?ref='+currentData.username; $('input-link-compartilhar').value=link;
-  const av=$('meu-avatar-topo'); av.innerHTML=''; if(currentData.photoURL){ const im=document.createElement('img'); im.src=currentData.photoURL; av.appendChild(im); } else av.textContent=currentData.username[0].toUpperCase();
-  carregarContatos();
-}
-async function carregarContatos(){
-  const lista=$('lista-contatos'); lista.innerHTML='Carregando...'; const q=query(collection(db,"usuarios"), orderBy("criadoEm","desc")); const snap=await getDocs(q);
-  lista.innerHTML=''; snap.forEach(d=>{ const u=d.data(); if(u.username===currentData.username) return; const div=document.createElement('div'); div.className='item'; const av=u.photoURL?`<div class="avatar"><img src="${esc(u.photoURL)}"></div>`:`<div class="avatar">${esc((u.username||'?')[0].toUpperCase())}</div>`; div.innerHTML=`<div style="display:flex;gap:10px;align-items:center">${av}<div><b style="font-size:13px">@${esc(u.username)}</b><br><span style="font-size:11px;opacity:.6">${esc(u.bio||'sem recado')}</span></div></div><span>🛒</span>`; div.addEventListener('click', ()=>{ chatCom=u; $('contacts-screen').classList.add('hidden'); $('chat-screen').classList.remove('hidden'); $('chat-nome-topo').textContent='@'+u.username; const av2=$('chat-avatar-topo'); av2.innerHTML=''; if(u.photoURL){ const im=document.createElement('img'); im.src=u.photoURL; av2.appendChild(im); } else av2.textContent=u.username[0].toUpperCase(); $('mensagens').innerHTML=`<div style="text-align:center;font-size:11px;opacity:.5;padding:8px">Conversa com @${esc(u.username)}<br><button onclick="abrirLoja('${esc(u.username)}')" style="width:auto;padding:6px 10px;font-size:11px;background:#27ae60;border-radius:12px;margin-top:6px">🛒 Ver catálogo</button></div>`; }); lista.appendChild(div); });
-  if(!lista.children.length) lista.innerHTML=`<p style="text-align:center;opacity:.5;padding:20px">Nenhum contato<br>Compartilhe ?ref=${esc(currentData.username)}</p>`;
-}
+    function verificarSeEstaInstalado() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
 
-// PERFIL
-$('areaMeuPerfil').addEventListener('click', ()=>{ $('input-perfil-nome').value=currentData.displayName||''; $('input-perfil-username').value=currentData.username||''; $('input-perfil-bio').value=currentData.bio||''; const av=$('perfil-foto-preview'); av.innerHTML=''; if(currentData.photoURL){ const im=document.createElement('img'); im.src=currentData.photoURL; av.appendChild(im); } else av.textContent=currentData.username[0].toUpperCase(); $('modal-perfil-usuario').style.display='flex'; });
-$('btnFecharPerfil').addEventListener('click', ()=>$('modal-perfil-usuario').style.display='none');
-$('input-foto-perfil').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ const av=$('perfil-foto-preview'); av.innerHTML=''; const im=document.createElement('img'); im.src=ev.target.result; av.appendChild(im); }; r.readAsDataURL(f); });
-$('btnSalvarPerfil').addEventListener('click', async()=>{
-  const st=$('status-perfil'), user=auth.currentUser; if(!user) return; const nome=$('input-perfil-nome').value.trim(), username=slug($('input-perfil-username').value.trim()), bio=$('input-perfil-bio').value.trim().slice(0,140);
-  if(!username){ st.textContent='username obrigatório'; return; } st.textContent='Salvando...';
-  try{
-    if(username!==currentData.username){ const q=query(collection(db,"usuarios"), where("username","==",username)); const s=await getDocs(q); if(!s.empty){ st.textContent='@'+username+' já existe'; return; } }
-    let photoURL=currentData.photoURL||''; const file=$('input-foto-perfil').files[0]; if(file){ const rf=ref(storage, `perfil/${user.uid}/${Date.now()}.jpg`); await uploadBytes(rf,file); photoURL=await getDownloadURL(rf); }
-    const upd={ displayName:nome||username, nome:nome||username, username, bio, photoURL }; await updateDoc(doc(db,"usuarios",user.uid), upd); await setDoc(doc(db,"users",user.uid), upd, {merge:true});
-    currentData={...currentData,...upd}; st.textContent='✅ Salvo!'; setTimeout(()=>{ $('modal-perfil-usuario').style.display='none'; atualizarTela(); },600);
-  }catch(e){ st.textContent='Erro: '+e.message; }
-});
+    function atualizarVisibilidadeBotaoInstalacao() {
+        const btnInstalar = document.getElementById('btn-instalar-no-perfil');
+        if (!btnInstalar) return;
+        if (!verificarSeEstaInstalado()) {
+            btnInstalar.classList.remove('hidden');
+        } else {
+            btnInstalar.classList.add('hidden');
+        }
+    }
 
-// CHAT + AUDIO + VIDEO + IMAGEM + CHAMADA
-$('btnVoltar').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
-$('btnSairChat').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
-$('btnSair').addEventListener('click', async()=>{ await signOut(auth); location.reload(); });
-$('btnEnviar').addEventListener('click', ()=>{ const txt=$('mensagem-texto').value.trim(); if(!txt) return; const b=$('mensagens'); const d=document.createElement('div'); d.className='msg eu'; d.textContent=txt; b.appendChild(d); $('mensagem-texto').value=''; b.scrollTop=b.scrollHeight; });
-$('mensagem-texto').addEventListener('keypress', e=>{ if(e.key==='Enter') $('btnEnviar').click(); });
-$('btnAttachImg').addEventListener('click', ()=>$('fileImgChat').click());
-$('fileImgChat').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const url=URL.createObjectURL(f); const b=$('mensagens'); const d=document.createElement('div'); d.className='msg eu'; d.innerHTML=f.type.startsWith('video')?`<video src="${url}" controls style="max-width:100%;border-radius:6px"></video>`:`<img src="${url}" style="max-width:100%;border-radius:6px">`; b.appendChild(d); b.scrollTop=b.scrollHeight; e.target.value=''; });
-$('btnCallAudio').addEventListener('click', ()=>{ if(chatCom) alert('📞 Chamando @'+chatCom.username+' por áudio P2P...'); });
-$('btnCallVideo').addEventListener('click', ()=>{ if(chatCom) alert('📹 Chamando @'+chatCom.username+' por vídeo P2P...'); });
-$('btnAudio').addEventListener('click', async()=>{ try{ const stream=await navigator.mediaDevices.getUserMedia({audio:true}); const mr=new MediaRecorder(stream); const chunks=[]; mr.ondataavailable=e=>chunks.push(e.data); mr.onstop=()=>{ const blob=new Blob(chunks,{type:'audio/webm'}); const url=URL.createObjectURL(blob); const b=$('mensagens'); const d=document.createElement('div'); d.className='msg eu'; d.innerHTML=`<audio controls src="${url}"></audio>`; b.appendChild(d); b.scrollTop=b.scrollHeight; stream.getTracks().forEach(t=>t.stop()); }; mr.start(); setTimeout(()=>{ if(mr.state==='recording') mr.stop(); }, 30000); const stop=()=>{ if(mr.state==='recording') mr.stop(); }; $('btnAudio').onclick=stop; setTimeout(()=>{ $('btnAudio').onclick=null; }, 31000); }catch{ alert('Microfone bloqueado'); } });
-$('btnConvidar').addEventListener('click', async()=>{ const l=$('input-link-compartilhar').value; if(navigator.share){ try{ await navigator.share({title:'Zap Leve', url:l}); }catch{} } else prompt('Copie:', l); });
-$('btnCopiarLink').addEventListener('click', async()=>{ const l=$('input-link-compartilhar').value; try{ await navigator.clipboard.writeText(l); alert('Copiado!'); }catch{ prompt('Copie:', l); } });
+    window.abrirInstalacaoDoPerfil = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                deferredPrompt = null;
+                document.getElementById('btn-instalar-no-perfil').classList.add('hidden');
+            }
+        } else {
+            const instrucoes = document.getElementById('instrucoes-texto');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                instrucoes.innerHTML = "Para instalar no seu iPhone/iPad:<br>1. Toque no botão de <b>Partilha</b> (quadrado com seta para cima) no Safari.<br>2. Role para baixo e escolha <b>'Adicionar ao Ecrã Principal'</b>.";
+            } else {
+                instrucoes.innerHTML = "Para instalar no seu dispositivo:<br>1. Toque no menu do navegador (três pontos no canto superior direito).<br>2. Selecione <b>'Instalar aplicativo'</b> ou <b>'Adicionar à tela inicial'</b>.";
+            }
+            document.getElementById('modal-instalar').style.display = 'flex';
+        }
+    };
 
-// CATALOGO
-$('btnVitrine').addEventListener('click', ()=>{ $('modal-catalogo').style.display='flex'; carregarMeusProds(); });
-$('btnFecharCatalogo').addEventListener('click', ()=>$('modal-catalogo').style.display='none');
-$('btnSalvarProduto').addEventListener('click', async()=>{
-  const st=$('status-prod'), user=auth.currentUser; if(!user) return; const nome=$('input-prod-nome').value.trim(), preco=$('input-prod-preco').value.trim(), link=$('input-prod-afiliado').value.trim(), file=$('input-prod-foto').files[0];
-  if(!nome||!preco){ st.textContent='Nome e preço'; return; } st.textContent='Salvando...';
-  try{ let foto=''; if(file){ const r=ref(storage, `produtos/${user.uid}/${Date.now()}_${file.name}`); await uploadBytes(r,file); foto=await getDownloadURL(r); } await addDoc(collection(db,"produtos"), {ownerId:user.uid, username:currentData.username, nome, preco, afiliadoLink:link, fotoUrl:foto, criadoEm:Date.now()}); st.textContent='✅ Salvo!'; $('input-prod-nome').value=''; $('input-prod-preco').value=''; $('input-prod-afiliado').value=''; $('input-prod-foto').value=''; carregarMeusProds(); }catch(e){ st.textContent='Erro: '+e.message; }
-});
-async function carregarMeusProds(){
-  const lista=$('lista-meus-produtos'), user=auth.currentUser; if(!user) return; lista.innerHTML='Carregando...'; const q=query(collection(db,"produtos"), where("ownerId","==",user.uid), orderBy("criadoEm","desc")); const snap=await getDocs(q); lista.innerHTML=''; if(snap.empty){ lista.innerHTML='<p style="font-size:12px;opacity:.5">Nenhum produto</p>'; return; } snap.forEach(d=>{ const p=d.data(); const id=d.id; const div=document.createElement('div'); div.className='card'; div.innerHTML=`<img src="${esc(p.fotoUrl||'https://via.placeholder.com/60')}"><div style="flex:1"><b style="font-size:13px">${esc(p.nome)}</b><br><span style="color:#27ae60;font-weight:bold">${esc(p.preco)}</span></div><button style="width:auto;background:#ea0038;padding:6px 8px" data-del="${id}">X</button>`; lista.appendChild(div); }); lista.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', async e=>{ if(confirm('Excluir?')){ await deleteDoc(doc(db,"produtos",e.target.getAttribute('data-del'))); carregarMeusProds(); } })); 
-}
-window.abrirLoja=async(username)=>{
-  $('loja-publica').classList.remove('hidden'); $('lp-nome').textContent='@'+username; const lista=$('lp-lista'); lista.innerHTML='Carregando...'; const qUser=query(collection(db,"usuarios"), where("username","==",username)); const sUser=await getDocs(qUser); if(!sUser.empty){ const u=sUser.docs[0].data(); $('lp-nome').textContent='@'+u.username+' - '+(u.displayName||''); $('lp-bio').textContent=u.bio||''; const av=$('lp-inicial'); av.innerHTML=''; if(u.photoURL){ const im=document.createElement('img'); im.src=u.photoURL; av.appendChild(im); } else av.textContent=u.username[0].toUpperCase(); } const q=query(collection(db,"produtos"), where("username","==",username), orderBy("criadoEm","desc")); const snap=await getDocs(q); lista.innerHTML=''; if(snap.empty){ lista.innerHTML='<p style="text-align:center;opacity:.5">Nenhum produto</p>'; return; } snap.forEach(d=>{ const p=d.data(); const div=document.createElement('div'); div.className='card'; div.innerHTML=`<img src="${esc(p.fotoUrl||'https://via.placeholder.com/60')}" style="width:70px;height:70px"><div style="flex:1"><b>${esc(p.nome)}</b><br><span style="color:#27ae60;font-weight:bold">${esc(p.preco)}</span><br>${p.afiliadoLink?`<a href="${esc(p.afiliadoLink)}" target="_blank"><button style="padding:6px 10px;font-size:11px;background:#ff6a00;width:auto;border-radius:12px">🛒 Comprar</button></a>`:''}</div>`; lista.appendChild(div); });
-};
-$('btnFecharLoja').addEventListener('click', ()=>$('loja-publica').classList.add('hidden'));
+    window.fecharInstalacao = () => {
+        document.getElementById('modal-instalar').style.display = 'none';
+    };
 
-onAuthStateChanged(auth, async(user)=>{
-  if(user){ $('auth-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); const snap=await getDoc(doc(db,"usuarios",user.uid)); if(snap.exists()){ currentData=snap.data(); atualizarTela(); } }
-  else{ $('auth-screen').classList.remove('hidden'); $('contacts-screen').classList.add('hidden'); $('chat-screen').classList.add('hidden'); }
-});
+    // Zoom de Imagem
+    window.ampliarImagem = (src) => {
+        document.getElementById('imagem-zoom-src').src = src;
+        document.getElementById('modal-zoom-imagem').style.display = 'flex';
+    };
+
+    window.fecharZoomImagem = () => {
+        document.getElementById('modal-zoom-imagem').style.display = 'none';
+    };
+
+    window.toggleMenuAnexos = (e) => {
+        e.stopPropagation();
+        const menu = document.getElementById('menu-anexos');
+        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.fecharMenuAnexos = () => {
+        document.getElementById('menu-anexos').style.display = 'none';
+    };
+
+    window.addEventListener('click', () => {
+        fecharMenuAnexos();
+    });
+
+    window.abrirMeuPerfil = async () => {
+        if (!usuarioAtual) return;
+        const userDoc = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+        const dados = userDoc.exists() ? userDoc.data() : {};
+        
+        const avatarGrande = document.getElementById('perfil-avatar-grande');
+        const imgGrande = document.getElementById('perfil-img-grande');
+
+        if (dados.fotoUrl) {
+            imgGrande.src = dados.fotoUrl;
+            imgGrande.classList.remove('hidden');
+            avatarGrande.classList.add('hidden');
+        } else {
+            avatarGrande.innerText = (dados.nome || usuarioAtual.email).charAt(0).toUpperCase();
+            avatarGrande.classList.remove('hidden');
+            imgGrande.classList.add('hidden');
+        }
+
+        const nomeDoUser = dados.nome || usuarioAtual.email.split('@')[0];
+        document.getElementById('perfil-nome-exibicao').innerText = nomeDoUser;
+        document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
+        document.getElementById('input-meu-nome').value = nomeDoUser;
+        
+        // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
+        const alertaBio = document.getElementById('alerta-perfil-bio');
+        if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal) {
+            alertaBio.classList.remove('hidden');
+        } else {
+            alertaBio.classList.add('hidden');
+        }
+
+        const linkSalvo = dados.linkPessoal || "";
+        const linkContainer = document.getElementById('perfil-link-container');
+        if (linkSalvo) {
+            linkContainer.innerHTML = '';
+            const aLink = document.createElement('a');
+            aLink.href = urlSegura(linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo) || '#';
+            aLink.target = '_blank';
+            aLink.rel = 'noopener noreferrer';
+            aLink.style.cssText = 'color: #0275d8; text-decoration: underline;';
+            aLink.textContent = linkSalvo;
+            linkContainer.appendChild(aLink);
+        } else {
+            linkContainer.innerText = "Nenhum link ou vídeo configurado.";
+        }
+
+        document.getElementById('input-meu-link').value = linkSalvo;
+        document.getElementById('input-foto-perfil').value = "";
+        document.getElementById('meu-painel-edicao-link').classList.remove('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
+        document.getElementById('modal-perfil-usuario').style.display = 'flex';
+    };
+
+    window.abrirPerfilContatoSelecionado = async () => {
+        if (!contatoSelecionado) return;
+        const userDoc = await getDoc(doc(db, "usuarios", contatoSelecionado.uid));
+        const dados = userDoc.exists() ? userDoc.data() : {};
+
+        const avatarGrande = document.getElementById('perfil-avatar-grande');
+        const imgGrande = document.getElementById('perfil-img-grande');
+
+        if (dados.fotoUrl) {
+            imgGrande.src = dados.fotoUrl;
+            imgGrande.classList.remove('hidden');
+            avatarGrande.classList.add('hidden');
+        } else {
+            avatarGrande.innerText = contatoSelecionado.nome.charAt(0).toUpperCase();
+            avatarGrande.classList.remove('hidden');
+            imgGrande.classList.add('hidden');
+        }
+
+        document.getElementById('perfil-nome-exibicao').innerText = contatoSelecionado.nome;
+        document.getElementById('perfil-email-exibicao').innerText = dados.email || "Utilizador Zap Leve";
+        document.getElementById('alerta-perfil-bio').classList.add('hidden');
+
+        const linkSalvo = dados.linkPessoal || "";
+        const linkContainer = document.getElementById('perfil-link-container');
+        if (linkSalvo) {
+            linkContainer.innerHTML = '';
+            const aLink = document.createElement('a');
+            aLink.href = urlSegura(linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo) || '#';
+            aLink.target = '_blank';
+            aLink.rel = 'noopener noreferrer';
+            aLink.style.cssText = 'color: #0275d8; text-decoration: underline;';
+            aLink.textContent = linkSalvo;
+            linkContainer.appendChild(aLink);
+        } else {
+            linkContainer.innerText = "Este usuário ainda não adicionou nenhum link.";
+        }
+
+        document.getElementById('meu-painel-edicao-link').classList.add('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
+        document.getElementById('modal-perfil-usuario').style.display = 'flex';
+    };
+
+    window.fecharPerfilUsuario = () => {
+        document.getElementById('modal-perfil-usuario').style.display = 'none';
+    };
+
+    window.salvarMeuPerfilCompleto = async () => {
+        if (!usuarioAtual) return;
+        const novoNome = document.getElementById('input-meu-nome').value.trim();
+        const novoLink = document.getElementById('input-meu-link').value.trim();
+        const fileInput = document.getElementById('input-foto-perfil');
+        
+        if (!novoNome) return alert("O nome de usuário não pode estar vazio.");
+
+        try {
+            let dadosAtualizacao = { nome: novoNome, linkPessoal: novoLink };
+            meuNomeAtual = novoNome;
+            document.getElementById('user-display-contacts').innerText = novoNome;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Image = e.target.result;
+                    dadosAtualizacao.fotoUrl = base64Image;
+                    await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
+                    
+                    document.getElementById('meu-img-topo').src = base64Image;
+                    document.getElementById('meu-img-topo').classList.remove('hidden');
+                    document.getElementById('meu-avatar-topo').classList.add('hidden');
+
+                    alert("Perfil atualizado com sucesso!");
+                    fecharPerfilUsuario();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao);
+                alert("Perfil atualizado com sucesso!");
+                fecharPerfilUsuario();
+            }
+        } catch (e) {
+            alert("Erro ao atualizar perfil: " + e.message);
+        }
+    };
+
+    // TOQUE DE TELEFONE ALTO E REALISTA
+    const toqueAudio = new Audio('toque.mp3');
+    toqueAudio.loop = true;
+    toqueAudio.preload = 'auto';
+
+    function iniciarSomCampainha(tipo = 'tocar') {
+        toqueAudio.volume = tipo === 'tocar' ? 1 : 0.5;
+        toqueAudio.currentTime = 0;
+        toqueAudio.play().catch(() => {});
+    }
+
+    function pararSomCampainha() {
+        toqueAudio.pause();
+        toqueAudio.currentTime = 0;
+    }
+
+    window.alternarModoEscuro = () => {
+        document.body.classList.toggle('dark-mode');
+        const escuroLigado = document.body.classList.contains('dark-mode');
+        localStorage.setItem('zapleve_dark', escuroLigado ? '1' : '0');
+    };
+    if (localStorage.getItem('zapleve_dark') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+
+    window.abrirVitrineAfiliado = async () => {
+        document.getElementById('modal-vitrine').style.display = 'flex';
+        if (usuarioAtual && usuarioAtual.email === EMAIL_ADMIN) {
+            document.getElementById('btn-abrir-admin').classList.remove('hidden');
+        }
+        await carregarVitrineSegregada();
+    };
+
+    window.fecharVitrineAfiliado = () => {
+        document.getElementById('modal-vitrine').style.display = 'none';
+        document.getElementById('painel-admin-geral').classList.add('hidden');
+    };
+
+    window.togglePainelAdmin = () => {
+        const painel = document.getElementById('painel-admin-geral');
+        painel.classList.toggle('hidden');
+        if (!painel.classList.contains('hidden')) {
+            carregarListaUsuariosAdmin();
+        }
+    };
+
+    window.mudarAbaAdmin = (aba) => {
+        if (aba === 'produtos') {
+            document.getElementById('aba-admin-produtos').classList.remove('hidden');
+            document.getElementById('aba-admin-utilizadores').classList.add('hidden');
+        } else {
+            document.getElementById('aba-admin-produtos').classList.add('hidden');
+            document.getElementById('aba-admin-utilizadores').classList.remove('hidden');
+        }
+    };
+
+    async function carregarVitrineSegregada(forcar = false) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar vitrine...</p>";
+        try {
+            if (!forcar && vitrineCacheTs && Date.now() - vitrineCacheTs < 600000) {
+                renderizarProdutosVitrine(cacheProdutosVitrine);
+                return;
+            }
+            if (limiteUsuarioCache === null) {
+                limiteUsuarioCache = 10;
+                if (usuarioAtual) {
+                    const userSnap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+                    if (userSnap.exists() && userSnap.data().limiteProdutos) limiteUsuarioCache = Number(userSnap.data().limiteProdutos);
+                }
+            }
+            const querySnapshot = await getDocs(query(collection(db, "produtos"), orderBy("criadoEm", "desc"), limit(limiteUsuarioCache)));
+            cacheProdutosVitrine = [];
+            querySnapshot.forEach((docItem) => { cacheProdutosVitrine.push({ id: docItem.id, ...docItem.data() }); });
+            vitrineCacheTs = Date.now();
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
+        }
+    }
+
+    window.salvarProdutoFirebase = async () => {
+        const titulo = document.getElementById('admin-prod-titulo').value.trim();
+        const preco = document.getElementById('admin-prod-preco').value.trim();
+        const imagem = document.getElementById('admin-prod-img').value.trim();
+        const link = document.getElementById('admin-prod-link').value.trim();
+        if (!titulo) return alert("Digite o nome do produto.");
+        try {
+            await addDoc(collection(db, "produtos"), { titulo, preco, imagem, link, criadoEm: serverTimestamp() });
+            alert("Produto cadastrado com sucesso!");
+            document.getElementById('admin-prod-titulo').value = '';
+            document.getElementById('admin-prod-preco').value = '';
+            document.getElementById('admin-prod-img').value = '';
+            document.getElementById('admin-prod-link').value = '';
+            carregarVitrineSegregada(true);
+        } catch (e) {
+            alert("Erro ao salvar: " + e.message);
+        }
+    };
+
+    window.apagarProdutoFirebase = async (idProduto) => {
+        if (!confirm("Deseja apagar este produto?")) return;
+        try {
+            await deleteDoc(doc(db, "produtos", idProduto));
+            carregarVitrineSegregada(true);
+        } catch (e) {
+            alert("Erro ao apagar: " + e.message);
+        }
+    };
+
+    async function carregarListaUsuariosAdmin() {
+        const div = document.getElementById('lista-usuarios-admin');
+        div.innerHTML = "<p style='font-size:11px; text-align:center;'>A carregar...</p>";
+        try {
+            const snapshot = await getDocs(query(collection(db, "usuarios"), limit(50)));
+            div.innerHTML = "";
+            snapshot.forEach((docItem) => {
+                const u = docItem.data();
+                const limiteAtual = u.limiteProdutos || 10;
+                div.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
+                        <span><b>${esc(u.nome || u.email)}</b></span>
+                        <select onchange="atualizarLimiteUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
+                            <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
+                            <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
+                            <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
+                            <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
+                        </select>
+                    </div>`;
+            });
+        } catch (e) {
+            div.innerHTML = "<p style='font-size:11px; color:red;'>Erro ao carregar utilizadores.</p>";
+        }
+    }
+
+    window.atualizarLimiteUsuario = async (uidUser, novoLimite) => {
+        try {
+            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Number(novoLimite) });
+            alert("Limite atualizado com sucesso!");
+        } catch (e) {
+            alert("Erro ao atualizar limite: " + e.message);
+        }
+    };
+
+    function renderizarProdutosVitrine(lista) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "";
+        const isAdmin = usuarioAtual && usuarioAtual.email === EMAIL_ADMIN;
+        if (lista.length === 0) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
+            return;
+        }
+        lista.forEach((prod) => {
+            container.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:8px; border-radius:6px; font-size:12px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; gap:8px; align-items:center; overflow:hidden;">
+                        ${urlSegura(prod.imagem) ? `<img src="${esc(urlSegura(prod.imagem))}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦'}
+                        <div>
+                            <b>${esc(prod.titulo || 'Produto')}</b><br>
+                            <span style="opacity:0.7;">R$ ${esc(prod.preco || '0.00')}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button class="btn-alt" style="width:auto; padding:5px 8px; font-size:10px; margin:0;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>
+                        ${isAdmin ? `<button class="btn-danger" style="width:auto; padding:5px 6px; font-size:10px; margin:0;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️</button>` : ''}
+                    </div>
+                </div>`;
+        });
+    }
+
+    window.enviarProdutoPorId = (id) => {
+        const p = cacheProdutosVitrine.find((x) => x.id === id);
+        if (!p) return;
+        window.enviarProdutoVitrine(encodeURIComponent(p.titulo || ''), urlSegura(p.imagem), urlSegura(p.link));
+    };
+
+    window.filtrarProdutosLocais = () => {
+        const termo = document.getElementById('filtro-vitrine').value.toLowerCase();
+        const filtrados = cacheProdutosVitrine.filter(p => (p.titulo || '').toLowerCase().includes(termo));
+        renderizarProdutosVitrine(filtrados);
+    };
+
+    window.enviarProdutoVitrine = async (tituloEnc, imagem, link) => {
+        const titulo = decodeURIComponent(tituloEnc);
+        if (!contatoSelecionado) return alert("Abra uma conversa primeiro!");
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: `Oferta imperdível: ${titulo}`,
+            imagemUrlProduto: imagem,
+            linkAfiliado: link,
+            remetente: usuarioAtual.email,
+            tipo: "produto",
+            criadoEm: serverTimestamp()
+        });
+        alert("Produto enviado para o chat!");
+        fecharVitrineAfiliado();
+    };
+
+    let atalhosRapidos = JSON.parse(localStorage.getItem('zapleve_atalhos')) || [
+        { titulo: "👋 Olá", texto: "Olá! Tudo bem?", imagem: "", link: "" }
+    ];
+
+    window.atualizarBarraAtalhos = () => {
+        const barra = document.getElementById('barra-atalhos-rapidos');
+        let html = `<button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>`;
+        atalhosRapidos.forEach((item, index) => {
+            html += `<button class="quick-chip" onclick="usarAtalhosRapidos(${index})">${esc(item.titulo)}</button>`;
+        });
+        barra.innerHTML = html;
+    };
+
+    window.abrirModalQuick = () => {
+        renderizarListaConfigQuick();
+        document.getElementById('modal-quick-config').style.display = 'flex';
+    };
+
+    window.fecharModalQuick = () => {
+        document.getElementById('modal-quick-config').style.display = 'none';
+        atualizarBarraAtalhos();
+    };
+
+    window.renderizarListaConfigQuick = () => {
+        const div = document.getElementById('lista-qr-config');
+        div.innerHTML = "";
+        atalhosRapidos.forEach((item, index) => {
+            div.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:6px; border-radius:4px; font-size:12px;">
+                    <div><b>${esc(item.titulo)}</b></div>
+                    <button class="btn-danger" style="width:auto; padding:2px 6px; font-size:10px;" onclick="apagarAtalho(${index})">Apagar</button>
+                </div>`;
+        });
+    };
+
+    window.salvarNovaRespostaRapida = () => {
+        const titulo = document.getElementById('qr-titulo').value.trim();
+        const texto = document.getElementById('qr-texto').value.trim();
+        const imagem = document.getElementById('qr-img').value.trim();
+        const link = document.getElementById('qr-link').value.trim();
+        if (!titulo || !texto) return alert("Preencha Título e Mensagem.");
+        atalhosRapidos.push({ titulo, texto, imagem, link });
+        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
+        document.getElementById('qr-titulo').value = '';
+        document.getElementById('qr-texto').value = '';
+        document.getElementById('qr-img').value = '';
+        document.getElementById('qr-link').value = '';
+        renderizarListaConfigQuick();
+        atualizarBarraAtalhos();
+        alert("Atalho salvo!");
+    };
+
+    window.apagarAtalho = (index) => {
+        atalhosRapidos.splice(index, 1);
+        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
+        renderizarListaConfigQuick();
+        atualizarBarraAtalhos();
+    };
+
+    window.usarAtalhosRapidos = async (index) => {
+        const item = atalhosRapidos[index];
+        if (!contatoSelecionado) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: item.texto,
+            imagemUrlProduto: item.imagem || "",
+            linkAfiliado: item.link || "",
+            remetente: usuarioAtual.email,
+            tipo: item.imagem || item.link ? "produto" : "texto",
+            criadoEm: serverTimestamp()
+        });
+    };
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
+        authDomain: "zapleve.firebaseapp.com",
+        projectId: "zapleve",
+        storageBucket: "zapleve.firebasestorage.app",
+        messagingSenderId: "426242600158",
+        appId: "1:426242600158:web:c2427064b5702948fc264f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let usuarioAtual = null;
+    let contatoSelecionado = null;
+    let unsubscribeChat = null;
+    let unsubChamadasEntrantes = null;
+    let limiteMsgs = 30;
+    let vitrineCacheTs = 0;
+    let limiteUsuarioCache = null;
+
+    let peerConnection = null;
+    let localStream = null;
+    let unsubscribeCall = null;
+    const serversConfig = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
+
+    window.iniciarChamada = async (comVideo) => {
+        if (!contatoSelecionado) return;
+        
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("O seu navegador ou dispositivo não suporta chamadas de áudio/vídeo P2P (certifique-se de usar HTTPS).");
+            return;
+        }
+
+        document.getElementById('call-screen').classList.remove('hidden');
+        document.getElementById('call-status').innerText = `A ligar para ${contatoSelecionado.nome}...`;
+        document.getElementById('call-active-name').innerText = contatoSelecionado.nome;
+        document.getElementById('call-active-avatar').innerText = contatoSelecionado.nome.charAt(0).toUpperCase();
+        document.getElementById('call-placeholder-info').style.display = 'flex';
+        iniciarSomCampainha('chamando');
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: comVideo });
+            document.getElementById('local-video').srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection(serversConfig);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = (event) => {
+                pararSomCampainha();
+                document.getElementById('call-placeholder-info').style.display = 'none';
+                document.getElementById('remote-video').srcObject = event.streams[0];
+            };
+
+            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const callDoc = doc(db, "chamadas", idChamada);
+            const offerCandidates = collection(callDoc, "offerCandidates");
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    addDoc(offerCandidates, event.candidate.toJSON());
+                }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            await setDoc(callDoc, {
+                oferta: { type: offer.type, sdp: offer.sdp },
+                remetente: usuarioAtual.email,
+                remetenteNome: meuNomeAtual || usuarioAtual.email.split('@')[0],
+                destinatario: contatoSelecionado.uid,
+                comVideo: comVideo,
+                status: 'pendente'
+            });
+
+            escutarRespostaChamada(callDoc);
+        } catch (err) {
+            pararSomCampainha();
+            alert("Erro ao aceder à câmara/microfone. Verifique as permissões do navegador: " + err.message);
+            fecharTelaChamadaUI();
+        }
+    };
+
+    function escutarRespostaChamada(callDoc) {
+        unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
+            const data = snapshot.data();
+            if (!data) {
+                // Se o documento da chamada sumiu (foi desligada pelo outro lado), fecha aqui também
+                fecharTelaChamadaUI();
+                return;
+            }
+
+            if (data.resposta && peerConnection && !peerConnection.currentRemoteDescription) {
+                pararSomCampainha();
+                const answer = new RTCSessionDescription(data.resposta);
+                await peerConnection.setRemoteDescription(answer);
+                document.getElementById('call-status').innerText = "Em chamada";
+                document.getElementById('call-placeholder-info').style.display = 'none';
+            }
+        });
+
+        onSnapshot(collection(callDoc, "answerCandidates"), (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added' && peerConnection) {
+                    const candidate = new RTCIceCandidate(change.doc.data());
+                    peerConnection.addIceCandidate(candidate).catch(() => {});
+                }
+            });
+        });
+    }
+
+    function escutarChamadasEntrantes(uidUsuario) {
+        const q = query(collection(db, "chamadas"), where("destinatario", "==", uidUsuario));
+        if (unsubChamadasEntrantes) unsubChamadasEntrantes();
+        unsubChamadasEntrantes = onSnapshot(q, (snapshot) => {
+            let chamouAinda = false;
+            snapshot.forEach((docItem) => {
+                const data = docItem.data();
+                if (data.destinatario === uidUsuario && data.status === 'pendente') {
+                    chamouAinda = true;
+                    if (window.chamadaEntranteDocId !== docItem.id) {
+                        window.chamadaEntranteDocId = docItem.id;
+                        const nomeChamada = data.remetenteNome || data.remetente.split('@')[0];
+                        document.getElementById('incoming-caller-name').innerText = `📞 ${nomeChamada}`;
+                        document.getElementById('incoming-caller-avatar').innerText = nomeChamada.charAt(0).toUpperCase();
+                        document.getElementById('modal-incoming-call').style.display = 'flex';
+                        iniciarSomCampainha('tocar');
+                    }
+                }
+            });
+            // Se a chamada pendente foi cancelada/desligada antes de atender
+            if (!chamouAinda && window.chamadaEntranteDocId) {
+                document.getElementById('modal-incoming-call').style.display = 'none';
+                pararSomCampainha();
+                window.chamadaEntranteDocId = null;
+            }
+        });
+    }
+
+    window.aceitarChamada = async () => {
+        pararSomCampainha();
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('call-screen').classList.remove('hidden');
+        document.getElementById('call-status').innerText = "A conectar...";
+        document.getElementById('call-placeholder-info').style.display = 'none';
+
+        const callDoc = doc(db, "chamadas", window.chamadaEntranteDocId);
+        const callSnap = await getDoc(callDoc);
+        if (!callSnap.exists()) return;
+        const data = callSnap.data();
+
+        // Identificar o contato que ligou para sincronizar encerramento correto
+        // Buscamos o UID do remetente pelo e-mail ou criamos o chat sala
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
+            document.getElementById('local-video').srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection(serversConfig);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('call-placeholder-info').style.display = 'none';
+                document.getElementById('remote-video').srcObject = event.streams[0];
+            };
+
+            const answerCandidates = collection(callDoc, "answerCandidates");
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    addDoc(answerCandidates, event.candidate.toJSON());
+                }
+            };
+
+            const offer = data.oferta;
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            await updateDoc(callDoc, {
+                resposta: { type: answer.type, sdp: answer.sdp },
+                status: 'aceita'
+            });
+
+            // Escutar se o chamador desligou
+            unsubscribeCall = onSnapshot(callDoc, (snapshot) => {
+                if (!snapshot.exists()) {
+                    fecharTelaChamadaUI();
+                }
+            });
+
+            onSnapshot(collection(callDoc, "offerCandidates"), (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added' && peerConnection) {
+                        const candidate = new RTCIceCandidate(change.doc.data());
+                        peerConnection.addIceCandidate(candidate).catch(() => {});
+                    }
+                });
+            });
+
+            document.getElementById('call-status').innerText = "Em chamada";
+        } catch (err) {
+            alert("Erro ao atender chamada: " + err.message);
+            encerrarChamada();
+        }
+    };
+
+    window.recusarChamada = async () => {
+        pararSomCampainha();
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+    };
+
+    // BOTÃO DESLIGAR (Sincronizado em ambas as pontas)
+    window.encerrarChamada = async () => {
+        pararSomCampainha();
+        if (contatoSelecionado && usuarioAtual) {
+            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            try { await deleteDoc(doc(db, "chamadas", idChamada)); } catch(e){}
+        }
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+        fecharTelaChamadaUI();
+    };
+
+    function fecharTelaChamadaUI() {
+        pararSomCampainha();
+        if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+        if (peerConnection) { peerConnection.close(); peerConnection = null; }
+        if (unsubscribeCall) { unsubscribeCall(); unsubscribeCall = null; }
+        document.getElementById('call-screen').classList.add('hidden');
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('remote-video').srcObject = null;
+        document.getElementById('local-video').srcObject = null;
+    }
+
+    window.alternarMicrofone = () => {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            document.getElementById('btn-toggle-mic').style.background = audioTrack.enabled ? '#333' : '#ea0038';
+        }
+    };
+
+    window.alternarCamera = () => {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('btn-toggle-cam').style.background = videoTrack.enabled ? '#333' : '#ea0038';
+            }
+        }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            usuarioAtual = user;
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+            document.getElementById('contacts-screen').classList.remove('hidden');
+            
+            const userDocRef = doc(db, "usuarios", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            let nomeExibicao = user.email.split('@')[0];
+            let fotoUrl = "";
+            if (userSnap.exists()) {
+                if (userSnap.data().nome) nomeExibicao = userSnap.data().nome;
+                if (userSnap.data().fotoUrl) fotoUrl = userSnap.data().fotoUrl;
+            }
+            meuNomeAtual = nomeExibicao;
+            document.getElementById('user-display-contacts').innerText = nomeExibicao;
+            
+            if (fotoUrl) {
+                document.getElementById('meu-img-topo').src = fotoUrl;
+                document.getElementById('meu-img-topo').classList.remove('hidden');
+                document.getElementById('meu-avatar-topo').classList.add('hidden');
+            } else {
+                document.getElementById('meu-avatar-topo').innerText = nomeExibicao.charAt(0).toUpperCase();
+                document.getElementById('meu-avatar-topo').classList.remove('hidden');
+                document.getElementById('meu-img-topo').classList.add('hidden');
+            }
+
+            escutarChamadasEntrantes(user.uid);
+            carregarContatos();
+            atualizarBarraAtalhos();
+        } else {
+            usuarioAtual = null;
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('contacts-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+        }
+    });
+
+    window.cadastrar = async () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('password').value;
+        if (!email || !senha) return alert("Preencha e-mail e senha.");
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, senha);
+            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: email.split('@')[0], bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "" });
+            alert("Conta criada!");
+        } catch (e) { alert(e.message); }
+    };
+
+    window.entrar = async () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('password').value;
+        if (!email || !senha) return alert("Preencha e-mail e senha.");
+        try { await signInWithEmailAndPassword(auth, email, senha); } catch (e) { alert(e.message); }
+    };
+
+    window.sair = async () => {
+        if (unsubChamadasEntrantes) { unsubChamadasEntrantes(); unsubChamadasEntrantes = null; }
+        if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
+        limiteUsuarioCache = null; vitrineCacheTs = 0;
+        await signOut(auth);
+    };
+
+    function carregarContatos() {
+        getDocs(query(collection(db, "usuarios"), limit(100))).then((snapshot) => {
+            const listaDiv = document.getElementById('lista-contatos');
+            listaDiv.innerHTML = "";
+            snapshot.forEach((docItem) => {
+                const dados = docItem.data();
+                if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
+                    const nomeContato = dados.nome || dados.email.split('@')[0];
+                    contatosCache[docItem.id] = { nome: nomeContato, foto: dados.fotoUrl || '' };
+                    const avatarHtml = dados.fotoUrl ? 
+                        `<img src="${esc(urlSegura(dados.fotoUrl, true))}" class="avatar">` : 
+                        `<div class="avatar">${esc((dados.nome || dados.email).charAt(0).toUpperCase())}</div>`;
+
+                    listaDiv.innerHTML += `
+                        <div class="contact-item" onclick="abrirChatPorId('${esc(docItem.id)}')">
+                            <div class="contact-info">
+                                ${avatarHtml}
+                                <span class="contact-name">${esc(nomeContato)}</span>
+                            </div>
+                            <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
+                        </div>`;
+                }
+            });
+        });
+    }
+
+    window.abrirChatPorId = (id) => {
+        const c = contatosCache[id];
+        if (c) window.abrirChat(id, c.nome, c.foto);
+    };
+
+    window.abrirChat = (uidContato, nomeContato, fotoContato) => {
+        contatoSelecionado = { uid: uidContato, nome: nomeContato, fotoUrl: fotoContato };
+        document.getElementById('chat-title').innerText = nomeContato;
+        
+        const chatAvatar = document.getElementById('chat-avatar-topo');
+        const chatImg = document.getElementById('chat-img-topo');
+        if (fotoContato) {
+            chatImg.src = fotoContato;
+            chatImg.classList.remove('hidden');
+            chatAvatar.classList.add('hidden');
+        } else {
+            chatAvatar.innerText = nomeContato.charAt(0).toUpperCase();
+            chatAvatar.classList.remove('hidden');
+            chatImg.classList.add('hidden');
+        }
+
+        document.getElementById('contacts-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.remove('hidden');
+        limiteMsgs = 30;
+        escutarMensagensPrivadas();
+    };
+
+    window.verMaisMensagens = () => { limiteMsgs += 30; escutarMensagensPrivadas(); };
+
+    window.filtrarMensagensLocais = () => {
+        const t = document.getElementById('input-busca-msg').value.toLowerCase();
+        document.querySelectorAll('#mensagens .msg').forEach((m) => { m.style.display = m.innerText.toLowerCase().includes(t) ? '' : 'none'; });
+    };
+
+    window.voltarParaContatos = () => {
+        if (unsubscribeChat) unsubscribeChat();
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('contacts-screen').classList.remove('hidden');
+    };
+
+    function obterIdSala(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
+
+    window.limparConversaAtual = async () => {
+        if (!contatoSelecionado || !usuarioAtual) return;
+        if (!confirm("Tem certeza que deseja apagar todas as mensagens, áudios, fotos e vídeos desta conversa?")) return;
+        try {
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const mensagensRef = collection(db, "conversas", idSala, "mensagens");
+            const snapshot = await getDocs(mensagensRef);
+            const promessasDeDelete = [];
+            snapshot.forEach((documento) => {
+                promessasDeDelete.push(deleteDoc(doc(db, "conversas", idSala, "mensagens", documento.id)));
+            });
+            await Promise.all(promessasDeDelete);
+            alert("Conversa limpa com sucesso!");
+        } catch (err) {
+            alert("Erro ao limpar conversa: " + err.message);
+        }
+    };
+
+    function escutarMensagensPrivadas() {
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "desc"), limit(limiteMsgs));
+        if (unsubscribeChat) unsubscribeChat();
+        unsubscribeChat = onSnapshot(q, (snapshot) => {
+            let cacheMensagensAtuais = [];
+            snapshot.forEach((docItem) => { cacheMensagensAtuais.push({ id: docItem.id, ...docItem.data() }); });
+            renderizarListaMensagens(cacheMensagensAtuais.reverse(), snapshot.size >= limiteMsgs);
+        });
+    }
+
+    function formatarTextoComMidia(texto) {
+        if (!texto) return '';
+        texto = esc(texto);
+        const padraoUrl = /((https?:\/\/[^\s]+)|(www\.[^\s]+))/g;
+        let textoFormatado = texto.replace(padraoUrl, (url) => {
+            let urlCompleta = url;
+            if (url.startsWith('www.')) {
+                urlCompleta = 'https://' + url;
+            }
+            return `<a href="${urlCompleta}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+
+        let embedHtml = '';
+        const matchYoutube = texto.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (matchYoutube && matchYoutube[1]) {
+            const videoId = matchYoutube[1];
+            embedHtml += `<div class="embed-container"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`;
+        }
+
+        const matchTiktok = texto.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@[\w.-]+\/video\/(\d+)/);
+        if (matchTiktok && matchTiktok[1]) {
+            const tiktokId = matchTiktok[1];
+            embedHtml += `<div class="embed-container" style="aspect-ratio: 9/16;"><iframe src="https://www.tiktok.com/embed/v2/${tiktokId}" allowfullscreen></iframe></div>`;
+        }
+
+        return textoFormatado + embedHtml;
+    }
+
+    function renderizarListaMensagens(lista, temMais) {
+        const box = document.getElementById('mensagens');
+        box.innerHTML = temMais ? '<button onclick="verMaisMensagens()" style="width:auto; align-self:center; padding:6px 14px; font-size:12px; border-radius:16px; margin:0 0 6px;">⬆ Ver anteriores</button>' : '';
+        lista.forEach((data) => {
+            const eMinha = data.remetente === usuarioAtual.email;
+            let conteudoHtml = `<div style="font-size: 14px;">${formatarTextoComMidia(data.texto)}</div>`;
+            
+            if (data.tipo === 'produto') {
+                let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
+                if (urlSegura(data.imagemUrlProduto, true)) cartaoHtml += `<img src="${esc(urlSegura(data.imagemUrlProduto, true))}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem(this.src)">`;
+                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
+                conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
+            } else if (data.tipo === 'imagem') {
+                let imgSrc = esc(urlSegura(data.imagemUrlLocal || data.imagemBase64, true));
+                conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem(this.src)" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
+            } else if (data.tipo === 'video') {
+                let vidSrc = esc(urlSegura(data.videoUrlLocal || data.videoBase64, true));
+                conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar Vídeo</a>`;
+            } else if (data.tipo === 'audio') {
+                const audioId = "audio_" + data.id;
+                let audSrc = esc(urlSegura(data.audioUrlLocal || data.audioBase64, true));
+                conteudoHtml += `
+                    <div class="wa-audio-player">
+                        <button class="wa-play-btn" id="btn_${audioId}" onclick="tocarAudioLocal('${audioId}')">▶</button>
+                        <div class="wa-audio-info">
+                            <div class="wa-audio-bar" onclick="seekAudio(event, '${audioId}')"><div class="wa-audio-progress" id="prog_${audioId}"></div></div>
+                            <span class="wa-audio-time" id="time_${audioId}">0:00</span>
+                        </div>
+                        <audio id="${audioId}" src="${audSrc}" preload="metadata" ontimeupdate="atualizarProgressoAudio('${audioId}')" onended="audioTerminou('${audioId}')"></audio>
+                    </div>`;
+            }
+            box.innerHTML += `<div class="${eMinha ? 'msg msg-minha' : 'msg'}"><div class="msg-content">${conteudoHtml}</div></div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    window.tocarAudioLocal = (id) => {
+        const audio = document.getElementById(id);
+        const btn = document.getElementById('btn_' + id);
+        if (audio.paused) { 
+            audio.play().catch(e => alert("Erro ao reproduzir áudio: " + e.message)); 
+            btn.innerText = "⏸"; 
+        } else { 
+            audio.pause(); 
+            btn.innerText = "▶"; 
+        }
+    };
+
+    window.seekAudio = (event, id) => {
+        const audio = document.getElementById(id);
+        const bar = event.currentTarget;
+        const rect = bar.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const width = bar.offsetWidth;
+        if (audio.duration) {
+            audio.currentTime = (clickX / width) * audio.duration;
+        }
+    };
+
+    window.atualizarProgressoAudio = (id) => {
+        const audio = document.getElementById(id);
+        const prog = document.getElementById('prog_' + id);
+        const time = document.getElementById('time_' + id);
+        if (audio.duration) {
+            prog.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+            const min = Math.floor(audio.currentTime / 60);
+            const sec = Math.floor(audio.currentTime % 60);
+            time.innerText = min + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+    };
+
+    window.audioTerminou = (id) => {
+        const btn = document.getElementById('btn_' + id);
+        const prog = document.getElementById('prog_' + id);
+        if(btn) btn.innerText = "▶";
+        if(prog) prog.style.width = '0%';
+    };
+
+    window.enviarMensagemPrivada = async () => {
+        const inputEl = document.getElementById('mensagem-texto');
+        if (!inputEl.value.trim() || !contatoSelecionado) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
+            texto: inputEl.value, remetente: usuarioAtual.email, tipo: "texto", criadoEm: serverTimestamp()
+        });
+        inputEl.value = "";
+    };
+
+    const R2_WORKER = 'https://zapleve-uploader.bmlimp8.workers.dev'; // troque pela URL do seu Worker
+    const MAX_VIDEO_MB = 15;
+
+    async function subirParaR2(blob, ext) {
+        const token = await auth.currentUser.getIdToken();
+        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });
+        if (!r.ok) throw new Error('Falha no upload (' + r.status + ')');
+        return (await r.json()).url;
+    }
+
+    function comprimirImagem(file, maxLado = 1280, qualidade = 0.75) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const k = Math.min(1, maxLado / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                URL.revokeObjectURL(img.src);
+                c.toBlob((b) => b ? resolve(b) : reject(new Error('Falha ao comprimir')), 'image/webp', qualidade);
+            };
+            img.onerror = () => reject(new Error('Imagem inválida'));
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    async function enviarMidia(blob, ext, tipo, texto, campo) {
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const url = await subirParaR2(blob, ext);
+        await addDoc(collection(db, "conversas", idSala, "mensagens"), { texto, [campo]: url, remetente: usuarioAtual.email, tipo, criadoEm: serverTimestamp() });
+    }
+
+    window.enviarImagemGlobal = async (input) => {
+        const file = input.files[0]; input.value = '';
+        if (!file || !contatoSelecionado) return;
+        try { await enviarMidia(await comprimirImagem(file), 'webp', 'imagem', '📷 Imagem', 'imagemUrlLocal'); }
+        catch (e) { alert('Erro ao enviar imagem: ' + e.message); }
+    };
+
+    window.enviarVideoGlobal = async (input) => {
+        const file = input.files[0]; input.value = '';
+        if (!file || !contatoSelecionado) return;
+        if (file.size > MAX_VIDEO_MB * 1048576) return alert(`Vídeo muito grande (máx. ${MAX_VIDEO_MB} MB).`);
+        try { await enviarMidia(file, file.type.includes('webm') ? 'webm' : 'mp4', 'video', '📹 Vídeo', 'videoUrlLocal'); }
+        catch (e) { alert('Erro ao enviar vídeo: ' + e.message); }
+    };
+
+    let mediaRecorder = null, audioChunks = [];
+    window.toggleGravarAudio = async () => {
+        const btnAudio = document.getElementById('btn-gravar-audio');
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("O seu navegador não permite gravação de áudio (necessário HTTPS).");
+                    return;
+                }
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { 
+                        echoCancellation: true, 
+                        noiseSuppression: true, 
+                        autoGainControl: true 
+                    } 
+                });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    try { await enviarMidia(blob, 'webm', 'audio', '🎙️ Áudio', 'audioUrlLocal'); }
+                    catch (e) { alert('Erro ao enviar áudio: ' + e.message); }
+                };
+                mediaRecorder.start();
+                btnAudio.classList.add('gravando');
+                btnAudio.innerText = "⏹️";
+            } catch (err) {
+                alert("Erro ao aceder ao microfone. Verifique as permissões do seu navegador: " + err.message);
+            }
+        } else {
+            mediaRecorder.stop();
+            if(mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+            }
+            btnAudio.classList.remove('gravando');
+            btnAudio.innerText = "🎙️";
+        }
+    };
+    window.indicarAmigo = () => { prompt("Copie o link:", window.location.href); };
 </script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+
+</body>
 </html>
