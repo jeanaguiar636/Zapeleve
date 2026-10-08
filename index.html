@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head><style>
@@ -23,160 +22,121 @@
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
 </style>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00a884">
-    <link rel="icon" type="image/png" href="icon-192.png">
-    <style>
-        :root {
-            --bg-app: #ffffff; --text-app: #111111; --header-bg: #00a884;
-            --chat-bg: #efeae2; --input-bg: #f0f2f5; --msg-minha: #d9fdd3;
-            --msg-outra: #ffffff; --border-color: #d1d7db;
-        }
-        body.dark-mode {
-            --bg-app: #111b21; --text-app: #e9edef; --header-bg: #202c33;
-            --chat-bg: #0b141a; --input-bg: #202c33; --msg-minha: #005c4b;
-            --msg-outra: #202c33; --border-color: #222d34;
-        }
-        * { box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--bg-app); color: var(--text-app); margin: 0; padding: 0; 
-            display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; 
-            overflow: hidden; transition: background 0.3s, color 0.3s;
-        }
-        .container { width: 100%; height: 100%; background: var(--bg-app); display: flex; flex-direction: column; position: relative; }
-        .hidden { display: none !important; }
-        h2, h3 { color: var(--header-bg); margin-top: 0; }
-        .screen-content { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; background: var(--bg-app); width: 100%; height: 100%; }
-        .logo-area { text-align: center; margin: 15px 0; }
-        .logo-area span { font-size: 45px; }
-        .logo-area h1 { font-size: 26px; color: var(--header-bg); margin: 5px 0 0 0; }
-        .botao-flutuante-loja {
-            position: fixed; bottom: 20px; right: 18px; background-color: #27ae60; color: white;
-            width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.35); z-index: 999; text-decoration: none; cursor: pointer; border: 2px solid white;
-        }
-        .botao-flutuante-loja svg { width: 24px; height: 24px; fill: currentColor; }
-        input, textarea, button, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; outline: none; background: var(--input-bg); color: var(--text-app); }
-        input:focus { border-color: #00a884; }
-        button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; }
-        .btn-alt { background: #075e54; }
-        .btn-danger { background: #ea0038; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
-        .close-modal { background: #ea0038; padding: 8px 15px; margin-top: 15px; display: block; text-align: center; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
-        .contact-list { flex: 1; overflow-y: auto; background: var(--bg-app); }
-        .contact-item { padding: 12px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; flex-shrink: 0; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 12px; background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; }
-        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); max-width: 88%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
-        .msg-minha { background: var(--msg-minha); margin-left: auto; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); color: white; padding: 10px 14px; width: 100%; flex-shrink: 0; }
-        .user-info-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .texto-voltar { color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; background: none; border: none; text-decoration: underline; }
-        .btn-topo-padrao { border: none; color: white; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; height: 28px; padding: 0 8px; }
-        .btn-topo-limpar, .btn-topo-sair, .btn-danger { background: #ea0038; }
-        .chat-input-area { display: flex; flex-direction: column; background: var(--input-bg); padding: 6px 10px; border-top: 1px solid var(--border-color); gap: 4px; }
-        .input-group { display: flex; gap: 6px; align-items: center; width: 100%; position: relative; }
-        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px 10px 42px; }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zap Leve - Completo</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#00a884">
+<style>
+:root{--bg:#fff;--text:#111;--head:#00a884;--input:#f0f2f5;--border:#d1d7db;--chat:#efeae2;--msg-minha:#d9fdd3;--msg-outra:#fff}
+body.dark-mode{--bg:#111b21;--text:#e9edef;--head:#202c33;--input:#202c33;--border:#222d34;--chat:#0b141a;--msg-minha:#005c4b;--msg-outra:#202c33}
+*{box-sizing:border-box}body{font-family:system-ui,Arial;background:var(--bg);color:var(--text);margin:0;display:flex;justify-content:center;align-items:center;height:100vh;height:100dvh;overflow:hidden}
+.container{width:100%;height:100%;background:var(--bg);display:flex;flex-direction:column;position:relative}
+.hidden{display:none!important}
+.screen{flex:1;display:flex;flex-direction:column;padding:12px;overflow:hidden;background:var(--bg);height:100%;width:100%}
+.header{display:flex;justify-content:space-between;align-items:center;background:var(--head);color:#fff;padding:10px 14px;flex-shrink:0}
+.avatar{width:44px;height:44px;border-radius:50%;background:#075e54;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;object-fit:cover;overflow:hidden;flex-shrink:0}
+.avatar img{width:100%;height:100%;object-fit:cover}
+input,textarea,button{width:100%;padding:12px;margin:6px 0;border:1px solid var(--border);border-radius:8px;font-size:15px;background:var(--input);color:var(--text);outline:none}
+textarea{resize:none;min-height:70px}
+button{background:var(--head);color:#fff;border:none;font-weight:bold;cursor:pointer}
+.btn-blue{background:#0275d8}.btn-green{background:#28a745}.btn-red{background:#ea0038}.btn-dark{background:#333}
+.badge{font-size:11px;background:rgba(0,0,0,.2);padding:2px 6px;border-radius:10px;color:#fff}
+.chat-box{flex:1;overflow-y:auto;padding:12px;background:var(--chat);display:flex;flex-direction:column;gap:6px}
+.msg{padding:8px 12px;border-radius:8px;background:var(--msg-outra);max-width:88%;box-shadow:0 1px 1px rgba(0,0,0,.1)}
+.msg-minha{background:var(--msg-minha);margin-left:auto}
+.modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.6);justify-content:center;align-items:center;padding:16px}
+.modal-content{background:var(--bg);padding:18px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;border:1px solid var(--border)}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.prod-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.prod-card img{width:100%;height:120px;object-fit:cover;background:#eee}
+.prod-info{padding:8px;font-size:13px}
+.fab{position:fixed;bottom:20px;right:18px;background:#27ae60;color:#fff;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.35);z-index:900;border:2px solid #fff;font-size:22px;cursor:pointer}
+.tabs{display:flex;gap:6px;margin:8px 0}
+.tabs button{flex:1;padding:8px;font-size:12px;border-radius:20px}
+.tabs button.active{background:#005c4b}
+</style>
 </head>
 <body>
-
 <div class="container">
-    <div id="modal-produto" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.93); flex-direction:column; align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
-        <img id="mp-img" src="" style="max-width:100%; max-height:52vh; object-fit:contain; border-radius:6px; background:#fff;">
-        <div style="color:white; text-align:center; margin-top:12px; max-width:420px;">
-            <b id="mp-titulo" style="font-size:16px;"></b><br>
-            <span id="mp-preco" style="font-size:20px; font-weight:bold; color:#7be0b8;"></span>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin-top:16px;">
-            <button id="mp-btn-falar" style="background:#00a884; padding:13px; border-radius:24px;">💬 Falar com o vendedor</button>
-            <button style="background:#5f6b73; padding:13px; border-radius:24px;" id="btnFecharDetalhe">↩ Voltar</button>
-        </div>
-    </div>
 
-    <div id="loja-publica" class="hidden" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; background: var(--bg-app); overflow-y:auto;">
-        <div style="background: var(--header-bg); color:white; padding:14px; display:flex; align-items:center; gap:10px;">
-            <div id="lp-inicial" class="avatar">?</div>
-            <div><div id="lp-nome" style="font-weight:bold;">Loja</div></div>
-        </div>
-        <div id="lp-lista" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 12px 100px 12px;"></div>
-        <div style="position:fixed; left:0; right:0; bottom:0; padding:10px; background: var(--bg-app); border-top:1px solid var(--border-color); display:flex; gap:8px;">
-            <button id="btnFalarVendedor" style="flex:2; border-radius:20px;">💬 Falar com o vendedor</button>
-            <button class="btn-alt" id="btnFecharLoja" style="flex:1; border-radius:20px;">Abrir app</button>
-        </div>
-    </div>
+<!-- AUTH -->
+<div id="auth-screen" class="screen" style="justify-content:center;max-width:390px;margin:0 auto">
+<div style="text-align:center;margin-bottom:10px"><div style="font-size:44px">⚡💬</div><h1 style="color:var(--head);margin:5px 0">Zap Leve</h1><p style="font-size:12px;opacity:.7">Chat P2P + Catálogo</p></div>
+<p id="aviso-convite" class="hidden" style="background:#e8f5e9;color:#1b5e20;padding:8px;border-radius:6px;font-size:12px;text-align:center;border:1px solid #a5d6a7"></p>
+<input type="email" id="email" placeholder="E-mail">
+<input type="password" id="password" placeholder="Senha">
+<div id="area-cadastro-extra" class="hidden">
+<input type="text" id="username-cadastro" placeholder="Nome de usuário (ex: rafa60)" style="text-transform:lowercase">
+<p style="font-size:10px;opacity:.6">Seu link ficará: <span id="preview-ref">zapleve.alibr.com.br/?ref=seunome</span></p>
+</div>
+<div style="display:flex;gap:8px"><button class="btn-blue" id="btnEntrar" style="flex:1">Entrar</button><button class="btn-green" id="btnCadastrar" style="flex:1">Abrir Conta</button></div>
+<button class="btn-dark" id="btnToggleCadastro" style="background:transparent;color:var(--head);text-decoration:underline;font-size:12px">Não tem conta? Criar com nome de usuário</button>
+<button class="btn-dark" id="btnTema" style="margin-top:8px;background:#333">🌓 Tema</button>
+<p id="status-login" style="font-size:12px;text-align:center;min-height:16px"></p>
+<p style="font-size:9px;opacity:.4;text-align:center">v4.0 completo - bio + foto + catálogo afiliado</p>
+</div>
 
-    <div id="modal-zoom-imagem" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); justify-content:center; align-items:center; flex-direction:column; padding:20px;">
-        <img id="imagem-zoom-src" src="" style="max-width:100%; max-height:85vh; object-fit:contain;">
-        <span style="color:white; margin-top:15px; font-size:13px; background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:20px;">Toque para fechar</span>
-    </div>
+<!-- CONTATOS -->
+<div id="contacts-screen" class="hidden screen" style="padding:0">
+<div class="header"><div style="display:flex;align-items:center;gap:10px;cursor:pointer" id="areaMeuPerfil"><div id="meu-avatar-topo" class="avatar">?</div><div><div style="font-weight:bold" id="meu-nome-topo">Zap Leve</div><span id="user-display-contacts" style="font-size:11px"></span><span id="meu-link-curto" style="font-size:10px;display:block;opacity:.8"></span></div></div><button class="btn-red" id="btnSair" style="width:auto;padding:6px 10px;font-size:12px">Sair</button></div>
+<div style="padding:10px;flex:1;display:flex;flex-direction:column;overflow:hidden">
+<div class="tabs"><button class="active" id="tabContatos">Contatos</button><button id="tabCatalogo">Meu Catálogo</button><button id="tabLoja">Vitrine</button></div>
+<div id="lista-contatos" style="flex:1;overflow-y:auto"></div>
+<div id="area-meu-catalogo" class="hidden" style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+<button class="btn-green" id="btnNovoProduto" style="border-radius:20px">+ Novo Produto</button>
+<div id="meus-produtos-lista" class="prod-grid" style="margin-top:8px"></div>
+</div>
+<div id="area-vitrine-geral" class="hidden" style="flex:1;overflow-y:auto"><div id="vitrine-geral" class="prod-grid"></div></div>
+<div style="display:flex;gap:6px;margin-top:8px"><button class="btn-dark" style="background:#005c4b;border-radius:20px;flex:1" id="btnConvidar">📤 Compartilhar meu link</button><button class="btn-dark" style="border-radius:20px;flex:1" id="btnCopiarLink">🔗 Copiar</button></div>
+<input type="text" id="input-link-compartilhar" readonly style="font-size:11px;text-align:center">
+</div>
+</div>
 
-    <button class="botao-flutuante-loja" id="btnVitrine" title="Vitrine"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
+<!-- CHAT -->
+<div id="chat-screen" class="hidden screen" style="padding:0">
+<div class="header"><div style="display:flex;align-items:center;gap:10px"><span id="btnVoltar" style="text-decoration:underline;cursor:pointer;font-weight:bold">voltar</span><div id="chat-avatar-topo" class="avatar">?</div><div id="chat-title" style="font-weight:bold">Chat</div></div><button class="btn-red" id="btnSairChat" style="width:auto;padding:6px 10px;font-size:12px">Fechar</button></div>
+<div class="chat-box" id="mensagens"></div>
+<div style="display:flex;gap:6px;padding:8px;background:var(--input)"><input type="text" id="mensagem-texto" placeholder="Mensagem..." style="margin:0;border-radius:20px"><button id="btnEnviar" style="width:auto;padding:10px 18px;border-radius:20px">Enviar</button></div>
+</div>
 
-    <div id="modal-perfil-usuario" class="modal">
-        <div class="modal-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
-            <div id="perfil-avatar-grande" class="avatar" style="width:80px; height:80px; font-size:28px;">?</div>
-            <h3 id="perfil-nome-exibicao" style="margin:0;">Nome</h3>
-            <p id="perfil-email-exibicao" style="margin:0; font-size:12px; opacity:0.7;"></p>
-            <div id="meu-painel-edicao-link" style="width:100%; border-top:1px solid var(--border-color); padding-top:10px; text-align:left;">
-                <input type="text" id="input-meu-nome" placeholder="Seu nome">
-                <button class="btn-alt" id="btnSalvarPerfil">💾 Salvar Perfil</button>
-            </div>
-            <div class="close-modal" id="btnFecharPerfil">Fechar</div>
-        </div>
-    </div>
+<!-- PERFIL MODAL - ESTILO WHATSAPP -->
+<div id="modal-perfil" class="modal"><div class="modal-content" style="text-align:center">
+<h3 style="margin-top:0;color:var(--head)">Meu Perfil</h3>
+<div id="perfil-foto-preview" class="avatar" style="width:90px;height:90px;font-size:32px;margin:0 auto 10px">?</div>
+<input type="file" id="input-foto-perfil" accept="image/*">
+<input type="text" id="input-perfil-nome" placeholder="Seu nome (ex: Rafa)">
+<input type="text" id="input-perfil-username" placeholder="Nome de usuário (ex: rafa60)" style="text-transform:lowercase">
+<textarea id="input-perfil-bio" placeholder="Bio - ex: Vendo produtos, me chama no Zap!"></textarea>
+<p id="status-perfil" style="font-size:11px;min-height:14px"></p>
+<button class="btn-green" id="btnSalvarPerfil">💾 Salvar Perfil</button>
+<button class="btn-dark" id="btnFecharPerfil" style="background:#888;margin-top:6px">Fechar</button>
+</div></div>
 
-    <!-- TELA LOGIN -->
-    <div id="auth-screen" class="screen-content" style="justify-content:center; max-width:380px; margin:0 auto;">
-        <div class="logo-area"><span>⚡💬</span><h1>Zap Leve</h1><p style="font-size:13px; opacity:0.7;">Chat P2P e utilitários integrados</p></div>
-        <p id="aviso-convite" class="hidden" style="background:#e8f5e9; color:#1b5e20; padding:8px; border-radius:6px; font-size:12px; text-align:center;"></p>
-        <input type="email" id="email" placeholder="Seu e-mail">
-        <input type="password" id="password" placeholder="Sua senha">
-        <div style="display:flex; gap:8px;">
-            <button class="btn-alt" style="flex:1; background:#0275d8;" id="btnEntrar">Entrar</button>
-            <button style="flex:1; background:#28a745;" id="btnCadastrar">Abrir Conta</button>
-        </div>
-        <button class="btn-alt" style="background:#333; margin-top:10px;" id="btnTema">🌓 Alternar Tema Claro / Escuro</button>
-        <p id="status-login" style="font-size:12px; text-align:center; margin-top:8px; min-height:18px;"></p>
-        <p style="font-size:10px; opacity:0.5; text-align:center;">v2.2 - firebase zapleve OK</p>
-    </div>
+<!-- NOVO PRODUTO MODAL -->
+<div id="modal-produto" class="modal"><div class="modal-content">
+<h3 style="margin-top:0;color:var(--head)">Novo Produto do Catálogo</h3>
+<input type="file" id="input-prod-foto" accept="image/*">
+<input type="text" id="input-prod-nome" placeholder="Nome do produto (ex: Fone Bluetooth)">
+<input type="text" id="input-prod-preco" placeholder="Preço (ex: 99,90 ou R$ 99,90)">
+<input type="text" id="input-prod-afiliado" placeholder="Link de afiliado (ex: https://...)" >
+<p style="font-size:10px;opacity:.6">O botão do produto vai abrir seu link de afiliado. Deixe em branco se não tem.</p>
+<p id="status-prod" style="font-size:11px;min-height:14px"></p>
+<button class="btn-green" id="btnSalvarProduto">💾 Salvar Produto</button>
+<button class="btn-dark" id="btnFecharProduto" style="background:#888;margin-top:6px">Cancelar</button>
+</div></div>
 
-    <!-- CONTATOS -->
-    <div id="contacts-screen" class="hidden screen-content" style="padding:0;">
-        <div class="header-top">
-            <div class="user-info-area" id="areaMeuPerfil">
-                <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div>
-                <div><h3 style="margin:0; font-size:15px; color:white;">Zap Leve ⚡</h3><span id="user-display-contacts" style="font-size:11px; color:#e0f2f1;">Carregando...</span></div>
-            </div>
-            <div style="display:flex; gap:6px;"><button class="btn-topo-padrao" style="background:rgba(0,0,0,0.2);" id="btnTema2">🌓</button><button class="btn-topo-padrao btn-topo-sair" id="btnSair">Sair</button></div>
-        </div>
-        <div style="padding:12px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
-            <div class="contact-list" id="lista-contatos"></div>
-            <button class="btn-alt" style="background:#005c4b; border-radius:20px;" id="btnConvidar">📤 Convidar Amigo</button>
-        </div>
-    </div>
+<!-- LOJA PUBLICA -->
+<div id="loja-publica" class="hidden" style="position:fixed;inset:0;z-index:1500;background:var(--bg);overflow-y:auto">
+<div style="background:var(--head);color:#fff;padding:14px;display:flex;align-items:center;gap:10px"><div id="lp-avatar" class="avatar">?</div><div><div id="lp-nome" style="font-weight:bold">Loja</div><div id="lp-bio" style="font-size:11px;opacity:.9"></div></div><button id="btnFecharLoja" style="margin-left:auto;width:auto;background:rgba(0,0,0,.3);padding:6px 10px">X</button></div>
+<div id="lp-lista" class="prod-grid" style="padding:12px 12px 100px 12px"></div>
+</div>
 
-    <!-- CHAT -->
-    <div id="chat-screen" class="hidden screen-content" style="padding:0;">
-        <div class="header-top">
-            <div class="user-info-area"><span class="texto-voltar" id="btnVoltar">voltar</span><div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div><h3 id="chat-title" style="margin:0; font-size:15px; color:white;">Chat</h3></div>
-            <div style="display:flex; gap:5px;"><button class="btn-topo-padrao" style="background:#28a745;" id="btnSairChat">Sair Chat</button></div>
-        </div>
-        <div class="chat-box" id="mensagens"></div>
-        <div class="chat-input-area"><div class="input-group"><input type="text" id="mensagem-texto" placeholder="Mensagem..."><button id="btnEnviar" style="width:auto; padding:10px 18px; border-radius:20px;">Enviar</button></div></div>
-    </div>
+<div class="fab" id="fabLoja">🛒</div>
 </div>
 
 <script type="module">
-// Firebase config REAL do seu projeto zapleve
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
@@ -186,113 +146,216 @@ const firebaseConfig = {
   messagingSenderId: "426242600158",
   appId: "1:426242600158:web:09b519b9aa014667fc264f"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
+const $ = id=>document.getElementById(id);
+const esc = v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])[c]);
+const slug = t=>String(t).toLowerCase().trim().replace(/[^a-z0-9]+/g,'').slice(0,20);
 
-const $ = (id) => document.getElementById(id);
-const esc = (v) => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let currentUserData = null;
+let modoCadastro = false;
 
-// FUNÇÕES CORRIGIDAS - SEM onclick=""
+function getRefUrl(){ const u=new URL(location.href); return u.searchParams.get('ref')||''; }
+const refUrl = getRefUrl();
+if(refUrl){ localStorage.setItem('zapleve_ref', slug(refUrl)); $('aviso-convite').classList.remove('hidden'); $('aviso-convite').innerHTML=`🎉 Convidado por <b>@${esc(slug(refUrl))}</b>! Crie sua conta.`; }
+
+$('btnToggleCadastro').addEventListener('click', ()=>{
+  modoCadastro=!modoCadastro;
+  $('area-cadastro-extra').classList.toggle('hidden', !modoCadastro);
+  $('btnToggleCadastro').textContent = modoCadastro ? 'Já tem conta? Entrar só com email e senha' : 'Não tem conta? Criar com nome de usuário';
+});
+$('username-cadastro').addEventListener('input', ()=>{
+  const s=slug($('username-cadastro').value)||'seunome'; $('preview-ref').textContent=`zapleve.alibr.com.br/?ref=${s}`;
+});
+$('email').addEventListener('input', ()=>{
+  if(!$('username-cadastro').value){ const s=slug($('email').value.split('@')[0]); if(s) $('preview-ref').textContent=`zapleve.alibr.com.br/?ref=${s}`; }
+});
+
 async function entrar(){
-  const email = $('email').value.trim();
-  const senha = $('password').value.trim();
-  const status = $('status-login');
-  if(!email||!senha){ status.style.color='red'; status.textContent='Preencha e-mail e senha'; return; }
-  status.style.color='#00a884'; status.textContent='Entrando...';
-  try{
-    await signInWithEmailAndPassword(auth,email,senha);
-    status.textContent='';
-  }catch(e){ 
-    status.style.color='red';
-    let msg = e.message;
-    if(e.code==='auth/invalid-credential') msg='E-mail ou senha incorretos';
-    if(e.code==='auth/user-not-found') msg='Usuário não existe, clique em Abrir Conta';
-    if(e.code==='auth/wrong-password') msg='Senha errada';
-    status.textContent = 'Erro: '+msg;
-  }
+  const email=$('email').value.trim(), senha=$('password').value.trim(), st=$('status-login');
+  if(!email||!senha){ st.style.color='red'; st.textContent='Digite email e senha'; return; }
+  st.style.color='#00a884'; st.textContent='Entrando...';
+  try{ await signInWithEmailAndPassword(auth,email,senha); st.textContent=''; }
+  catch(e){ st.style.color='red'; let m=e.message; if(e.code==='auth/invalid-credential') m='Email ou senha errados'; if(e.code==='auth/user-not-found') m='Não existe, clique em Abrir Conta'; st.textContent='Erro: '+m; }
 }
-
 async function cadastrar(){
-  const email = $('email').value.trim();
-  const senha = $('password').value.trim();
-  const status = $('status-login');
-  if(!email||!senha){ status.style.color='red'; status.textContent='Preencha e-mail e senha'; return; }
-  if(senha.length < 6){ status.style.color='red'; status.textContent='Senha precisa ter 6+ caracteres'; return; }
-  status.style.color='#00a884'; status.textContent='Criando conta...';
+  const email=$('email').value.trim(), senha=$('password').value.trim(), usernameRaw=$('username-cadastro').value.trim(), st=$('status-login');
+  const username = slug(usernameRaw) || slug(email.split('@')[0]);
+  if(!email||!senha){ st.style.color='red'; st.textContent='Email e senha obrigatórios'; return; }
+  if(!username){ st.style.color='red'; st.textContent='Escolha um nome de usuário'; return; }
+  if(senha.length<6){ st.style.color='red'; st.textContent='Senha 6+ caracteres'; return; }
+  st.style.color='#00a884'; st.textContent='Criando...';
   try{
-    const cred = await createUserWithEmailAndPassword(auth,email,senha);
-    await setDoc(doc(db,"usuarios",cred.user.uid),{email, nome: email.split('@')[0], criadoEm: Date.now(), limiteProdutos:10});
-    await setDoc(doc(db,"users",cred.user.uid),{email, nome: email.split('@')[0], criadoEm: Date.now()},{merge:true});
-    status.style.color='#00a884'; status.textContent='✅ Conta criada! Entrando...';
-  }catch(e){ status.style.color='red'; status.textContent='Erro: '+e.message; }
+    const q=query(collection(db,"usuarios"), where("username","==",username)); const snap=await getDocs(q);
+    if(!snap.empty){ st.style.color='red'; st.textContent='@'+username+' já existe, escolha outro'; return; }
+    const cred=await createUserWithEmailAndPassword(auth,email,senha);
+    const refPendente=localStorage.getItem('zapleve_ref')||null;
+    const dados={ email, username, nome: username, displayName: username, bio:'', photoURL:'', referralCode:username, indicadoPor:refPendente, criadoEm:Date.now(), limiteProdutos:50 };
+    await setDoc(doc(db,"usuarios",cred.user.uid), dados);
+    await setDoc(doc(db,"users",cred.user.uid), dados, {merge:true});
+    localStorage.removeItem('zapleve_ref');
+    st.style.color='#00a884'; st.textContent='✅ Conta @'+username+' criada!';
+  }catch(e){ st.style.color='red'; st.textContent='Erro: '+e.message; }
 }
 
-function alternarModoEscuro(){
-  document.body.classList.toggle('dark-mode');
-  localStorage.setItem('zapleve_dark', document.body.classList.contains('dark-mode')?'1':'0');
-}
+function tema(){ document.body.classList.toggle('dark-mode'); localStorage.setItem('zapleve_dark', document.body.classList.contains('dark-mode')?'1':'0'); }
 
-// Expor no window para compatibilidade
-window.entrar = entrar;
-window.cadastrar = cadastrar;
-window.alternarModoEscuro = alternarModoEscuro;
-
-// LIGA TUDO POR addEventListener - FIM DO ReferenceError
 $('btnEntrar').addEventListener('click', entrar);
-$('btnCadastrar').addEventListener('click', cadastrar);
-$('btnTema').addEventListener('click', alternarModoEscuro);
-$('btnTema2').addEventListener('click', alternarModoEscuro);
-$('btnSair').addEventListener('click', async()=>{ await signOut(auth); location.reload(); });
-$('btnVoltar').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
-$('btnSairChat').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
-$('btnEnviar').addEventListener('click', ()=>{ 
-  const txt = $('mensagem-texto').value.trim(); if(!txt) return;
-  const box = $('mensagens'); const div = document.createElement('div'); div.className='msg msg-minha'; div.textContent=txt; box.appendChild(div); $('mensagem-texto').value=''; box.scrollTop=box.scrollHeight;
-});
-$('mensagem-texto').addEventListener('keypress', (e)=>{ if(e.key==='Enter') $('btnEnviar').click(); });
-$('btnConvidar').addEventListener('click', async()=>{
-  const link = location.origin;
-  if(navigator.share){ try{ await navigator.share({title:'Zap Leve', url:link}); }catch(_){} } else { prompt('Copie o link:', link); }
-});
-$('areaMeuPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='flex'; $('perfil-email-exibicao').textContent = auth.currentUser?.email || ''; });
-$('btnFecharPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='none'; });
-$('btnSalvarPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='none'; alert('Perfil salvo'); });
-$('btnVitrine').addEventListener('click', ()=> alert('Vitrine'));
-$('btnFecharDetalhe').addEventListener('click', ()=>{ $('modal-produto').style.display='none'; });
-$('btnFalarVendedor').addEventListener('click', ()=> alert('Falar com vendedor'));
-$('btnFecharLoja').addEventListener('click', ()=>{ $('loja-publica').classList.add('hidden'); });
-$('modal-zoom-imagem').addEventListener('click', ()=>{ $('modal-zoom-imagem').style.display='none'; });
-
+$('btnCadastrar').addEventListener('click', ()=>{ if(!modoCadastro){ modoCadastro=true; $('area-cadastro-extra').classList.remove('hidden'); $('btnToggleCadastro').textContent='Já tem conta? Entrar só com email e senha'; return; } cadastrar(); });
+$('btnTema').addEventListener('click', tema);
 if(localStorage.getItem('zapleve_dark')==='1') document.body.classList.add('dark-mode');
 
-// Auth observer
-onAuthStateChanged(auth, (user)=>{
-  if(user){
-    $('auth-screen').classList.add('hidden');
-    $('contacts-screen').classList.remove('hidden');
-    $('user-display-contacts').textContent = user.email;
-    $('meu-avatar-topo').textContent = user.email[0].toUpperCase();
-    $('lista-contatos').innerHTML = '<p style="text-align:center; opacity:0.6; margin-top:20px;">✅ Logado como '+esc(user.email)+'<br><br>Nenhum contato ainda.<br>Clique em Convidar Amigo 📤</p>';
-  }else{
-    $('auth-screen').classList.remove('hidden');
-    $('contacts-screen').classList.add('hidden');
-    $('chat-screen').classList.add('hidden');
-  }
+// PERFIL
+$('areaMeuPerfil').addEventListener('click', async()=>{
+  if(!currentUserData) return;
+  $('input-perfil-nome').value=currentUserData.displayName||currentUserData.nome||'';
+  $('input-perfil-username').value=currentUserData.username||'';
+  $('input-perfil-bio').value=currentUserData.bio||'';
+  const av=$('perfil-foto-preview'); av.innerHTML=''; if(currentUserData.photoURL){ const im=document.createElement('img'); im.src=currentUserData.photoURL; av.appendChild(im); } else av.textContent=(currentUserData.username||'?')[0].toUpperCase();
+  $('modal-perfil').style.display='flex';
+});
+$('btnFecharPerfil').addEventListener('click', ()=>$('modal-perfil').style.display='none');
+$('input-foto-perfil').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader(); reader.onload=ev=>{ const av=$('perfil-foto-preview'); av.innerHTML=''; const im=document.createElement('img'); im.src=ev.target.result; av.appendChild(im); }; reader.readAsDataURL(file);
+});
+$('btnSalvarPerfil').addEventListener('click', async()=>{
+  const st=$('status-perfil'); const user=auth.currentUser; if(!user) return;
+  const novoNome=$('input-perfil-nome').value.trim();
+  const novoUsername=slug($('input-perfil-username').value.trim());
+  const novaBio=$('input-perfil-bio').value.trim().slice(0,160);
+  if(!novoUsername){ st.style.color='red'; st.textContent='Username obrigatório'; return; }
+  st.style.color='#00a884'; st.textContent='Salvando...';
+  try{
+    // verifica username único se mudou
+    if(novoUsername!==currentUserData.username){
+      const q=query(collection(db,"usuarios"), where("username","==",novoUsername)); const s=await getDocs(q);
+      if(!s.empty){ st.style.color='red'; st.textContent='@'+novoUsername+' já existe'; return; }
+    }
+    let photoURL=currentUserData.photoURL||'';
+    const file=$('input-foto-perfil').files[0];
+    if(file){
+      const r=ref(storage, `perfil/${user.uid}/avatar_${Date.now()}.jpg`);
+      await uploadBytes(r,file); photoURL=await getDownloadURL(r);
+    }
+    const update={ displayName:novoNome||novoUsername, nome:novoNome||novoUsername, username:novoUsername, bio:novaBio, photoURL };
+    await updateDoc(doc(db,"usuarios",user.uid), update);
+    await setDoc(doc(db,"users",user.uid), update, {merge:true});
+    st.style.color='green'; st.textContent='✅ Perfil salvo!'; currentUserData={...currentUserData,...update};
+    setTimeout(()=>{ $('modal-perfil').style.display='none'; atualizarTela(currentUserData); },800);
+  }catch(e){ st.style.color='red'; st.textContent='Erro: '+e.message; }
 });
 
-// Limpa SW antigo que causava cache
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>{
-      // mantém apenas se for o novo, remove velhos
-      if(r.active && !r.active.scriptURL.includes('sw-novo')) r.unregister();
+// CATÁLOGO
+$('tabContatos').addEventListener('click', ()=>{ $('lista-contatos').classList.remove('hidden'); $('area-meu-catalogo').classList.add('hidden'); $('area-vitrine-geral').classList.add('hidden'); $('tabContatos').classList.add('active'); $('tabCatalogo').classList.remove('active'); $('tabLoja').classList.remove('active'); });
+$('tabCatalogo').addEventListener('click', ()=>{ $('lista-contatos').classList.add('hidden'); $('area-meu-catalogo').classList.remove('hidden'); $('area-vitrine-geral').classList.add('hidden'); $('tabCatalogo').classList.add('active'); $('tabContatos').classList.remove('active'); $('tabLoja').classList.remove('active'); carregarMeusProdutos(); });
+$('tabLoja').addEventListener('click', ()=>{ $('lista-contatos').classList.add('hidden'); $('area-meu-catalogo').classList.add('hidden'); $('area-vitrine-geral').classList.remove('hidden'); $('tabLoja').classList.add('active'); $('tabContatos').classList.remove('active'); $('tabCatalogo').classList.remove('active'); carregarVitrineGeral(); });
+
+$('btnNovoProduto').addEventListener('click', ()=>{ $('modal-produto').style.display='flex'; });
+$('btnFecharProduto').addEventListener('click', ()=>$('modal-produto').style.display='none');
+$('btnSalvarProduto').addEventListener('click', async()=>{
+  const st=$('status-prod'); const user=auth.currentUser; if(!user) return;
+  const nome=$('input-prod-nome').value.trim(), preco=$('input-prod-preco').value.trim(), afiliado=$('input-prod-afiliado').value.trim(), file=$('input-prod-foto').files[0];
+  if(!nome||!preco){ st.style.color='red'; st.textContent='Nome e preço obrigatórios'; return; }
+  st.style.color='#00a884'; st.textContent='Salvando produto...';
+  try{
+    let fotoUrl='';
+    if(file){ const r=ref(storage, `produtos/${user.uid}/${Date.now()}_${file.name}`); await uploadBytes(r,file); fotoUrl=await getDownloadURL(r); }
+    await addDoc(collection(db,"produtos"), { ownerId:user.uid, username: currentUserData?.username||'', nome, preco, afiliadoLink: afiliado, fotoUrl, criadoEm: Date.now() });
+    st.style.color='green'; st.textContent='✅ Produto salvo!'; $('input-prod-nome').value=''; $('input-prod-preco').value=''; $('input-prod-afiliado').value=''; $('input-prod-foto').value='';
+    setTimeout(()=>{ $('modal-produto').style.display='none'; carregarMeusProdutos(); carregarVitrineGeral(); },600);
+  }catch(e){ st.style.color='red'; st.textContent='Erro: '+e.message; }
+});
+
+async function carregarMeusProdutos(){
+  const user=auth.currentUser; if(!user) return;
+  const lista=$('meus-produtos-lista'); lista.innerHTML='Carregando...';
+  const q=query(collection(db,"produtos"), where("ownerId","==",user.uid), orderBy("criadoEm","desc"));
+  const snap=await getDocs(q);
+  if(snap.empty){ lista.innerHTML='<p style="text-align:center;opacity:.5;font-size:12px">Nenhum produto ainda.<br>Clique em + Novo Produto</p>'; return; }
+  lista.innerHTML='';
+  snap.forEach(docSnap=>{
+    const d=docSnap.data(); const id=docSnap.id;
+    const card=document.createElement('div'); card.className='prod-card';
+    card.innerHTML=`<img src="${esc(d.fotoUrl||'https://via.placeholder.com/200x120?text=Sem+Foto')}"><div class="prod-info"><b>${esc(d.nome)}</b><br><span style="color:#27ae60;font-weight:bold">${esc(d.preco)}</span><br>${d.afiliadoLink?`<a href="${esc(d.afiliadoLink)}" target="_blank" style="font-size:11px;color:#0275d8">🔗 Ver produto / Afiliado</a>`:''}<br><button style="background:#ea0038;padding:6px;font-size:11px;margin-top:4px" data-del="${id}">Excluir</button></div>`;
+    lista.appendChild(card);
+  });
+  lista.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', async e=>{
+    const id=e.target.getAttribute('data-del'); if(!confirm('Excluir produto?')) return; await deleteDoc(doc(db,"produtos",id)); carregarMeusProdutos(); carregarVitrineGeral();
+  }));
+}
+async function carregarVitrineGeral(){
+  const lista=$('vitrine-geral'); lista.innerHTML='Carregando vitrine...';
+  const q=query(collection(db,"produtos"), orderBy("criadoEm","desc")); const snap=await getDocs(q);
+  if(snap.empty){ lista.innerHTML='<p style="text-align:center;opacity:.5">Nenhum produto ainda</p>'; return; }
+  lista.innerHTML='';
+  snap.forEach(docSnap=>{
+    const d=docSnap.data();
+    const card=document.createElement('div'); card.className='prod-card';
+    card.innerHTML=`<img src="${esc(d.fotoUrl||'https://via.placeholder.com/200x120?text=Sem+Foto')}"><div class="prod-info"><b>${esc(d.nome)}</b><br><span style="color:#27ae60;font-weight:bold">${esc(d.preco)}</span><br><span style="font-size:10px;opacity:.6">@${esc(d.username||'')}</span><br>${d.afiliadoLink?`<a href="${esc(d.afiliadoLink)}" target="_blank"><button style="padding:6px;font-size:11px;background:#ff6a00">🛒 Comprar / Afiliado</button></a>`:'<button style="padding:6px;font-size:11px">Ver</button>'}</div>`;
+    card.addEventListener('click', ()=>{
+      if(d.afiliadoLink) window.open(d.afiliadoLink,'_blank');
     });
+    lista.appendChild(card);
   });
 }
 
-console.log('Zap Leve v2.2 pronto - entrar():', typeof entrar);
+// LOJA PUBLICA POR USERNAME
+async function abrirLojaPublica(username){
+  const lista=$('lp-lista'); $('loja-publica').classList.remove('hidden');
+  $('lp-nome').textContent='@'+username; $('lp-bio').textContent='Carregando...'; $('lp-avatar').textContent=username[0].toUpperCase();
+  const qUser=query(collection(db,"usuarios"), where("username","==",username)); const snapUser=await getDocs(qUser);
+  if(!snapUser.empty){ const u=snapUser.docs[0].data(); $('lp-nome').textContent='@'+u.username+' - '+(u.displayName||''); $('lp-bio').textContent=u.bio||''; if(u.photoURL){ $('lp-avatar').innerHTML=`<img src="${esc(u.photoURL)}">`; } }
+  const qProd=query(collection(db,"produtos"), where("username","==",username)); const snapProd=await getDocs(qProd);
+  lista.innerHTML='';
+  if(snapProd.empty){ lista.innerHTML='<p style="grid-column:1/3;text-align:center;opacity:.6">Nenhum produto</p>'; return; }
+  snapProd.forEach(d=>{
+    const p=d.data(); const card=document.createElement('div'); card.className='prod-card';
+    card.innerHTML=`<img src="${esc(p.fotoUrl||'https://via.placeholder.com/200x120?text=Sem+Foto')}"><div class="prod-info"><b>${esc(p.nome)}</b><br><span style="color:#27ae60;font-weight:bold">${esc(p.preco)}</span><br>${p.afiliadoLink?`<a href="${esc(p.afiliadoLink)}" target="_blank"><button style="padding:6px;font-size:11px;background:#ff6a00;width:100%">🛒 Comprar</button></a>`:''}</div>`;
+    lista.appendChild(card);
+  });
+}
+$('btnFecharLoja').addEventListener('click', ()=>$('loja-publica').classList.add('hidden'));
+window.addEventListener('load', ()=>{
+  const ref=getRefUrl(); if(ref){ setTimeout(()=>abrirLojaPublica(slug(ref)), 1200); }
+});
+
+function atualizarTela(userData){
+  const meuLink=`${location.origin}${location.pathname.replace(/index\.html$/,'')}?ref=${userData.username}`;
+  $('user-display-contacts').textContent='@'+userData.username+' | '+(userData.bio||'sem bio');
+  $('meu-nome-topo').textContent=userData.displayName||userData.username;
+  $('meu-link-curto').textContent='?ref='+userData.username;
+  $('input-link-compartilhar').value=meuLink;
+  const av=$('meu-avatar-topo'); av.innerHTML=''; if(userData.photoURL){ const im=document.createElement('img'); im.src=userData.photoURL; av.appendChild(im); } else av.textContent=userData.username[0].toUpperCase();
+  carregarVitrineGeral();
+}
+$('btnConvidar').addEventListener('click', async()=>{
+  const link=$('input-link-compartilhar').value||location.origin; const texto=`Entra no meu Zap Leve ⚡ Meu link: ${link}`;
+  if(navigator.share){ try{ await navigator.share({title:'Zap Leve', text:texto, url:link}); }catch(_){} } else prompt('Copie seu link:', link);
+});
+$('btnCopiarLink').addEventListener('click', async()=>{
+  const link=$('input-link-compartilhar').value; try{ await navigator.clipboard.writeText(link); alert('Copiado: '+link); }catch{ prompt('Copie:', link); }
+});
+$('btnSair').addEventListener('click', async()=>{ await signOut(auth); location.reload(); });
+$('btnVoltar').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
+$('btnSairChat').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
+$('btnEnviar').addEventListener('click', ()=>{
+  const txt=$('mensagem-texto').value.trim(); if(!txt) return;
+  const box=$('mensagens'); const d=document.createElement('div'); d.className='msg msg-minha'; d.textContent=txt; box.appendChild(d); $('mensagem-texto').value=''; box.scrollTop=box.scrollHeight;
+});
+$('fabLoja').addEventListener('click', ()=>{ $('tabLoja').click(); });
+
+onAuthStateChanged(auth, async(user)=>{
+  if(user){
+    $('auth-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden');
+    const snap=await getDoc(doc(db,"usuarios",user.uid));
+    if(snap.exists()){ currentUserData=snap.data(); atualizarTela(currentUserData); }
+  }else{
+    $('auth-screen').classList.remove('hidden'); $('contacts-screen').classList.add('hidden'); $('chat-screen').classList.add('hidden'); currentUserData=null;
+  }
+});
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
