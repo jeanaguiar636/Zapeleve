@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
@@ -71,7 +92,6 @@
 <body>
 
 <div class="container">
-    <!-- Detalhe produto -->
     <div id="modal-produto" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.93); flex-direction:column; align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
         <img id="mp-img" src="" style="max-width:100%; max-height:52vh; object-fit:contain; border-radius:6px; background:#fff;">
         <div id="mp-sem-img" style="display:none; font-size:80px;">📦</div>
@@ -85,7 +105,6 @@
         </div>
     </div>
 
-    <!-- Loja pública -->
     <div id="loja-publica" class="hidden" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; background: var(--bg-app); overflow-y:auto;">
         <div style="background: var(--header-bg); color:white; padding:14px; display:flex; align-items:center; gap:10px;">
             <div id="lp-inicial" class="avatar">?</div>
@@ -99,9 +118,8 @@
     </div>
 
     <div id="modal-zoom-imagem" onclick="fecharZoomImagem()"><img id="imagem-zoom-src" src=""><span style="color:white; margin-top:15px; font-size:13px; background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:20px;">Toque para fechar</span></div>
-    <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
+    <button class="botao-flutuante-loja" id="btnVitrine" title="Vitrine"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
 
-    <!-- Modal Perfil -->
     <div id="modal-perfil-usuario" class="modal">
         <div class="modal-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
             <div id="alerta-perfil-bio" class="hidden" style="background:#ea0038; color:white; padding:8px 12px; border-radius:6px; font-size:12px; width:100%;">⚠️ Complete o seu perfil</div>
@@ -112,165 +130,181 @@
             <div id="meu-painel-edicao-link" class="hidden" style="width:100%; border-top:1px solid var(--border-color); padding-top:10px; text-align:left;">
                 <input type="text" id="input-meu-nome" placeholder="Seu nome">
                 <input type="text" id="input-meu-link" placeholder="Seu link">
-                <button class="btn-alt" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
-                <button style="background:#d4a24c;" onclick="abrirMinhaLoja()">🏪 Minha loja</button>
+                <button class="btn-alt" id="btnSalvarPerfil">💾 Salvar Perfil</button>
+                <button style="background:#d4a24c;" id="btnMinhaLoja">🏪 Minha loja</button>
             </div>
-            <div class="close-modal" onclick="fecharPerfilUsuario()">Fechar</div>
+            <div class="close-modal" id="btnFecharPerfil">Fechar</div>
         </div>
     </div>
 
-    <!-- TELA LOGIN -->
     <div id="auth-screen" class="screen-content" style="justify-content:center; max-width:380px; margin:0 auto;">
         <div class="logo-area"><span>⚡💬</span><h1>Zap Leve</h1><p style="font-size:13px; opacity:0.7;">Chat P2P e utilitários integrados</p></div>
         <p id="aviso-convite" class="hidden" style="background:#e8f5e9; color:#1b5e20; padding:8px; border-radius:6px; font-size:12px; text-align:center;"></p>
         <input type="email" id="email" placeholder="Seu e-mail">
         <input type="password" id="password" placeholder="Sua senha">
         <div style="display:flex; gap:8px;">
-            <button class="btn-alt" style="flex:1; background:#0275d8;" onclick="entrar()">Entrar</button>
-            <button style="flex:1; background:#28a745;" onclick="cadastrar()">Abrir Conta</button>
+            <button class="btn-alt" style="flex:1; background:#0275d8;" id="btnEntrar">Entrar</button>
+            <button style="flex:1; background:#28a745;" id="btnCadastrar">Abrir Conta</button>
         </div>
-        <button class="btn-alt" style="background:#333; margin-top:10px;" onclick="alternarModoEscuro()">🌓 Alternar Tema</button>
+        <button class="btn-alt" style="background:#333; margin-top:10px;" id="btnTema">🌓 Alternar Tema</button>
         <p id="status-login" style="font-size:12px; text-align:center; margin-top:8px; color:red;"></p>
     </div>
 
-    <!-- CONTATOS -->
     <div id="contacts-screen" class="hidden screen-content" style="padding:0;">
         <div class="header-top">
-            <div class="user-info-area" onclick="abrirMeuPerfil()">
+            <div class="user-info-area" id="areaMeuPerfil">
                 <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div>
                 <div><h3 style="margin:0; font-size:15px; color:white;">Zap Leve ⚡</h3><span id="user-display-contacts" style="font-size:11px; color:#e0f2f1;">Carregando...</span></div>
             </div>
-            <div style="display:flex; gap:6px;"><button class="btn-topo-padrao" style="background:rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button><button class="btn-topo-padrao btn-topo-sair hidden" onclick="sair()">Sair</button></div>
+            <div style="display:flex; gap:6px;"><button class="btn-topo-padrao" style="background:rgba(0,0,0,0.2);" id="btnTema2">🌓</button><button class="btn-topo-padrao btn-topo-sair" id="btnSair">Sair</button></div>
         </div>
         <div style="padding:12px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
             <div class="contact-list" id="lista-contatos"></div>
-            <button class="btn-alt" style="background:#005c4b; border-radius:20px;" onclick="indicarAmigo()">📤 Convidar Amigo</button>
+            <button class="btn-alt" style="background:#005c4b; border-radius:20px;" id="btnConvidar">📤 Convidar Amigo</button>
         </div>
     </div>
 
-    <!-- CHAT -->
     <div id="chat-screen" class="hidden screen-content" style="padding:0;">
         <div class="header-top">
-            <div class="user-info-area"><span class="texto-voltar" onclick="voltarParaContatos()">voltar</span><div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div><h3 id="chat-title" style="margin:0; font-size:15px; color:white;">Chat</h3></div>
-            <div style="display:flex; gap:5px;"><button class="btn-topo-padrao" style="background:#28a745;" onclick="voltarParaContatos()">Sair Chat</button></div>
+            <div class="user-info-area"><span class="texto-voltar" id="btnVoltar">voltar</span><div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div><h3 id="chat-title" style="margin:0; font-size:15px; color:white;">Chat</h3></div>
+            <div style="display:flex; gap:5px;"><button class="btn-topo-padrao" style="background:#28a745;" id="btnSairChat">Sair Chat</button></div>
         </div>
         <div class="chat-box" id="mensagens"></div>
-        <div class="chat-input-area"><div class="input-group"><input type="text" id="mensagem-texto" placeholder="Mensagem..." onkeypress="if(event.key==='Enter')enviarMensagemPrivada()"><button onclick="enviarMensagemPrivada()" style="width:auto; padding:10px 18px; border-radius:20px;">Enviar</button></div></div>
+        <div class="chat-input-area"><div class="input-group"><input type="text" id="mensagem-texto" placeholder="Mensagem..."><button id="btnEnviar" style="width:auto; padding:10px 18px; border-radius:20px;">Enviar</button></div></div>
     </div>
 </div>
 
 <script type="module">
+// Firebase SDK - use a mesma versão em todo lugar
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// --- COLOQUE SUA CONFIG DO FIREBASE AQUI ---
+// 1. COLE SUA CONFIG REAL AQUI (Firebase Console > Configurações do projeto > Seus apps > SDK)
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
+  apiKey: "SUA_API_KEY_AQUI",
+  authDomain: "SEU_PROJECT_ID.firebaseapp.com",
   projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_BUCKET",
-  messagingSenderId: "SEU_ID",
+  storageBucket: "SEU_PROJECT_ID.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
   appId: "SEU_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-let usuarioAtual = null;
-let contatoSelecionado = null;
+
+// R2 - coloque seu toque.mp3 no R2 e use o link aqui para não pesar o Github
+const TOQUE_R2_URL = "https://SEU_DOMINIO_R2/toque.mp3"; // ex: https://cdn.zapleve.alibr.com.br/toque.mp3
 
 // Utilitários
+const $ = (id) => document.getElementById(id);
 const esc = (v) => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-window.esc = esc;
 
-function obterIdSala(uid1, uid2){ return [uid1,uid2].sort().join('_'); }
-window.obterIdSala = obterIdSala;
-
-// --- CORREÇÃO PRINCIPAL: EXPOR TUDO NO WINDOW ---
-window.entrar = async function(){
-  const email = document.getElementById('email').value.trim();
-  const senha = document.getElementById('password').value.trim();
-  const status = document.getElementById('status-login');
+// CORREÇÃO DO ERRO: Funções expostas e também ligadas por addEventListener (não precisa mais de onclick="")
+async function entrar(){
+  const email = $('email').value.trim();
+  const senha = $('password').value.trim();
+  const status = $('status-login');
   if(!email||!senha){ status.textContent='Preencha e-mail e senha'; return; }
-  status.textContent='Entrando...';
+  status.style.color='#00a884'; status.textContent='Entrando...';
   try{
     await signInWithEmailAndPassword(auth,email,senha);
     status.textContent='';
-  }catch(e){ status.textContent = 'Erro: '+e.message; }
-};
+  }catch(e){ 
+    status.style.color='red';
+    status.textContent = e.code === 'auth/invalid-credential' ? 'E-mail ou senha incorretos' : 'Erro: '+e.message; 
+  }
+}
 
-window.cadastrar = async function(){
-  const email = document.getElementById('email').value.trim();
-  const senha = document.getElementById('password').value.trim();
-  const status = document.getElementById('status-login');
+async function cadastrar(){
+  const email = $('email').value.trim();
+  const senha = $('password').value.trim();
+  const status = $('status-login');
   if(!email||!senha){ status.textContent='Preencha e-mail e senha'; return; }
-  status.textContent='Criando conta...';
+  if(senha.length < 6){ status.textContent='Senha precisa ter 6+ caracteres'; return; }
+  status.style.color='#00a884'; status.textContent='Criando conta...';
   try{
     const cred = await createUserWithEmailAndPassword(auth,email,senha);
-    await setDoc(doc(db,"usuarios",cred.user.uid),{email, nome: email.split('@')[0], criadoEm: Date.now(), limiteProdutos:10});
+    // IMPORTANTE: collection users para bater com as regras seguras
+    await setDoc(doc(db,"users",cred.user.uid),{
+      email, 
+      nome: email.split('@')[0], 
+      criadoEm: Date.now(),
+      limiteProdutos: 10
+    });
     status.textContent='';
-  }catch(e){ status.textContent='Erro: '+e.message; }
-};
+  }catch(e){ status.style.color='red'; status.textContent='Erro: '+e.message; }
+}
 
-window.sair = async function(){ await signOut(auth); location.reload(); };
-
-window.alternarModoEscuro = function(){
+function alternarModoEscuro(){
   document.body.classList.toggle('dark-mode');
   localStorage.setItem('zapleve_dark', document.body.classList.contains('dark-mode')?'1':'0');
-};
+}
+
+// Expõe para compatibilidade mas usa addEventListener abaixo
+window.entrar = entrar;
+window.cadastrar = cadastrar;
+window.alternarModoEscuro = alternarModoEscuro;
+
+// Liga botões SEM onclick="" - resolve o ReferenceError definitivo
+$('btnEntrar').addEventListener('click', entrar);
+$('btnCadastrar').addEventListener('click', cadastrar);
+$('btnTema').addEventListener('click', alternarModoEscuro);
+$('btnTema2').addEventListener('click', alternarModoEscuro);
+$('btnSair').addEventListener('click', async()=>{ await signOut(auth); location.reload(); });
+$('btnVoltar').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
+$('btnSairChat').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
+$('btnEnviar').addEventListener('click', enviarMensagemPrivada);
+$('mensagem-texto').addEventListener('keypress', (e)=>{ if(e.key==='Enter') enviarMensagemPrivada(); });
+$('btnConvidar').addEventListener('click', indicarAmigo);
+$('areaMeuPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='flex'; });
+$('btnFecharPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='none'; });
+$('btnVitrine').addEventListener('click', ()=> alert('Vitrine - implemente'));
+$('btnMinhaLoja').addEventListener('click', ()=> alert('Minha loja'));
+$('btnSalvarPerfil').addEventListener('click', ()=>{ alert('Perfil salvo'); $('modal-perfil-usuario').style.display='none'; });
+
 if(localStorage.getItem('zapleve_dark')==='1') document.body.classList.add('dark-mode');
 
-window.abrirVitrineAfiliado = function(){ alert('Vitrine - implemente aqui'); };
-window.abrirMinhaLoja = function(){ alert('Minha loja'); };
-window.fecharDetalheProduto = function(){ document.getElementById('modal-produto').style.display='none'; };
-window.falarComVendedor = function(){ alert('Falar com vendedor'); };
-window.fecharLojaPublica = function(){ document.getElementById('loja-publica').classList.add('hidden'); };
-window.fecharZoomImagem = function(){ document.getElementById('modal-zoom-imagem').style.display='none'; };
-window.ampliarImagem = function(src){ document.getElementById('imagem-zoom-src').src=src; document.getElementById('modal-zoom-imagem').style.display='flex'; };
-window.abrirMeuPerfil = function(){ document.getElementById('modal-perfil-usuario').style.display='flex'; };
-window.fecharPerfilUsuario = function(){ document.getElementById('modal-perfil-usuario').style.display='none'; };
-window.salvarMeuPerfilCompleto = async function(){ alert('Perfil salvo - implemente lógica'); window.fecharPerfilUsuario(); };
-window.indicarAmigo = async function(){
+window.fecharDetalheProduto = ()=>{ $('modal-produto').style.display='none'; };
+window.falarComVendedor = ()=> alert('Falar com vendedor');
+window.fecharLojaPublica = ()=>{ $('loja-publica').classList.add('hidden'); };
+window.fecharZoomImagem = ()=>{ $('modal-zoom-imagem').style.display='none'; };
+
+async function indicarAmigo(){
   const link = location.origin;
   if(navigator.share){ try{ await navigator.share({title:'Zap Leve', url:link}); }catch(_){} } else { prompt('Copie o link:', link); }
-};
-window.voltarParaContatos = function(){
-  document.getElementById('chat-screen').classList.add('hidden');
-  document.getElementById('contacts-screen').classList.remove('hidden');
-};
-window.enviarMensagemPrivada = function(){ 
-  const txt = document.getElementById('mensagem-texto').value; 
-  if(!txt.trim()) return;
-  const box = document.getElementById('mensagens');
-  const div = document.createElement('div'); div.className='msg msg-minha'; div.textContent=txt;
-  box.appendChild(div); document.getElementById('mensagem-texto').value=''; box.scrollTop=box.scrollHeight;
-};
+}
+
+function enviarMensagemPrivada(){ 
+  const txt = $('mensagem-texto').value.trim(); 
+  if(!txt) return;
+  const box = $('mensagens');
+  const div = document.createElement('div'); 
+  div.className='msg msg-minha'; 
+  div.textContent=txt;
+  box.appendChild(div); 
+  $('mensagem-texto').value=''; 
+  box.scrollTop=box.scrollHeight;
+  // toca som do R2
+  try{ new Audio(TOQUE_R2_URL).play().catch(()=>{}); }catch(_){}
+}
 
 // Auth observer
 onAuthStateChanged(auth, (user)=>{
-  usuarioAtual = user;
   if(user){
-    document.getElementById('auth-screen').classList.add('hidden');
-    document.getElementById('contacts-screen').classList.remove('hidden');
-    document.getElementById('user-display-contacts').textContent = user.email;
-    document.querySelectorAll('.btn-sair').forEach(b=>b.classList.remove('hidden'));
-    document.getElementById('lista-contatos').innerHTML = '<p style="text-align:center; opacity:0.6;">Nenhum contato ainda. Convide amigos!</p>';
+    $('auth-screen').classList.add('hidden');
+    $('contacts-screen').classList.remove('hidden');
+    $('user-display-contacts').textContent = user.email;
+    $('lista-contatos').innerHTML = '<p style="text-align:center; opacity:0.6; margin-top:20px;">Nenhum contato ainda.<br>Clique em Convidar Amigo 📤</p>';
   }else{
-    document.getElementById('auth-screen').classList.remove('hidden');
-    document.getElementById('contacts-screen').classList.add('hidden');
-    document.getElementById('chat-screen').classList.add('hidden');
+    $('auth-screen').classList.remove('hidden');
+    $('contacts-screen').classList.add('hidden');
+    $('chat-screen').classList.add('hidden');
   }
 });
 
-// Expor para o detector de erro antigo não reclamar
-window.addEventListener('error', (e)=>{
-  if(String(e.message).includes('entrar is not defined')){
-    console.warn('Erro antigo de escopo corrigido - recarregue a página');
-  }
-});
-
-console.log('Zap Leve carregado - entrar() definido:', typeof window.entrar);
+console.log('Zap Leve corrigido - entrar():', typeof entrar);
 </script>
-</body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
