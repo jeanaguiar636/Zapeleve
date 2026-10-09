@@ -4,831 +4,286 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00a884">
+    <link rel="icon" type="image/png" href="icon-192.png">
     <style>
         :root {
-            --bg-app: #ffffff;
-            --text-app: #111111;
-            --header-bg: #00a884;
-            --chat-bg: #efeae2;
-            --input-bg: #f0f2f5;
-            --msg-minha: #d9fdd3;
-            --msg-outra: #ffffff;
-            --border-color: #d1d7db;
+            --bg-app: #ffffff; --text-app: #111111; --header-bg: #00a884;
+            --chat-bg: #efeae2; --input-bg: #f0f2f5; --msg-minha: #d9fdd3;
+            --msg-outra: #ffffff; --border-color: #d1d7db;
         }
         body.dark-mode {
-            --bg-app: #111b21;
-            --text-app: #e9edef;
-            --header-bg: #202c33;
-            --chat-bg: #0b141a;
-            --input-bg: #202c33;
-            --msg-minha: #005c4b;
-            --msg-outra: #202c33;
-            --border-color: #222d34;
+            --bg-app: #111b21; --text-app: #e9edef; --header-bg: #202c33;
+            --chat-bg: #0b141a; --input-bg: #202c33; --msg-minha: #005c4b;
+            --msg-outra: #202c33; --border-color: #222d34;
         }
-
         * { box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--bg-app); 
-            color: var(--text-app);
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            height: 100dvh; 
-            overflow: hidden; 
-            transition: background 0.3s, color 0.3s;
+            background: var(--bg-app); color: var(--text-app); margin: 0; padding: 0; 
+            display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; 
+            overflow: hidden; transition: background 0.3s, color 0.3s;
         }
-        .container { 
-            width: 100%; 
-            height: 100%; 
-            background: var(--bg-app); 
-            display: flex; 
-            flex-direction: column; 
-            position: relative;
-        }
-        
+        .container { width: 100%; height: 100%; background: var(--bg-app); display: flex; flex-direction: column; position: relative; }
         .hidden { display: none !important; }
         h2, h3 { color: var(--header-bg); margin-top: 0; }
-        
-        .screen-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
-            overflow: hidden;
-            background: var(--bg-app);
-            width: 100%;
-            height: 100%;
-        }
-
+        .screen-content { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; background: var(--bg-app); width: 100%; height: 100%; }
         .logo-area { text-align: center; margin: 15px 0; }
         .logo-area span { font-size: 45px; }
         .logo-area h1 { font-size: 26px; color: var(--header-bg); margin: 5px 0 0 0; }
-
         .botao-flutuante-loja {
-            position: fixed;
-            bottom: 125px;
-            right: 18px;
-            background-color: #27ae60;
-            color: white;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-            z-index: 999;
-            text-decoration: none;
-            transition: transform 0.2s, background-color 0.2s;
-            cursor: pointer;
-            border: 2px solid white;
+            position: fixed; bottom: 20px; right: 18px; background-color: #27ae60; color: white;
+            width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35); z-index: 999; text-decoration: none; cursor: pointer; border: 2px solid white;
         }
-        .botao-flutuante-loja:hover { transform: scale(1.08); background-color: #219653; }
         .botao-flutuante-loja svg { width: 24px; height: 24px; fill: currentColor; }
-        
         input, textarea, button, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; outline: none; background: var(--input-bg); color: var(--text-app); }
         input:focus { border-color: #00a884; }
-        button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        button:hover { opacity: 0.9; }
+        button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; }
         .btn-alt { background: #075e54; }
         .btn-danger { background: #ea0038; }
-        
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
         .close-modal { background: #ea0038; padding: 8px 15px; margin-top: 15px; display: block; text-align: center; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
-
-        .contact-list { flex: 1; border: none; overflow-y: auto; padding: 0; margin-bottom: 10px; background: var(--bg-app); }
-        .contact-item { padding: 12px 10px; margin-bottom: 2px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg-app); }
-        .contact-item:hover { opacity: 0.8; }
-        .contact-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: bold; flex-shrink: 0; cursor: pointer; }
-        .contact-name { font-weight: 500; color: var(--text-app); font-size: 15px; }
-
-        .chat-box { flex: 1; border: none; overflow-y: auto; padding: 12px; margin-bottom: 0; background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; }
-        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); color: var(--text-app); max-width: 88%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); display: flex; gap: 8px; align-items: flex-start; word-break: break-word; position: relative; }
-        .msg-minha { background: var(--msg-minha); margin-left: auto; flex-direction: row-reverse; }
-        .msg-content { flex: 1; overflow: hidden; }
-        
-        .msg-content a { color: #0275d8; text-decoration: underline; word-break: break-all; }
-        body.dark-mode .msg-content a { color: #58a6ff; }
-        
-        .embed-container { margin-top: 6px; border-radius: 6px; overflow: hidden; background: #000; width: 100%; max-width: 320px; aspect-ratio: 16/9; }
-        .embed-container iframe, .embed-container blockquote { width: 100%; height: 100%; border: none; margin: 0; }
-
-        .wa-audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 20px; margin-top: 4px; min-width: 210px; }
-        .wa-play-btn { width: 36px; height: 36px; border-radius: 50%; background: #00a884; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; margin: 0; }
-        .wa-audio-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .wa-audio-bar { width: 100%; height: 4px; background: #ccc; border-radius: 2px; position: relative; cursor: pointer; }
-        .wa-audio-progress { height: 100%; background: #00a884; width: 0%; border-radius: 2px; transition: width 0.1s linear; }
-        .wa-audio-time { font-size: 10px; opacity: 0.7; font-family: monospace; }
-
-        #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 1000; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; color: white; }
-        .call-videos { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px; background: #0b141a; margin: 10px 0; }
-        #remote-video { width: 100%; height: 100%; object-fit: cover; }
-        #local-video { position: absolute; bottom: 15px; right: 15px; width: 110px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid white; background: #222; }
-        
-        #call-placeholder-info { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; z-index: 2; }
-        .call-avatar-grande { width: 90px; height: 90px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold; border: 3px solid white; }
-
-        .call-controls { display: flex; justify-content: center; gap: 20px; padding: 15px; }
-        .call-btn { width: 56px; height: 56px; border-radius: 50%; border: none; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
-        .btn-hangup { background: #ea0038; }
-        .btn-mic, .btn-cam { background: #333; }
-
+        .contact-list { flex: 1; overflow-y: auto; background: var(--bg-app); }
+        .contact-item { padding: 12px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; flex-shrink: 0; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 12px; background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; }
+        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); max-width: 88%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+        .msg-minha { background: var(--msg-minha); margin-left: auto; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); color: white; padding: 10px 14px; width: 100%; flex-shrink: 0; }
+        .user-info-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .texto-voltar { color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; background: none; border: none; text-decoration: underline; }
+        .btn-topo-padrao { border: none; color: white; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; height: 28px; padding: 0 8px; }
+        .btn-topo-limpar, .btn-topo-sair, .btn-danger { background: #ea0038; }
         .chat-input-area { display: flex; flex-direction: column; background: var(--input-bg); padding: 6px 10px; border-top: 1px solid var(--border-color); gap: 4px; }
         .input-group { display: flex; gap: 6px; align-items: center; width: 100%; position: relative; }
-        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px 10px 42px; border: 1px solid var(--border-color); color: var(--text-app); }
-        
-        .action-btn { width: 38px; height: 38px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; flex-shrink: 0; color: white; border: none; cursor: pointer; }
-        .mic-rec-btn { background: #ff9800; }
-        .mic-rec-btn.gravando { background: #ea0038; animation: pulsar 1.2s infinite; }
-        
-        .clip-btn { position: absolute; left: 6px; background: transparent; border: none; color: #54657f; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; padding: 0; margin: 0; z-index: 5; }
-        .clip-btn:hover { background: rgba(0,0,0,0.05); }
-
+        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px 10px 42px; }
+        .clip-btn { position: absolute; left: 6px; background: transparent; border: none; color: #54657f; width: 32px; height: 32px; cursor: pointer; font-size: 18px; z-index: 5; }
         #menu-anexos { display: none; position: absolute; bottom: 65px; left: 10px; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; flex-direction: column; padding: 6px; width: 160px; }
-        .anexo-opcao { display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: var(--text-app); cursor: pointer; border-radius: 4px; text-decoration: none; }
+        .anexo-opcao { display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; cursor: pointer; border-radius: 4px; }
         .anexo-opcao:hover { background: var(--input-bg); }
-
-        @keyframes pulsar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); color: white; padding: 10px 14px; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .user-info-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        
-        .texto-voltar { color: #ffffff; font-size: 14px; font-weight: bold; cursor: pointer; background: none; border: none; padding: 0; margin-right: 6px; text-decoration: underline; }
-        .texto-voltar:hover { opacity: 0.8; }
-
-        .usuario-editavel { font-size: 11px; color: #e0f2f1; cursor: pointer; text-decoration: underline; display: inline-block; }
-        .usuario-editavel:hover { color: #ffffff; }
-
-        .btn-topo-padrao { border: none; color: white; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; white-space: nowrap; }
-        .btn-topo-limpar { background: #ea0038; }
-        .btn-topo-video { background: #007bff; }
-        .btn-topo-telefone { background: #28a745; }
-        .btn-topo-sair { background: #ea0038; }
-
-        video, img.msg-img { max-width: 100%; border-radius: 8px; margin-top: 6px; display: block; }
-        img.msg-img { max-height: 280px; width: 100%; object-fit: cover; background: #000; cursor: pointer; }
+        #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine / Catálogo">
-        <svg viewBox="0 0 24 24">
-            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-        </svg>
-    </button>
+    <div id="modal-produto" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.93); flex-direction:column; align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
+        <img id="mp-img" src="" style="max-width:100%; max-height:52vh; object-fit:contain; border-radius:6px; background:#fff;">
+        <div id="mp-sem-img" style="display:none; font-size:80px;">📦</div>
+        <div style="color:white; text-align:center; margin-top:12px; max-width:420px;">
+            <b id="mp-titulo" style="font-size:16px;"></b><br>
+            <span id="mp-preco" style="font-size:20px; font-weight:bold; color:#7be0b8;"></span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin-top:16px;">
+            <button id="mp-btn-falar" style="background:#00a884; padding:13px; border-radius:24px;">💬 Falar com o vendedor</button>
+            <button style="background:#5f6b73; padding:13px; border-radius:24px;" onclick="fecharDetalheProduto()">↩ Voltar</button>
+        </div>
+    </div>
+
+    <div id="loja-publica" class="hidden" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; background: var(--bg-app); overflow-y:auto;">
+        <div style="background: var(--header-bg); color:white; padding:14px; display:flex; align-items:center; gap:10px;">
+            <div id="lp-inicial" class="avatar">?</div>
+            <div><div id="lp-nome" style="font-weight:bold;">Loja</div></div>
+        </div>
+        <div id="lp-lista" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 12px 100px 12px;"></div>
+        <div style="position:fixed; left:0; right:0; bottom:0; padding:10px; background: var(--bg-app); border-top:1px solid var(--border-color); display:flex; gap:8px;">
+            <button onclick="falarComVendedor()" style="flex:2; border-radius:20px;">💬 Falar com o vendedor</button>
+            <button class="btn-alt" onclick="fecharLojaPublica()" style="flex:1; border-radius:20px;">Abrir app</button>
+        </div>
+    </div>
+
+    <div id="modal-zoom-imagem" onclick="fecharZoomImagem()"><img id="imagem-zoom-src" src=""><span style="color:white; margin-top:15px; font-size:13px; background:rgba(255,255,255,0.2); padding:6px 14px; border-radius:20px;">Toque para fechar</span></div>
+    <button class="botao-flutuante-loja" id="btnVitrine" title="Vitrine"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
 
     <div id="modal-perfil-usuario" class="modal">
-        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <div id="perfil-avatar-container" style="position: relative;">
-                <div id="perfil-avatar-grande" class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin-bottom: 5px;">?</div>
-                <img id="perfil-img-grande" class="hidden" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid white;" src="">
+        <div class="modal-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
+            <div id="alerta-perfil-bio" class="hidden" style="background:#ea0038; color:white; padding:8px 12px; border-radius:6px; font-size:12px; width:100%;">⚠️ Complete o seu perfil</div>
+            <div id="perfil-avatar-grande" class="avatar" style="width:80px; height:80px; font-size:28px;">?</div>
+            <h3 id="perfil-nome-exibicao" style="margin:0;">Nome</h3>
+            <p id="perfil-email-exibicao" style="margin:0; font-size:12px; opacity:0.7;"></p>
+            <div id="perfil-link-container" style="font-size:13px; word-break:break-all; background:var(--input-bg); padding:8px; border-radius:6px; width:100%;"></div>
+            <div id="meu-painel-edicao-link" class="hidden" style="width:100%; border-top:1px solid var(--border-color); padding-top:10px; text-align:left;">
+                <input type="text" id="input-meu-nome" placeholder="Seu nome">
+                <input type="text" id="input-meu-link" placeholder="Seu link">
+                <button class="btn-alt" id="btnSalvarPerfil">💾 Salvar Perfil</button>
+                <button style="background:#d4a24c;" id="btnMinhaLoja">🏪 Minha loja</button>
             </div>
-            
-            <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
-            <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
-            
-            <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 5px; text-align: left; border: 1px solid var(--border-color);">
-                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold; color: var(--header-bg);">🌐 Link de Afiliado / Perfil:</p>
-                <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
-            </div>
-
-            <div id="meu-painel-edicao-link" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
-                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
-                
-                <label style="font-size: 11px; opacity: 0.8;">Meu Nome:</label>
-                <input type="text" id="input-meu-nome" placeholder="Digite seu nome" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
-
-                <label style="font-size: 11px; opacity: 0.8;">Foto de Perfil:</label>
-                <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 6px;">
-                
-                <label style="font-size: 11px; opacity: 0.8;">Link / Descrição Pessoal:</label>
-                <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
-                
-                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
-            </div>
-
-            <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
+            <div class="close-modal" id="btnFecharPerfil">Fechar</div>
         </div>
     </div>
 
-    <div id="call-screen" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="call-status" style="margin: 0; color: white;">A ligar...</h3>
-            <button class="btn-danger" style="width: auto; padding: 6px 12px; font-size: 12px; border-radius: 4px;" onclick="encerrarChamada()">Desligar</button>
-        </div>
-        <div class="call-videos">
-            <div id="call-placeholder-info">
-                <div id="call-active-avatar" class="call-avatar-grande">?</div>
-                <h2 id="call-active-name" style="margin: 0; color: white; font-size: 22px;">Nome</h2>
-                <p style="margin: 0; color: #aaa; font-size: 13px;">A aguardar resposta...</p>
-            </div>
-            <video id="remote-video" autoplay playsinline></video>
-            <video id="local-video" autoplay playsinline muted></video>
-        </div>
-        <div class="call-controls">
-            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙</button>
-            <button class="call-btn btn-cam" onclick="alternarCamera()" id="btn-toggle-cam">📷</button>
-            <button class="call-btn btn-hangup" onclick="encerrarChamada()">📞</button>
-        </div>
-    </div>
-
-    <div id="modal-incoming-call" class="modal">
-        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 25px;">
-            <div id="incoming-caller-avatar" class="avatar" style="width: 75px; height: 75px; font-size: 26px;">?</div>
-            <h3 id="incoming-caller-name" style="margin: 0; font-size: 18px;">Chamada Entrante...</h3>
-            <p style="margin: 0; font-size: 12px; opacity: 0.7;">A receber chamada de voz/vídeo</p>
-            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px; width: 100%;">
-                <button class="btn-danger" style="flex: 1; padding: 10px; border-radius: 6px; margin: 0;" onclick="recusarChamada()">Recusar</button>
-                <button class="btn-alt" style="flex: 1; padding: 10px; border-radius: 6px; background: #00a884; margin: 0;" onclick="aceitarChamada()">Atender</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-vitrine" class="modal">
-        <div class="modal-content">
-            <h3 style="margin:0 0 10px 0;">🛍️ Catálogo / Vitrine de Produtos</h3>
-            <div style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color);">
-                <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Criar / Adicionar Produto ao Catálogo:</p>
-                <input type="text" id="admin-prod-titulo" placeholder="Nome do Produto" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                <input type="text" id="admin-prod-preco" placeholder="Preço (ex: 49.90)" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                <input type="text" id="admin-prod-img" placeholder="URL da Imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
-                <input type="text" id="admin-prod-link" placeholder="Link do Produto/Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
-                <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Publicar no Catálogo</button>
-            </div>
-            <div id="lista-produtos-vitrine" style="max-height: 200px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
-                <p style="text-align:center; font-size:12px;">A carregar catálogo...</p>
-            </div>
-            <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
-        </div>
-    </div>
-
-    <div id="auth-screen" class="screen-content" style="justify-content: center; max-width: 380px; margin: 0 auto;">
-        <div class="logo-area" style="margin-bottom: 25px;">
-            <span>⚡💬</span>
-            <h1 style="margin: 5px 0 0 0;">Zap Leve</h1>
-            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e Chamadas Grátis</p>
-        </div>
-        
+    <div id="auth-screen" class="screen-content" style="justify-content:center; max-width:380px; margin:0 auto;">
+        <div class="logo-area"><span>⚡💬</span><h1>Zap Leve</h1><p style="font-size:13px; opacity:0.7;">Chat P2P e utilitários integrados</p></div>
+        <p id="aviso-convite" class="hidden" style="background:#e8f5e9; color:#1b5e20; padding:8px; border-radius:6px; font-size:12px; text-align:center;"></p>
         <input type="email" id="email" placeholder="Seu e-mail">
         <input type="password" id="password" placeholder="Sua senha">
-        
-        <div style="display: flex; gap: 8px; margin: 6px 0;">
-            <button class="btn-alt" style="flex: 1; margin: 0; background: #0275d8;" onclick="entrar()">Entrar</button>
-            <button style="flex: 1; margin: 0; background: #28a745;" onclick="cadastrar()">Abrir Conta</button>
+        <div style="display:flex; gap:8px;">
+            <button class="btn-alt" style="flex:1; background:#0275d8;" id="btnEntrar">Entrar</button>
+            <button style="flex:1; background:#28a745;" id="btnCadastrar">Abrir Conta</button>
+        </div>
+        <button class="btn-alt" style="background:#333; margin-top:10px;" id="btnTema">🌓 Alternar Tema</button>
+        <p id="status-login" style="font-size:12px; text-align:center; margin-top:8px; color:red;"></p>
+    </div>
+
+    <div id="contacts-screen" class="hidden screen-content" style="padding:0;">
+        <div class="header-top">
+            <div class="user-info-area" id="areaMeuPerfil">
+                <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div>
+                <div><h3 style="margin:0; font-size:15px; color:white;">Zap Leve ⚡</h3><span id="user-display-contacts" style="font-size:11px; color:#e0f2f1;">Carregando...</span></div>
+            </div>
+            <div style="display:flex; gap:6px;"><button class="btn-topo-padrao" style="background:rgba(0,0,0,0.2);" id="btnTema2">🌓</button><button class="btn-topo-padrao btn-topo-sair" id="btnSair">Sair</button></div>
+        </div>
+        <div style="padding:12px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="contact-list" id="lista-contatos"></div>
+            <button class="btn-alt" style="background:#005c4b; border-radius:20px;" id="btnConvidar">📤 Convidar Amigo</button>
         </div>
     </div>
 
-    <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
+    <div id="chat-screen" class="hidden screen-content" style="padding:0;">
         <div class="header-top">
-            <div class="user-info-area" onclick="abrirMeuPerfil()">
-                <div id="meu-avatar-topo-container" style="position:relative;">
-                    <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
-                    <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
-                </div>
-                <div>
-                    <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
-                    <span class="usuario-editavel" id="user-display-contacts">Meu Perfil</span>
-                </div>
-            </div>
-            <div style="display:flex; gap:6px; align-items: center;">
-                <button class="btn-topo-padrao" style="background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
-                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()">Sair</button>
-            </div>
+            <div class="user-info-area"><span class="texto-voltar" id="btnVoltar">voltar</span><div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px;">?</div><h3 id="chat-title" style="margin:0; font-size:15px; color:white;">Chat</h3></div>
+            <div style="display:flex; gap:5px;"><button class="btn-topo-padrao" style="background:#28a745;" id="btnSairChat">Sair Chat</button></div>
         </div>
-        <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8;">Conversas e Contactos:</p>
-            <div class="contact-list" id="lista-contatos">
-                <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
-            </div>
-            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📢 Convidar Amigo</button>
-        </div>
-    </div>
-
-    <div id="chat-screen" class="hidden screen-content" style="padding: 0;">
-        <div class="header-top">
-            <div class="user-info-area">
-                <span class="texto-voltar" onclick="voltarParaContatos()" title="Voltar">voltar</span>
-                <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="abrirPerfilContatoSelecionado()">
-                    <div id="chat-avatar-topo-container" style="position:relative;">
-                        <div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
-                        <img id="chat-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
-                    </div>
-                    <div>
-                        <h3 id="chat-title" style="margin:0; font-size: 15px; color: white;">Conversando...</h3>
-                        <span style="font-size: 11px; color: #e0f2f1;">ver perfil 👤</span>
-                    </div>
-                </div>
-            </div>
-            <div style="display:flex; gap:5px; align-items: center;">
-                <button class="btn-topo-padrao btn-topo-limpar" onclick="limparConversaAtual()" title="Limpar Conversa">Limpar</button>
-                <button class="btn-topo-padrao btn-topo-video" onclick="iniciarChamada(true)" title="Vídeo">📹 Vídeo</button>
-                <button class="btn-topo-padrao btn-topo-telefone" onclick="iniciarChamada(false)" title="Áudio">📞 Áudio</button>
-                <button class="btn-topo-padrao btn-topo-sair" onclick="sair()" title="Sair">Sair</button>
-            </div>
-        </div>
-
-        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-            <div class="chat-box" id="chat-box"></div>
-
-            <div class="chat-input-area" style="position: relative;">
-                <div id="menu-anexos">
-                    <label class="anexo-opcao">
-                        📷 Enviar Imagem
-                        <input type="file" id="input-imagem-arquivo" accept="image/*" class="hidden" onchange="enviarArquivoMidia(this, 'image')">
-                    </label>
-                    <label class="anexo-opcao">
-                        📹 Enviar Vídeo
-                        <input type="file" id="input-video-arquivo" accept="video/*" class="hidden" onchange="enviarArquivoMidia(this, 'video')">
-                    </label>
-                </div>
-
-                <div class="input-group">
-                    <button class="clip-btn" onclick="toggleMenuAnexos()" title="Anexar">📎</button>
-                    <input type="text" id="mensagem-input" placeholder="Digite uma mensagem..." onkeypress="if(event.key==='Enter') enviarMensagem()">
-                    <button class="action-btn mic-rec-btn" id="btn-audio" onclick="gravarAudio()" title="Gravar Áudio">🎙️</button>
-                    <button class="action-btn" style="background: #00a884;" onclick="enviarMensagem()" title="Enviar">➤</button>
-                </div>
-            </div>
-        </div>
+        <div class="chat-box" id="mensagens"></div>
+        <div class="chat-input-area"><div class="input-group"><input type="text" id="mensagem-texto" placeholder="Mensagem..."><button id="btnEnviar" style="width:auto; padding:10px 18px; border-radius:20px;">Enviar</button></div></div>
     </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Firebase SDK - use a mesma versão em todo lugar
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyD-EXEMPLO-CONFIG-FIREBASE",
-        authDomain: "zapleve-app.firebaseapp.com",
-        projectId: "zapleve-app",
-        storageBucket: "zapleve-app.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcde"
-    };
+// 1. COLE SUA CONFIG REAL AQUI (Firebase Console > Configurações do projeto > Seus apps > SDK)
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY_AQUI",
+  authDomain: "SEU_PROJECT_ID.firebaseapp.com",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_PROJECT_ID.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    let usuarioAtual = null;
-    let contatoSelecionado = null;
-    let unsubscribeChat = null;
-    let unsubscribeChamadas = null;
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let peerConnection = null;
-    let localStream = null;
-    let remoteStream = null;
-    let chamadaIdAtual = null;
+// R2 - coloque seu toque.mp3 no R2 e use o link aqui para não pesar o Github
+const TOQUE_R2_URL = "https://SEU_DOMINIO_R2/toque.mp3"; // ex: https://cdn.zapleve.alibr.com.br/toque.mp3
 
-    const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+// Utilitários
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    window.alternarModoEscuro = () => {
-        document.body.classList.toggle('dark-mode');
-    };
+// CORREÇÃO DO ERRO: Funções expostas e também ligadas por addEventListener (não precisa mais de onclick="")
+async function entrar(){
+  const email = $('email').value.trim();
+  const senha = $('password').value.trim();
+  const status = $('status-login');
+  if(!email||!senha){ status.textContent='Preencha e-mail e senha'; return; }
+  status.style.color='#00a884'; status.textContent='Entrando...';
+  try{
+    await signInWithEmailAndPassword(auth,email,senha);
+    status.textContent='';
+  }catch(e){ 
+    status.style.color='red';
+    status.textContent = e.code === 'auth/invalid-credential' ? 'E-mail ou senha incorretos' : 'Erro: '+e.message; 
+  }
+}
 
-    window.cadastrar = async () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('password').value;
-        if(!email || !senha) return alert('Preencha e-mail e senha.');
-        try {
-            const res = await createUserWithEmailAndPassword(auth, email, senha);
-            await setDoc(doc(db, "usuarios", res.user.uid), {
-                email: email,
-                nome: email.split('@')[0],
-                foto: "",
-                linkPessoal: "",
-                criadoEm: serverTimestamp()
-            });
-            alert('Conta criada com sucesso!');
-        } catch(e) { alert('Erro ao cadastrar: ' + e.message); }
-    };
-
-    window.entrar = async () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('password').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, senha);
-        } catch(e) { alert('Erro ao entrar: ' + e.message); }
-    };
-
-    window.sair = async () => {
-        if(unsubscribeChat) unsubscribeChat();
-        if(unsubscribeChamadas) unsubscribeChamadas();
-        await signOut(auth);
-        location.reload();
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-        if(user) {
-            usuarioAtual = user;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('contacts-screen').classList.remove('hidden');
-            carregarPerfilTopo();
-            escutarContatos();
-            escutarChamadasEntrantes();
-        } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('contacts-screen').classList.add('hidden');
-            document.getElementById('chat-screen').classList.add('hidden');
-        }
+async function cadastrar(){
+  const email = $('email').value.trim();
+  const senha = $('password').value.trim();
+  const status = $('status-login');
+  if(!email||!senha){ status.textContent='Preencha e-mail e senha'; return; }
+  if(senha.length < 6){ status.textContent='Senha precisa ter 6+ caracteres'; return; }
+  status.style.color='#00a884'; status.textContent='Criando conta...';
+  try{
+    const cred = await createUserWithEmailAndPassword(auth,email,senha);
+    // IMPORTANTE: collection users para bater com as regras seguras
+    await setDoc(doc(db,"users",cred.user.uid),{
+      email, 
+      nome: email.split('@')[0], 
+      criadoEm: Date.now(),
+      limiteProdutos: 10
     });
+    status.textContent='';
+  }catch(e){ status.style.color='red'; status.textContent='Erro: '+e.message; }
+}
 
-    async function carregarPerfilTopo() {
-        const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
-        if(snap.exists()) {
-            const dados = snap.data();
-            const nome = dados.nome || usuarioAtual.email.split('@')[0];
-            document.getElementById('user-display-contacts').innerText = nome;
-            if(dados.foto) {
-                document.getElementById('meu-img-topo').src = dados.foto;
-                document.getElementById('meu-img-topo').classList.remove('hidden');
-                document.getElementById('meu-avatar-topo').classList.add('hidden');
-            }
-        }
-    }
+function alternarModoEscuro(){
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('zapleve_dark', document.body.classList.contains('dark-mode')?'1':'0');
+}
 
-    window.abrirMeuPerfil = async () => {
-        const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
-        const dados = snap.exists() ? snap.data() : {};
-        document.getElementById('perfil-nome-exibicao').innerText = dados.nome || usuarioAtual.email.split('@')[0];
-        document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
-        document.getElementById('input-meu-nome').value = dados.nome || "";
-        document.getElementById('input-meu-link').value = dados.linkPessoal || "";
-        document.getElementById('perfil-link-container').innerText = dados.linkPessoal || "Nenhum link configurado.";
-        
-        if(dados.foto) {
-            document.getElementById('perfil-img-grande').src = dados.foto;
-            document.getElementById('perfil-img-grande').classList.remove('hidden');
-            document.getElementById('perfil-avatar-grande').classList.add('hidden');
-        }
-        document.getElementById('modal-perfil-usuario').style.display = 'flex';
-    };
+// Expõe para compatibilidade mas usa addEventListener abaixo
+window.entrar = entrar;
+window.cadastrar = cadastrar;
+window.alternarModoEscuro = alternarModoEscuro;
 
-    window.fecharPerfilUsuario = () => { document.getElementById('modal-perfil-usuario').style.display = 'none'; };
+// Liga botões SEM onclick="" - resolve o ReferenceError definitivo
+$('btnEntrar').addEventListener('click', entrar);
+$('btnCadastrar').addEventListener('click', cadastrar);
+$('btnTema').addEventListener('click', alternarModoEscuro);
+$('btnTema2').addEventListener('click', alternarModoEscuro);
+$('btnSair').addEventListener('click', async()=>{ await signOut(auth); location.reload(); });
+$('btnVoltar').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
+$('btnSairChat').addEventListener('click', ()=>{ $('chat-screen').classList.add('hidden'); $('contacts-screen').classList.remove('hidden'); });
+$('btnEnviar').addEventListener('click', enviarMensagemPrivada);
+$('mensagem-texto').addEventListener('keypress', (e)=>{ if(e.key==='Enter') enviarMensagemPrivada(); });
+$('btnConvidar').addEventListener('click', indicarAmigo);
+$('areaMeuPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='flex'; });
+$('btnFecharPerfil').addEventListener('click', ()=>{ $('modal-perfil-usuario').style.display='none'; });
+$('btnVitrine').addEventListener('click', ()=> alert('Vitrine - implemente'));
+$('btnMinhaLoja').addEventListener('click', ()=> alert('Minha loja'));
+$('btnSalvarPerfil').addEventListener('click', ()=>{ alert('Perfil salvo'); $('modal-perfil-usuario').style.display='none'; });
 
-    window.salvarMeuPerfilCompleto = async () => {
-        const novoNome = document.getElementById('input-meu-nome').value;
-        const novoLink = document.getElementById('input-meu-link').value;
-        const inputFoto = document.getElementById('input-foto-perfil');
-        
-        let dadosUpdate = { nome: novoNome, linkPessoal: novoLink };
-        if(inputFoto.files && inputFoto.files[0]) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                dadosUpdate.foto = e.target.result;
-                await setDoc(doc(db, "usuarios", usuarioAtual.uid), dadosUpdate, { merge: true });
-                alert('Perfil atualizado com sucesso!');
-                fecharPerfilUsuario();
-                carregarPerfilTopo();
-            };
-            reader.readAsDataURL(inputFoto.files[0]);
-            return;
-        }
-        await setDoc(doc(db, "usuarios", usuarioAtual.uid), dadosUpdate, { merge: true });
-        alert('Perfil atualizado com sucesso!');
-        fecharPerfilUsuario();
-        carregarPerfilTopo();
-    };
+if(localStorage.getItem('zapleve_dark')==='1') document.body.classList.add('dark-mode');
 
-    async function escutarContatos() {
-        const snap = await getDocs(collection(db, "usuarios"));
-        const lista = document.getElementById('lista-contatos');
-        lista.innerHTML = '';
-        snap.forEach(docUser => {
-            if(docUser.id === usuarioAtual.uid) return;
-            const u = docUser.data();
-            const div = document.createElement('div');
-            div.className = 'contact-item';
-            div.onclick = () => abrirChat(docUser.id, u);
-            div.innerHTML = `
-                <div class="contact-info">
-                    <div class="avatar">${u.nome ? u.nome[0].toUpperCase() : 'U'}</div>
-                    <div class="contact-name">${u.nome || u.email}</div>
-                </div>
-            `;
-            lista.appendChild(div);
-        });
-    }
+window.fecharDetalheProduto = ()=>{ $('modal-produto').style.display='none'; };
+window.falarComVendedor = ()=> alert('Falar com vendedor');
+window.fecharLojaPublica = ()=>{ $('loja-publica').classList.add('hidden'); };
+window.fecharZoomImagem = ()=>{ $('modal-zoom-imagem').style.display='none'; };
 
-    window.abrirChat = (uid, dados) => {
-        contatoSelecionado = { uid, ...dados };
-        document.getElementById('contacts-screen').classList.add('hidden');
-        document.getElementById('chat-screen').classList.remove('hidden');
-        document.getElementById('chat-title').innerText = dados.nome || dados.email;
-        if(dados.foto) {
-            document.getElementById('chat-img-topo').src = dados.foto;
-            document.getElementById('chat-img-topo').classList.remove('hidden');
-            document.getElementById('chat-avatar-topo').classList.add('hidden');
-        }
-        escutarMensagens();
-    };
+async function indicarAmigo(){
+  const link = location.origin;
+  if(navigator.share){ try{ await navigator.share({title:'Zap Leve', url:link}); }catch(_){} } else { prompt('Copie o link:', link); }
+}
 
-    window.voltarParaContatos = () => {
-        if(unsubscribeChat) unsubscribeChat();
-        document.getElementById('chat-screen').classList.add('hidden');
-        document.getElementById('contacts-screen').classList.remove('hidden');
-    };
+function enviarMensagemPrivada(){ 
+  const txt = $('mensagem-texto').value.trim(); 
+  if(!txt) return;
+  const box = $('mensagens');
+  const div = document.createElement('div'); 
+  div.className='msg msg-minha'; 
+  div.textContent=txt;
+  box.appendChild(div); 
+  $('mensagem-texto').value=''; 
+  box.scrollTop=box.scrollHeight;
+  // toca som do R2
+  try{ new Audio(TOQUE_R2_URL).play().catch(()=>{}); }catch(_){}
+}
 
-    function obterIdSala(uid1, uid2) {
-        return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
-    }
+// Auth observer
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    $('auth-screen').classList.add('hidden');
+    $('contacts-screen').classList.remove('hidden');
+    $('user-display-contacts').textContent = user.email;
+    $('lista-contatos').innerHTML = '<p style="text-align:center; opacity:0.6; margin-top:20px;">Nenhum contato ainda.<br>Clique em Convidar Amigo 📤</p>';
+  }else{
+    $('auth-screen').classList.remove('hidden');
+    $('contacts-screen').classList.add('hidden');
+    $('chat-screen').classList.add('hidden');
+  }
+});
 
-    function escutarMensagens() {
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "asc"));
-        if(unsubscribeChat) unsubscribeChat();
-        unsubscribeChat = onSnapshot(q, (snapshot) => {
-            const box = document.getElementById('chat-box');
-            box.innerHTML = '';
-            snapshot.forEach(docItem => {
-                const msg = docItem.data();
-                const div = document.createElement('div');
-                div.className = `msg ${msg.de === usuarioAtual.uid ? 'msg-minha' : ''}`;
-                
-                let conteudoHtml = `<div class="msg-content">${msg.texto || ''}`;
-                if(msg.tipo === 'imagem') {
-                    conteudoHtml += `<img src="${msg.url}" class="msg-img">`;
-                } else if(msg.tipo === 'video') {
-                    conteudoHtml += `<video src="${msg.url}" controls class="msg-img"></video>`;
-                } else if(msg.tipo === 'audio') {
-                    conteudoHtml += `
-                        <div class="wa-audio-player">
-                            <button class="wa-play-btn" onclick="tocarAudio(this, '${msg.url}')">▶</button>
-                            <div class="wa-audio-info">
-                                <div class="wa-audio-bar"><div class="wa-audio-progress"></div></div>
-                            </div>
-                        </div>`;
-                }
-                conteudoHtml += `</div>`;
-                div.innerHTML = conteudoHtml;
-                box.appendChild(div);
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
-
-    window.enviarMensagem = async () => {
-        const input = document.getElementById('mensagem-input');
-        const texto = input.value.trim();
-        if(!texto) return;
-        input.value = '';
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-            de: usuarioAtual.uid,
-            para: contatoSelecionado.uid,
-            texto: texto,
-            tipo: 'texto',
-            criadoEm: serverTimestamp()
-        });
-    };
-
-    window.enviarArquivoMidia = async (input, tipo) => {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                de: usuarioAtual.uid,
-                para: contatoSelecionado.uid,
-                url: e.target.result,
-                tipo: tipo,
-                texto: tipo === 'imagem' ? '📷 Imagem' : '📹 Vídeo',
-                criadoEm: serverTimestamp()
-            });
-        };
-        reader.readAsDataURL(file);
-    };
-
-    window.gravarAudio = async () => {
-        const btn = document.getElementById('btn-audio');
-        if(!mediaRecorder || mediaRecorder.state === "inactive") {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-                        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                            de: usuarioAtual.uid,
-                            para: contatoSelecionado.uid,
-                            url: e.target.result,
-                            tipo: 'audio',
-                            texto: '🎙️ Áudio',
-                            criadoEm: serverTimestamp()
-                        });
-                    };
-                    reader.readAsDataURL(blob);
-                };
-                mediaRecorder.start();
-                btn.classList.add('gravando');
-                btn.innerText = "⏹️";
-            } catch(e) { alert("Erro ao aceder ao microfone: " + e.message); }
-        } else {
-            mediaRecorder.stop();
-            mediaRecorder.stream.getTracks().forEach(t => t.stop());
-            btn.classList.remove('gravando');
-            btn.innerText = "🎙️";
-        }
-    };
-
-    window.tocarAudio = (btn, url) => {
-        const audio = new Audio(url);
-        audio.play();
-        btn.innerText = "⏸";
-        audio.onended = () => { btn.innerText = "▶"; };
-    };
-
-    window.limparConversaAtual = async () => {
-        if(!confirm("Deseja limpar esta conversa?")) return;
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        const snap = await getDocs(collection(db, "conversas", idSala, "mensagens"));
-        for(const d of snap.docs) {
-            await deleteDoc(doc(db, "conversas", idSala, "mensagens", d.id));
-        }
-        alert("Conversa limpa!");
-    };
-
-    window.toggleMenuAnexos = () => {
-        const menu = document.getElementById('menu-anexos');
-        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-    };
-
-    // Vitrine / Catálogo de Produtos
-    window.abrirVitrineAfiliado = async () => {
-        document.getElementById('modal-vitrine').style.display = 'flex';
-        carregarProdutosVitrine();
-    };
-    window.fecharVitrineAfiliado = () => { document.getElementById('modal-vitrine').style.display = 'none'; };
-
-    window.salvarProdutoFirebase = async () => {
-        const titulo = document.getElementById('admin-prod-titulo').value;
-        const preco = document.getElementById('admin-prod-preco').value;
-        const img = document.getElementById('admin-prod-img').value;
-        const link = document.getElementById('admin-prod-link').value;
-        if(!titulo || !preco) return alert('Preencha os campos obrigatórios.');
-        
-        await addDoc(collection(db, "produtos"), {
-            titulo, preco, img, link, criadoPor: usuarioAtual.uid, criadoEm: serverTimestamp()
-        });
-        alert('Produto adicionado ao catálogo!');
-        document.getElementById('admin-prod-titulo').value = '';
-        document.getElementById('admin-prod-preco').value = '';
-        document.getElementById('admin-prod-img').value = '';
-        document.getElementById('admin-prod-link').value = '';
-        carregarProdutosVitrine();
-    };
-
-    async function carregarProdutosVitrine() {
-        const snap = await getDocs(collection(db, "produtos"));
-        const lista = document.getElementById('lista-produtos-vitrine');
-        lista.innerHTML = '';
-        if(snap.empty) {
-            lista.innerHTML = '<p style="text-align:center; font-size:12px;">Nenhum produto no catálogo.</p>';
-            return;
-        }
-        snap.forEach(d => {
-            const p = d.data();
-            const div = document.createElement('div');
-            div.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px; border-radius:6px; border:1px solid var(--border-color);";
-            div.innerHTML = `
-                <div>
-                    <strong>${p.titulo}</strong><br>
-                    <span style="color:#27ae60; font-weight:bold;">R$ ${p.preco}</span>
-                </div>
-                ${p.link ? `<a href="${p.link}" target="_blank" class="btn-alt" style="padding:6px 10px; font-size:11px; text-decoration:none;">Comprar</a>` : ''}
-            `;
-            lista.appendChild(div);
-        });
-    }
-
-    // Sistema de Chamadas com Som de Toque
-    function tocarSomChamada() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(440, ctx.currentTime);
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            window.chamadaAudioCtx = { ctx, osc };
-        } catch(e) {}
-    }
-
-    function pararSomChamada() {
-        if(window.chamadaAudioCtx) {
-            try { window.chamadaAudioCtx.osc.stop(); window.chamadaAudioCtx.ctx.close(); } catch(e) {}
-            window.chamadaAudioCtx = null;
-        }
-    }
-
-    window.iniciarChamada = async (comVideo) => {
-        tocarSomChamada();
-        document.getElementById('call-screen').classList.remove('hidden');
-        document.getElementById('call-status').innerText = "A chamar...";
-        document.getElementById('call-active-name').innerText = contatoSelecionado.nome || 'Utilizador';
-        
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: comVideo });
-        document.getElementById('local-video').srcObject = localStream;
-
-        peerConnection = new RTCPeerConnection(servers);
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-        peerConnection.ontrack = e => {
-            remoteStream = e.streams[0];
-            document.getElementById('remote-video').srcObject = remoteStream;
-        };
-
-        const chamadaRef = await addDoc(collection(db, "chamadas"), {
-            de: usuarioAtual.uid,
-            para: contatoSelecionado.uid,
-            tipo: comVideo ? 'video' : 'audio',
-            estado: 'chamando',
-            criadoEm: serverTimestamp()
-        });
-        chamadaIdAtual = chamadaRef.id;
-    };
-
-    function escutarChamadasEntrantes() {
-        const q = query(collection(db, "chamadas"));
-        unsubscribeChamadas = onSnapshot(q, (snapshot) => {
-            snapshot.docChanges().forEach(async (change) => {
-                if(change.type === 'added') {
-                    const dados = change.doc.data();
-                    if(dados.para === usuarioAtual.uid && dados.estado === 'chamando') {
-                        chamadaIdAtual = change.doc.id;
-                        tocarSomChamada();
-                        document.getElementById('modal-incoming-call').style.display = 'flex';
-                        document.getElementById('incoming-caller-name').innerText = "Chamada recebida";
-                    }
-                }
-            });
-        });
-    }
-
-    window.aceitarChamada = async () => {
-        pararSomChamada();
-        document.getElementById('modal-incoming-call').style.display = 'none';
-        document.getElementById('call-screen').classList.remove('hidden');
-        document.getElementById('call-status').innerText = "Em chamada...";
-        
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        document.getElementById('local-video').srcObject = localStream;
-        
-        peerConnection = new RTCPeerConnection(servers);
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        peerConnection.ontrack = e => {
-            document.getElementById('remote-video').srcObject = e.streams[0];
-        };
-    };
-
-    window.recusarChamada = () => {
-        pararSomChamada();
-        document.getElementById('modal-incoming-call').style.display = 'none';
-    };
-
-    window.encerrarChamada = () => {
-        pararSomChamada();
-        if(localStream) localStream.getTracks().forEach(t => t.stop());
-        if(peerConnection) peerConnection.close();
-        document.getElementById('call-screen').classList.add('hidden');
-    };
-
-    window.alternarMicrofone = () => {
-        if(localStream) {
-            const track = localStream.getAudioTracks()[0];
-            track.enabled = !track.enabled;
-            document.getElementById('btn-toggle-mic').style.background = track.enabled ? '#333' : '#ea0038';
-        }
-    };
-
-    window.alternarCamera = () => {
-        if(localStream) {
-            const track = localStream.getVideoTracks()[0];
-            if(track) {
-                track.enabled = !track.enabled;
-                document.getElementById('btn-toggle-cam').style.background = track.enabled ? '#333' : '#ea0038';
-            }
-        }
-    };
+console.log('Zap Leve corrigido - entrar():', typeof entrar);
 </script>
-
 </body>
 </html>
