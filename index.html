@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zap Leve - Chat & Chamadas P2P Grátis</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00a884">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root {
             --bg-app: #ffffff;
@@ -68,137 +71,375 @@
         .logo-area { text-align: center; margin: 15px 0; }
         .logo-area span { font-size: 45px; }
         .logo-area h1 { font-size: 26px; color: var(--header-bg); margin: 5px 0 0 0; }
-        
-        #banner-topo { background: var(--header-bg); color: white; padding: 6px; text-align: center; font-size: 12px; font-weight: bold; display: none; width: 100%; z-index: 10; word-break: break-word; }
-        #banner-topo img { max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px; cursor: pointer; }
+
+        .botao-flutuante-loja {
+            position: fixed;
+            bottom: 125px;
+            right: 18px;
+            background-color: #27ae60;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            z-index: 999;
+            text-decoration: none;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .botao-flutuante-loja:hover { transform: scale(1.08); background-color: #219653; }
+        .botao-flutuante-loja svg { width: 24px; height: 24px; fill: currentColor; }
         
         input, textarea, button, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px; outline: none; background: var(--input-bg); color: var(--text-app); }
         input:focus { border-color: #00a884; }
         button { background: #00a884; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        button:hover { background: #008f72; }
+        button:hover { opacity: 0.9; }
         .btn-alt { background: #075e54; }
         .btn-danger { background: #ea0038; }
-        .btn-install { background: #005c4b; margin-top: 8px; }
         
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 400px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--bg-app); color: var(--text-app); padding: 20px; border-radius: 8px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
         .close-modal { background: #ea0038; padding: 8px 15px; margin-top: 15px; display: block; text-align: center; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
 
+        #lista-produtos-vitrine > p, #lista-produtos-vitrine > .col-total { grid-column: 1 / -1; }
         .contact-list { flex: 1; border: none; overflow-y: auto; padding: 0; margin-bottom: 10px; background: var(--bg-app); }
         .contact-item { padding: 12px 10px; margin-bottom: 2px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg-app); }
         .contact-item:hover { opacity: 0.8; }
         .contact-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: bold; flex-shrink: 0; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #075e54; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: bold; flex-shrink: 0; cursor: pointer; }
         .contact-name { font-weight: 500; color: var(--text-app); font-size: 15px; }
 
         .chat-box { flex: 1; border: none; overflow-y: auto; padding: 12px; margin-bottom: 0; background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; }
-        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); color: var(--text-app); max-width: 85%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); display: flex; gap: 8px; align-items: flex-start; word-break: break-word; position: relative; }
+        .msg { padding: 8px 12px; border-radius: 7.5px; background: var(--msg-outra); color: var(--text-app); max-width: 88%; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); display: flex; gap: 8px; align-items: flex-start; word-break: break-word; position: relative; }
         .msg-minha { background: var(--msg-minha); margin-left: auto; flex-direction: row-reverse; }
-        .msg-content { flex: 1; }
-        .msg-audio-btn, .msg-download-btn { background: #00a884; border: none; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: bold; }
-        .msg-download-btn { background: #0275d8; margin-left: 4px; }
+        .msg-content { flex: 1; overflow: hidden; }
+        
+        .msg-content a { color: #0275d8; text-decoration: underline; word-break: break-all; }
+        body.dark-mode .msg-content a { color: #58a6ff; }
+        
+        .embed-container { margin-top: 6px; border-radius: 6px; overflow: hidden; background: #000; width: 100%; max-width: 320px; aspect-ratio: 16/9; }
+        .embed-container iframe, .embed-container blockquote { width: 100%; height: 100%; border: none; margin: 0; }
+
+        .msg-download-btn { background: #014c8a; border: none; color: #ffffff; padding: 8px 14px; font-size: 13px; border-radius: 6px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .msg-download-btn:hover { background: #003366; }
         
         .msg-product-body { padding: 4px 0; display: flex; flex-direction: column; gap: 6px; }
 
-        /* PLAYER DE ÁUDIO */
         .wa-audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 20px; margin-top: 4px; min-width: 210px; }
         .wa-play-btn { width: 36px; height: 36px; border-radius: 50%; background: #00a884; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; margin: 0; }
-        .wa-play-btn:hover { background: #008f72; }
         .wa-audio-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
         .wa-audio-bar { width: 100%; height: 4px; background: #ccc; border-radius: 2px; position: relative; cursor: pointer; }
         .wa-audio-progress { height: 100%; background: #00a884; width: 0%; border-radius: 2px; transition: width 0.1s linear; }
         .wa-audio-time { font-size: 10px; opacity: 0.7; font-family: monospace; }
 
-        /* TELA DE CHAMADA P2P */
         #call-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111b21; z-index: 1000; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; color: white; }
-        .call-videos { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px; background: #000; margin: 10px 0; }
+        .call-videos { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px; background: #0b141a; margin: 10px 0; }
         #remote-video { width: 100%; height: 100%; object-fit: cover; }
         #local-video { position: absolute; bottom: 15px; right: 15px; width: 110px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid white; background: #222; }
+        
+        #call-placeholder-info { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; z-index: 2; }
+        .call-avatar-grande { width: 90px; height: 90px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold; border: 3px solid white; }
+
         .call-controls { display: flex; justify-content: center; gap: 20px; padding: 15px; }
         .call-btn { width: 56px; height: 56px; border-radius: 50%; border: none; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
         .btn-hangup { background: #ea0038; }
         .btn-mic, .btn-cam { background: #333; }
 
         .chat-input-area { display: flex; flex-direction: column; background: var(--input-bg); padding: 6px 10px; border-top: 1px solid var(--border-color); gap: 4px; }
-        .input-group { display: flex; gap: 6px; align-items: center; width: 100%; }
-        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px; border: 1px solid var(--border-color); color: var(--text-app); }
+        .input-group { display: flex; gap: 6px; align-items: center; width: 100%; position: relative; }
+        .input-group input { margin: 0; background: var(--bg-app); border-radius: 20px; padding: 10px 14px 10px 42px; border: 1px solid var(--border-color); color: var(--text-app); }
         
         .action-btn { width: 38px; height: 38px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; flex-shrink: 0; color: white; border: none; cursor: pointer; }
         .mic-rec-btn { background: #ff9800; }
         .mic-rec-btn.gravando { background: #ea0038; animation: pulsar 1.2s infinite; }
-        .media-btn-label { background: #607d8b; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         
+        .clip-btn { position: absolute; left: 6px; background: transparent; border: none; color: #54657f; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; padding: 0; margin: 0; z-index: 5; }
+        .clip-btn:hover { background: rgba(0,0,0,0.05); }
+
+        #menu-anexos { display: none; position: absolute; bottom: 65px; left: 10px; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; flex-direction: column; padding: 6px; width: 160px; }
+        .anexo-opcao { display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: var(--text-app); cursor: pointer; border-radius: 4px; text-decoration: none; }
+        .anexo-opcao:hover { background: var(--input-bg); }
+
         @keyframes pulsar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        /* CABEÇALHO LIMPO E SEM POLUIÇÃO */
         .header-top { display: flex; justify-content: space-between; align-items: center; background: var(--header-bg); color: white; padding: 10px 14px; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .user-info-area { display: flex; align-items: center; gap: 10px; }
-        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        .user-info-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         
-        /* BOTÕES FLUTUANTES MINIMALISTAS PARA AS RESPOSTAS RÁPIDAS (SEM FAIXA BRANCA) */
+        .texto-voltar { color: #ffffff; font-size: 14px; font-weight: bold; cursor: pointer; background: none; border: none; padding: 0; margin-right: 6px; text-decoration: underline; }
+        .texto-voltar:hover { opacity: 0.8; }
+
+        .usuario-editavel { font-size: 11px; color: #e0f2f1; cursor: pointer; text-decoration: underline; display: inline-block; }
+        .usuario-editavel:hover { color: #ffffff; }
+
+        .btn-topo-padrao { border: none; color: white; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 28px; padding: 0 8px; white-space: nowrap; }
+        .btn-topo-limpar { background: #ea0038; }
+        .btn-topo-video { background: #007bff; }
+        .btn-topo-telefone { background: #28a745; }
+        .btn-topo-sair { background: #ea0038; }
+        
         .quick-replies { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; white-space: nowrap; align-items: center; scrollbar-width: none; }
         .quick-replies::-webkit-scrollbar { display: none; }
         .quick-chip { background: var(--bg-app); border: 1px solid var(--border-color); color: var(--text-app); padding: 4px 10px; border-radius: 16px; font-size: 11px; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .quick-chip:hover { border-color: #00a884; color: #00a884; }
         .btn-config-quick { background: #075e54; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 
-        video, img.msg-img { max-width: 100%; border-radius: 6px; margin-top: 6px; display: block; }
-        img.msg-img { max-height: 220px; object-fit: cover; background: #000; }
+        video, img.msg-img { max-width: 100%; border-radius: 8px; margin-top: 6px; display: block; }
+        img.msg-img { max-height: 280px; width: 100%; object-fit: cover; background: #000; cursor: pointer; transition: opacity 0.2s; }
+        img.msg-img:hover { opacity: 0.92; }
+
+        #modal-zoom-imagem { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        #modal-zoom-imagem img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
+<script>
+// Aviso na tela se o app não carregar ou der erro (guarda o motivo do erro)
+(function () {
+    var ultimoErro = '';
+    function mostrar(t) {
+        var b = document.getElementById('zl-erro');
+        if (!b) { b = document.createElement('div'); b.id = 'zl-erro'; b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;font:12px sans-serif;padding:8px 10px;z-index:99999;'; document.body.appendChild(b); }
+        b.textContent = t;
+    }
+    window.addEventListener('error', function (e) {
+        if (e.target && e.target !== window && e.target.tagName !== 'SCRIPT') return; // ignora imagens quebradas
+        ultimoErro = e.message || (e.target && e.target.src ? 'falha ao carregar ' + e.target.src : 'falha ao carregar');
+        mostrar('Erro: ' + ultimoErro);
+    }, true);
+    window.addEventListener('unhandledrejection', function (e) {
+        ultimoErro = String((e.reason && e.reason.message) || e.reason);
+        mostrar('Erro: ' + ultimoErro);
+    });
+    window.__zlMostrarErro = function (t) { ultimoErro = t; mostrar('Erro: ' + t); };
+    setTimeout(function () {
+        if (typeof window.entrar !== 'function') mostrar('O app não terminou de carregar. ' + (ultimoErro ? 'Erro: ' + ultimoErro : 'Nenhum erro registrado: verifique a internet e atualize a página.'));
+    }, 8000);
+})();
+</script>
 
 <div class="container">
-    <div id="banner-topo"></div>
+    <!-- Detalhe do produto (ao tocar na foto do catálogo) -->
+    <div id="modal-produto" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.93); flex-direction:column; align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
+        <img id="mp-img" src="" alt="" style="max-width:100%; max-height:52vh; object-fit:contain; border-radius:6px; background:#fff; margin:0;">
+        <div id="mp-sem-img" style="display:none; font-size:80px;">📦</div>
+        <div style="color:white; text-align:center; margin-top:12px; max-width:420px;">
+            <b id="mp-titulo" style="font-size:16px; line-height:1.3;"></b><br>
+            <span id="mp-preco" style="font-size:20px; font-weight:bold; color:#7be0b8;"></span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin-top:16px;">
+            <button id="mp-btn-falar" style="background:#00a884; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="falarSobreProduto()">💬 Falar com o vendedor</button>
+            <button style="background:#5f6b73; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="fecharDetalheProduto()">↩ Voltar para o catálogo</button>
+        </div>
+    </div>
 
-    <!-- TELA DE CHAMADA DE VÍDEO / ÁUDIO P2P -->
+    <!-- Página pública da loja (zapleve.alibr.com.br/nomedaloja) -->
+    <div id="loja-publica" class="hidden" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; background: var(--bg-app); overflow-y:auto;">
+        <div style="background: var(--header-bg); color:white; padding:14px; display:flex; align-items:center; gap:10px;">
+            <img id="lp-foto" class="avatar hidden" src="" alt="">
+            <div id="lp-inicial" class="avatar">?</div>
+            <div>
+                <div id="lp-nome" style="font-weight:bold; font-size:17px;">Loja</div>
+                <div style="font-size:11px; opacity:0.85;">Loja no Zap Leve ⚡</div>
+            </div>
+        </div>
+        <div id="lp-lista" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 12px 100px 12px;"></div>
+        <div style="position:fixed; left:0; right:0; bottom:0; padding:10px; background: var(--bg-app); border-top:1px solid var(--border-color); display:flex; gap:8px;">
+            <button onclick="falarComVendedor()" style="flex:2; margin:0; padding:12px; border-radius:20px; font-size:14px;">💬 Falar com o vendedor</button>
+            <button class="btn-alt" onclick="fecharLojaPublica()" style="flex:1; margin:0; padding:12px; border-radius:20px; font-size:13px;">Abrir app</button>
+        </div>
+    </div>
+    <!-- Modal de Ampliação de Imagem -->
+    <div id="modal-zoom-imagem" onclick="fecharZoomImagem()">
+        <img id="imagem-zoom-src" src="">
+        <span style="color: white; margin-top: 15px; font-size: 13px; background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; cursor: pointer;">Toque em qualquer lugar para fechar</span>
+    </div>
+
+    <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine de Produtos">
+        <svg viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+    </button>
+
+    <!-- Modal de Perfil / Bio (Com aviso vermelho se incompleto, botão de instalação e edição do nome de utilizador) -->
+    <div id="modal-perfil-usuario" class="modal">
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;">
+            
+            <!-- Aviso Vermelho na Bio -->
+            <div id="alerta-perfil-bio" class="hidden" style="background-color: #ea0038; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; width: 100%; text-align: center; margin-bottom: 4px;">
+                ⚠️ Complete o seu perfil (Nome, foto, descrição e links)
+            </div>
+
+            <div id="perfil-avatar-container" style="position: relative;">
+                <div id="perfil-avatar-grande" class="avatar" style="width: 80px; height: 80px; font-size: 28px; margin-bottom: 5px;">?</div>
+                <img id="perfil-img-grande" class="hidden" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid white;" src="">
+            </div>
+            
+            <h3 id="perfil-nome-exibicao" style="margin: 0; font-size: 20px;">Nome do Utilizador</h3>
+            <p id="perfil-email-exibicao" style="margin: 0; font-size: 12px; opacity: 0.7;"></p>
+            
+            <!-- Botão Flutuante de Instalação no Perfil (se não instalado) -->
+            <button id="btn-instalar-no-perfil" class="hidden" style="background: #005c4b; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer;" onclick="abrirInstalacaoDoPerfil()">
+                📲 Baixar e Instalar Aplicativo
+            </button>
+
+            <button id="btn-ativar-push" class="hidden" style="background: #ea6a00; color: white; border: none; padding: 10px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;" onclick="ativarNotificacoes()">
+                🔔 Ativar avisos de chamada
+            </button>
+
+            <div style="width: 100%; background: var(--input-bg); padding: 12px; border-radius: 8px; margin-top: 5px; text-align: left; border: 1px solid var(--border-color);">
+                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold; color: var(--header-bg);">🌐 Link de Afiliado / Perfil do Utilizador:</p>
+                <div id="perfil-link-container" style="font-size: 13px; word-break: break-all;">Nenhum link configurado.</div>
+            </div>
+
+            <!-- Painel de Edição do Perfil (Nome, Foto e Link) -->
+            <div id="meu-painel-edicao-link" class="hidden" style="width: 100%; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; text-align: left;">
+                <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: bold;">Editar o Meu Perfil:</p>
+                
+                <label style="font-size: 11px; opacity: 0.8;">Meu Nome de Utilizador:</label>
+                <input type="text" id="input-meu-nome" placeholder="Digite seu nome" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+
+                <label style="font-size: 11px; opacity: 0.8;">Alterar Foto de Perfil:</label>
+                <input type="file" id="input-foto-perfil" accept="image/*" style="font-size: 11px; padding: 6px; margin-bottom: 6px;">
+                
+                <label style="font-size: 11px; opacity: 0.8;">Meu Link Pessoal / Afiliado / Vídeos:</label>
+                <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
+                
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
+                <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%;" onclick="copiarMeuLink()">🔗 Copiar meu link de atendimento</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #0b5ed7;" onclick="abrirNegocios()">🏢 Zap Leve Negócios (atendentes)</button>
+            </div>
+
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 06/10c · Negócios</p>
+            <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
+        </div>
+    </div>
+
+    <!-- TELA DE CHAMADA -->
     <div id="call-screen" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3 id="call-status" style="margin: 0; color: white;">A ligar...</h3>
             <button class="btn-danger" style="width: auto; padding: 6px 12px; font-size: 12px; border-radius: 4px;" onclick="encerrarChamada()">Desligar</button>
         </div>
         <div class="call-videos">
+            <div id="call-placeholder-info">
+                <div id="call-active-avatar" class="call-avatar-grande">?</div>
+                <h2 id="call-active-name" style="margin: 0; color: white; font-size: 22px;">Nome</h2>
+                <p style="margin: 0; color: #aaa; font-size: 13px;">A aguardar resposta...</p>
+            </div>
             <video id="remote-video" autoplay playsinline></video>
             <video id="local-video" autoplay playsinline muted></video>
         </div>
         <div class="call-controls">
-            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙️</button>
+            <button class="call-btn btn-mic" onclick="alternarMicrofone()" id="btn-toggle-mic">🎙</button>
             <button class="call-btn btn-cam" onclick="alternarCamera()" id="btn-toggle-cam">📷</button>
             <button class="call-btn btn-hangup" onclick="encerrarChamada()">📞</button>
         </div>
     </div>
 
-    <!-- MODAL DE CHAMADA RECEBIDA -->
+    <!-- MODAL DE CHAMADA ENTRANTE -->
     <div id="modal-incoming-call" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <h3 id="incoming-caller-text">📞 Chamada Entrante...</h3>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                <button class="btn-danger" style="padding: 10px 20px; width: auto; border-radius: 6px;" onclick="recusarChamada()">Recusar</button>
-                <button class="btn-alt" style="padding: 10px 20px; width: auto; border-radius: 6px; background: #00a884;" onclick="aceitarChamada()">Atender</button>
+        <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 25px;">
+            <div id="incoming-caller-avatar" class="avatar" style="width: 75px; height: 75px; font-size: 26px;">?</div>
+            <h3 id="incoming-caller-name" style="margin: 0; font-size: 18px;">Chamada Entrante...</h3>
+            <p style="margin: 0; font-size: 12px; opacity: 0.7;">A receber chamada de voz/vídeo</p>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px; width: 100%;">
+                <button class="btn-danger" style="flex: 1; padding: 10px; border-radius: 6px; margin: 0;" onclick="recusarChamada()">Recusar</button>
+                <button class="btn-alt" style="flex: 1; padding: 10px; border-radius: 6px; background: #00a884; margin: 0;" onclick="aceitarChamada()">Atender</button>
             </div>
         </div>
     </div>
 
-    <!-- ECRÃ DE LOGIN / AUTENTICAÇÃO -->
-    <div id="auth-screen" class="screen-content" style="justify-content: center;">
-        <div class="logo-area">
-            <span>⚡💬</span>
-            <h1>Zap Leve</h1>
-            <p style="font-size: 14px; margin: 6px 0 0 0; opacity: 0.8;">O chat ultraleve e inteligente</p>
+    <!-- MODAL ATENDIMENTO (Zap Leve Negócios) -->
+    <div id="modal-atendimento" class="modal">
+        <div class="modal-content">
+            <h3 id="atend-titulo" style="margin:0 0 8px 0;">🎧 Atendimento</h3>
+            <div id="atend-status" style="margin-bottom:8px;"></div>
+            <div id="atend-dono" class="hidden" style="background: var(--input-bg); padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid var(--border-color);"></div>
+            <p style="font-size:12px; font-weight:bold; margin:6px 0;">Conversas em andamento:</p>
+            <div id="atend-lista" style="max-height:38vh; overflow-y:auto;"></div>
+            <input type="file" id="logo-empresa-input" accept="image/*" style="display:none;" onchange="trocarLogoEmpresa(this)">
+            <div class="close-modal" onclick="fecharAtendimento()">Fechar</div>
         </div>
+    </div>
+
+    <!-- MODAL VITRINE -->
+    <div id="modal-vitrine" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 id="titulo-loja" style="margin:0;">🛍️ Vitrine de Produtos</h3>
+                <button id="btn-abrir-admin" class="btn-alt hidden" style="width:auto; padding:4px 8px; font-size:10px; margin:0; background:#d4a24c;" onclick="togglePainelAdmin()">⚙️ Painel Admin</button>
+            </div>
+
+            <div id="painel-admin-geral" class="hidden" style="background: var(--input-bg); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color);">
+                <div id="abas-admin" style="display:flex; gap:4px; margin-bottom:8px;">
+                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0;" onclick="mudarAbaAdmin('produtos')">📦 Produtos</button>
+                    <button class="btn-alt" style="flex:1; padding:5px; font-size:11px; margin:0; background:#333;" onclick="mudarAbaAdmin('utilizadores')">👥 Usuários e recursos</button>
+                </div>
+
+                <div id="aba-admin-produtos">
+                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Adicionar Produto:</p>
+                    <input type="text" id="admin-prod-titulo" placeholder="Nome do Produto" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-preco" placeholder="Preço (ex: 49.90)" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <label style="font-size:11px; opacity:0.8;">📷 Foto do produto (da galeria):</label>
+                    <input type="file" id="admin-prod-foto" accept="image/*" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-img" placeholder="ou cole o link da imagem" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <input type="text" id="admin-prod-link" placeholder="Link de Afiliado" style="font-size:11px; padding:6px; margin-bottom:6px;">
+                    <div id="bloco-extrator" class="hidden">
+                    <input type="text" id="admin-prod-link-ml" placeholder="Link normal do produto no Mercado Livre (só para preencher)" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                    <button class="btn-alt" id="btn-extrair-ml" style="padding:6px; font-size:11px; margin:0 0 4px 0; background:#ffb300; color:#222;" onclick="extrairProdutoML()">🔍 Preencher automaticamente (Mercado Livre)</button>
+                    <p style="font-size:10px; opacity:0.85; margin:0 0 6px 0; line-height:1.3;">⚠️ O preenchimento automático só funciona com links do <b>Mercado Livre</b>. Para Shopee, Amazon e Shein, preencha à mão.<br>Cole acima o <b>link normal</b> do produto (o que abre o anúncio). O seu link de afiliado vai no campo "Link de Afiliado".</p>
+                    </div>
+                    <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
+                </div>
+
+                <div id="aba-admin-utilizadores" class="hidden">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:bold; margin:0 0 8px 0; padding:8px; background: var(--bg-app); border-radius:6px; cursor:pointer;">
+                        <input type="checkbox" id="chk-extrator" style="width:auto; margin:0;" onchange="alternarExtratorML(this.checked)">
+                        🔍 Mostrar o extrator do Mercado Livre para os usuários
+                    </label>
+                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Definir Limite de Vitrine por Usuário:</p>
+                    <div id="lista-usuarios-admin" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                        <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="linha-endereco-loja" class="hidden" style="font-size:12px; background: var(--input-bg); padding:8px; border-radius:6px; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"></div>
+            <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
+            <div id="lista-produtos-vitrine" style="max-height: 62vh; overflow-y: auto; margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;">
+                <p style="text-align:center; font-size:12px;">A carregar...</p>
+            </div>
+            <div class="close-modal" onclick="fecharVitrineAfiliado()">Fechar</div>
+        </div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="auth-screen" class="screen-content" style="justify-content: center; max-width: 380px; margin: 0 auto;">
+        <div class="logo-area" style="margin-bottom: 25px;">
+            <span>⚡💬</span>
+            <h1 style="margin: 5px 0 0 0;">Zap Leve</h1>
+            <p style="font-size: 13px; margin: 4px 0 0 0; opacity: 0.7;">Chat P2P e utilitários integrados</p>
+        </div>
+        
+        <p id="aviso-convite" class="hidden" style="background:#e8f5e9; color:#1b5e20; padding:8px 10px; border-radius:6px; font-size:12px; font-weight:bold; text-align:center; margin:0 0 6px 0;"></p>
         <input type="email" id="email" placeholder="Seu e-mail">
         <input type="password" id="password" placeholder="Sua senha">
         
-        <label style="font-size: 13px; font-weight: bold; margin-top: 6px;">Foto de Perfil (Opcional):</label>
-        <input type="file" id="foto-input" accept="image/*" style="padding: 6px;">
+        <div style="display: flex; gap: 8px; margin: 6px 0;">
+            <button class="btn-alt" style="flex: 1; margin: 0; background: #0275d8;" onclick="entrar()">Entrar</button>
+            <button style="flex: 1; margin: 0; background: #28a745;" onclick="cadastrar()">Abrir Conta</button>
+        </div>
 
-        <button class="btn-alt" onclick="entrar()">Entrar</button>
-        <button onclick="cadastrar()">Criar Nova Conta</button>
-        <button class="btn-install" onclick="abrirInstalacao()">📲 Baixar App no Aparelho</button>
-        <button class="btn-alt" style="background: #333; margin-top: 15px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
+        <button class="btn-alt" style="background: #333; margin-top: 10px;" onclick="alternarModoEscuro()">🌓 Alternar Tema Claro / Escuro</button>
     </div>
 
-    <!-- MODAL DE INSTALAÇÃO -->
+    <!-- MODAL INSTALAÇÃO -->
     <div id="modal-instalar" class="modal">
         <div class="modal-content">
             <h3>📲 Instalar o Zap Leve</h3>
@@ -207,7 +448,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE GESTÃO DE RESPOSTAS RÁPIDAS -->
+    <!-- MODAL RESPOSTAS RÁPIDAS -->
     <div id="modal-quick-config" class="modal">
         <div class="modal-content">
             <h3>⚡ Gerir Respostas Rápidas</h3>
@@ -223,67 +464,57 @@
         </div>
     </div>
 
-    <!-- PAINEL ADMIN -->
-    <div id="admin-screen" class="hidden" style="background: var(--bg-app); border: 1px solid #00a884; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px;">
-        <h3 style="font-size: 13px; color: #00a884; margin-bottom: 6px;">⚙️ Painel do Administrador (Banner)</h3>
-        <label style="font-weight:bold;">Tipo de Banner:</label>
-        <select id="tipo-banner" onchange="alternarCamposBanner()" style="font-size:12px; padding:6px; margin-bottom:6px;">
-            <option value="html">Código HTML Livre</option>
-            <option value="imagem">Imagem com Link de Afiliado</option>
-        </select>
-        <div id="bloco-html">
-            <textarea id="admin-html" placeholder="Cole o código HTML do banner aqui..." style="font-size: 11px; padding: 6px; height: 50px;"></textarea>
-        </div>
-        <div id="bloco-imagem" class="hidden">
-            <input type="text" id="admin-img-url" placeholder="URL da Imagem do Banner" style="font-size: 11px; padding: 6px;">
-            <input type="text" id="admin-link-url" placeholder="Link de Afiliado ao clicar" style="font-size: 11px; padding: 6px;">
-        </div>
-        <button class="btn-alt" style="padding: 6px; font-size: 12px; margin-top:4px;" onclick="salvarBannerAdmin()">Salvar Banner</button>
-        <p style="font-weight: bold; margin: 8px 0 2px 0;">Utilizadores do Sistema:</p>
-        <div id="lista-usuarios-admin" style="max-height: 90px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--input-bg); border-radius: 4px; padding: 4px;">A carregar...</div>
-    </div>
-
-    <!-- ECRÃ DE CONTACTOS -->
+    <!-- TELA DE CONTACTOS -->
     <div id="contacts-screen" class="hidden screen-content" style="padding: 0;">
         <div class="header-top">
-            <div class="user-info-area">
-                <img id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; display:none;" src="">
-                <div id="meu-avatar-letra" class="avatar" style="width:36px; height:36px; font-size:13px; display:none;"></div>
+            <div class="user-info-area" onclick="abrirMeuPerfil()">
+                <div id="meu-avatar-topo-container" style="position:relative;">
+                    <div id="meu-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                    <img id="meu-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                </div>
                 <div>
                     <h3 style="margin:0; font-size: 15px; color: white;">Zap Leve ⚡</h3>
-                    <span style="font-size: 11px; color: #e0f2f1;" id="user-display-contacts"></span>
+                    <span class="usuario-editavel" id="user-display-contacts" title="Clique para ver seu perfil">A carregar...</span>
                 </div>
             </div>
-            <div style="display:flex; gap:6px;">
-                <button class="btn-alt" style="padding: 5px 8px; font-size: 11px; width: auto; margin:0; background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
-                <button class="btn-danger" style="padding: 5px 10px; font-size: 11px; width: auto; border-radius: 4px; margin:0;" onclick="sair()">Sair</button>
+            <div style="display:flex; gap:6px; align-items: center;">
+                <button class="btn-topo-padrao" style="background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
+                <button class="btn-topo-padrao btn-topo-sair btn-sair hidden" onclick="sair()">Sair</button>
             </div>
         </div>
         <div style="padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-            <p style="font-weight: 500; font-size: 13px; margin: 8px 0; opacity: 0.8;">Conversas e Contactos:</p>
+            <p style="font-weight: 500; font-size: 13px; margin: 12px 0 8px 0; opacity: 0.8; display: flex; justify-content: space-between;">Conversas e Contactos: </p>
             <div class="contact-list" id="lista-contatos">
                 <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
             </div>
-            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📢 Convidar Amigo</button>
+            <button id="btn-atendimento" class="btn-alt hidden" style="background:#0b5ed7; font-size:13px; padding:10px; border-radius:20px; margin-bottom:6px;" onclick="abrirAtendimento()">🎧 Atendimento (Zap Leve Negócios)</button>
+            <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📤 Compartilhar / Convidar Amigo</button>
         </div>
     </div>
 
-    <!-- ECRÃ DE CHAT PRIVADO -->
+    <!-- TELA DE CHAT -->
     <div id="chat-screen" class="hidden screen-content" style="padding: 0;">
-        <!-- CABEÇALHO DO CHAT COM OS BOTÕES DE CHAMADA VISÍVEIS -->
         <div class="header-top">
             <div class="user-info-area">
-                <button class="btn-alt" style="padding: 4px 8px; font-size: 13px; width: auto; margin:0; background: transparent; border: none;" onclick="voltarParaContatos()">⬅️</button>
-                <div>
-                    <h3 id="chat-title" style="margin:0; font-size: 15px; color: white;">Conversando...</h3>
-                    <span style="font-size: 11px; color: #e0f2f1;">online</span>
+                <span class="texto-voltar" onclick="voltarParaContatos()" title="Voltar para Contactos">voltar</span>
+                <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="abrirPerfilContatoSelecionado()">
+                    <div id="chat-avatar-topo-container" style="position:relative;">
+                        <div id="chat-avatar-topo" class="avatar" style="width:36px; height:36px; font-size:13px;">?</div>
+                        <img id="chat-img-topo" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover;" src="">
+                    </div>
+                    <div>
+                        <h3 id="chat-title" style="margin:0; font-size: 15px; color: white;">Conversando...</h3>
+                        <span style="font-size: 11px; color: #e0f2f1;">ver perfil 👤</span>
+                    </div>
                 </div>
             </div>
-            <div style="display:flex; gap:10px; align-items: center;">
-                <button onclick="iniciarChamada(true)" title="Vídeo Chamada" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer; padding:0;">📹</button>
-                <button onclick="iniciarChamada(false)" title="Chamada de Áudio" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer; padding:0;">📞</button>
-                <button class="btn-alt" style="padding: 5px 8px; font-size: 11px; width: auto; margin:0; background: rgba(0,0,0,0.2);" onclick="alternarModoEscuro()">🌓</button>
-                <button class="btn-danger" style="padding: 5px 10px; font-size: 11px; width: auto; border-radius: 4px; margin:0;" onclick="sair()">Sair</button>
+            <div style="display:flex; gap:5px; align-items: center;">
+                <button id="btn-assumir" class="btn-topo-padrao hidden" style="background:#28a745;" onclick="assumirConversa()">✋ Assumir</button>
+                <button id="btn-finalizar" class="btn-topo-padrao hidden" style="background:#6c4ab6;" onclick="finalizarConversa()">✔ Finalizar</button>
+                <button id="btn-limpar" class="btn-topo-padrao btn-topo-limpar" onclick="limparConversaAtual()" title="Limpar Conversa">Limpar</button>
+                <button id="btn-video" class="btn-topo-padrao btn-topo-video" onclick="iniciarChamada(true)" title="Vídeo Chamada">📹 Vídeo</button>
+                <button id="btn-audio" class="btn-topo-padrao btn-topo-telefone" onclick="iniciarChamada(false)" title="Chamada de Áudio">📞 Áudio</button>
+                <button class="btn-topo-padrao btn-topo-sair btn-sair hidden" onclick="sair()" title="Sair">Sair</button>
             </div>
         </div>
 
@@ -295,32 +526,642 @@
             <div class="chat-box" id="mensagens"></div>
             
             <div class="chat-input-area">
-                <!-- BARRA DE ATALHOS RÁPIDOS SEM FAIXA BRANCA (APENAS BOTÕES FLUTUANTES) -->
                 <div class="quick-replies" id="barra-atalhos-rapidos">
                     <button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>
                 </div>
                 <div class="input-group">
-                    <input type="text" id="mensagem-texto" placeholder="Mensagem..." onkeypress="if(event.key === 'Enter') enviarMensagemPrivada()">
-                    <button id="btn-gravar-audio" class="action-btn mic-rec-btn" onclick="toggleGravarAudio()" title="Gravar Áudio Local">🎙️</button>
-                    <label class="action-btn media-btn-label" title="Enviar Imagem">
-                        📷
-                        <input type="file" id="imagem-input" accept="image/*" style="display: none;" onchange="enviarImagemLocal(this)">
-                    </label>
-                    <label class="action-btn media-btn-label" title="Enviar Vídeo">
-                        📹
-                        <input type="file" id="video-input" accept="video/*" style="display: none;" onchange="enviarVideoLocal(this)">
-                    </label>
+                    <button class="clip-btn" onclick="toggleMenuAnexos(event)" title="Anexar Mídia">📎</button>
+
+                    <div id="menu-anexos">
+                        <div class="anexo-opcao" onclick="abrirMinhaLoja()">🛍️ Meus produtos</div>
+                        <label class="anexo-opcao">
+                            📷 Enviar Imagem
+                            <input type="file" id="imagem-input" accept="image/*" style="display: none;" onchange="enviarImagemGlobal(this); fecharMenuAnexos();">
+                        </label>
+                        <label class="anexo-opcao">
+                            📹 Enviar Vídeo
+                            <input type="file" id="video-input" accept="video/*" style="display: none;" onchange="enviarVideoGlobal(this); fecharMenuAnexos();">
+                        </label>
+                    </div>
+
+                    <input type="text" id="mensagem-texto" placeholder="Mensagem ou link (www..., https://...)" onkeypress="if(event.key === 'Enter') enviarMensagemPrivada()">
+                    <button id="btn-gravar-audio" class="action-btn mic-rec-btn" onclick="toggleGravarAudio()" title="Gravar Áudio Global">🎙️</button>
                 </div>
-                <button onclick="enviarMensagemPrivada()" style="padding: 8px; font-size: 13px; border-radius: 20px; background: #00a884;">Enviar com Correção PT</button>
+                <button onclick="enviarMensagemPrivada()" style="padding: 8px; font-size: 13px; border-radius: 20px; background: #00a884;">Enviar Mensagem / Link</button>
             </div>
         </div>
     </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    // <<CARREGADOR-FIREBASE>>
+    // Carrega o Firebase com 2 tentativas; se a rede bloquear, o motivo aparece na tela (nunca fica 'sem botões' em silêncio)
+    const FB = 'https://www.gstatic.com/firebasejs/10.8.0/';
+    const importar = async (arq) => { try { return await import(FB + arq + '.js'); } catch (e1) { await new Promise((r) => setTimeout(r, 800)); return await import(FB + arq + '.js'); } };
+    let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove, runTransaction, deleteField, getMessaging, getToken;
+    try {
+        const [A, B, C] = await Promise.all([importar('firebase-app'), importar('firebase-auth'), importar('firebase-firestore')]);
+        ({ initializeApp } = A);
+        ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } = B);
+        ({ getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove, runTransaction, deleteField } = C);
+    } catch (e) {
+        if (window.__zlMostrarErro) window.__zlMostrarErro('Falha ao carregar o Firebase (' + e.message + '). Verifique a internet, bloqueadores de anúncio e o DNS privado.');
+        throw e;
+    }
+    // Avisos de chamada: módulo opcional (se falhar, o resto do app continua funcionando)
+    const carregarMessaging = async () => { if (!getMessaging) { const M = await importar('firebase-messaging'); ({ getMessaging, getToken } = M); } };
+    carregarMessaging().catch((e) => console.warn('Messaging:', e.message));
+    // <<FIM-CARREGADOR>>
+
+
+    // Segurança: escape de HTML e validação de URLs
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const urlSegura = (u, midia = false) => {
+        u = String(u || '').trim();
+        if (/^https?:\/\//i.test(u)) return u;
+        if (midia && /^data:(image|video|audio)\/[a-z0-9.+-]+;base64,/i.test(u)) return u;
+        return '';
+    };
+    const contatosCache = {};
+    const lerCache = (k, ttl) => { try { const o = JSON.parse(localStorage.getItem(k)); if (o && Date.now() - o.ts < ttl) return o.d; } catch (_) {} return null; };
+    const salvarCache = (k, d) => { try { localStorage.setItem(k, JSON.stringify({ ts: Date.now(), d })); } catch (_) {} };
+    const entradaDir = (x) => ({
+        n: String(x.nome || String(x.email || '').split('@')[0] || 'Usuário').slice(0, 60),
+        f: /^https?:\/\//i.test(x.fotoUrl || '') ? String(x.fotoUrl).slice(0, 300) : '',
+        l: String(x.linkPessoal || '').slice(0, 200)
+    });
+    let msgsAtuais = [], msgsChave = '', msgsBase = 0, temAnteriores = false, tokenEscuta = 0;
+
+    // Contas sem documento de perfil (cadastro interrompido) não conseguem salvar nada: cria só os campos básicos
+    async function garantirDocUsuario() {
+        await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 10 }, { merge: true });
+    }
+
+    // Perfil próprio em cache (24 h): evita ler o Firestore a cada abertura
+    async function obterMeuPerfil(forcar = false) {
+        const chave = 'zl_perfil_' + usuarioAtual.uid;
+        const c = forcar ? null : lerCache(chave, 24 * 3600 * 1000);
+        if (c) return c;
+        const snap = await getDoc(doc(db, "usuarios", usuarioAtual.uid));
+        if (!snap.exists()) {
+            try { await garantirDocUsuario(); } catch (err) { console.warn('Perfil:', err.message); }
+            return { email: usuarioAtual.email };
+        }
+        const d = snap.data();
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
+        salvarCache(chave, p);
+        return p;
+    }
+
+    // Contatos PRIVADOS: cada usuário tem a própria agenda (1 documento) e um link de atendimento
+    const gerarHandle = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+    const perfilPublico = (p) => ({ uid: usuarioAtual.uid, ...entradaDir(p) });
+    let unsubAgenda = null;
+
+    (function () { // convite de atendente: ?emp=<uid>&c=<codigo>
+        const q = new URLSearchParams(location.search);
+        const emp = q.get('emp'), c = q.get('c');
+        if (emp && c && /^[A-Za-z0-9]{20,40}$/.test(emp) && /^[a-z0-9]{8,16}$/.test(c)) {
+            localStorage.setItem('zl_convite_emp', emp + ':' + c);
+            history.replaceState(null, '', location.pathname);
+        }
+    })();
+    const slugInicial = (function () {
+        let s = new URLSearchParams(location.search).get('s') || location.pathname.replace(/^\/+|\/+$/g, '');
+        s = String(s || '').toLowerCase();
+        if (!/^[a-z0-9-]{3,30}$/.test(s)) return '';
+        history.replaceState(null, '', '/' + s);
+        return s;
+    })();
+    let lojaPublica = null;
+    let lojaPublicaItens = [];
+    let detalheProduto = null;
+    const RESERVADOS = ['admin', 'api', 'app', 'index', 'login', 'sw', 'manifest', 'toque', 'icon', 'badge', 'cname', 'loja', 'lojas', 'perfil', 'config', 'u', 'www'];
+    const limparSlug = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+
+    (function () { // link de convite: ?u=codigo
+        const h = new URLSearchParams(location.search).get('u');
+        if (h && /^[a-z0-9]{6,12}$/.test(h)) { localStorage.setItem('zl_convite', h); history.replaceState(null, '', location.pathname); }
+    })();
+
+    async function garantirHandle(p) {
+        if (p.handle) return p.handle;
+        if (p.limiteProdutos === undefined) return ''; // conta ainda sendo criada
+        for (let i = 0; i < 3; i++) {
+            const h = gerarHandle();
+            try {
+                await setDoc(doc(db, "perfis", h), perfilPublico(p));
+                await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { handle: h });
+                p.handle = h;
+                salvarCache('zl_perfil_' + usuarioAtual.uid, p);
+                localStorage.setItem('zl_pubmeu_' + usuarioAtual.uid, JSON.stringify(perfilPublico(p)));
+                return h;
+            } catch (err) { console.warn('Link de atendimento:', err.message); }
+        }
+        return '';
+    }
+
+    async function sincronizarPerfilPublico(p) {
+        if (!p.handle) return;
+        const pub = perfilPublico(p);
+        const chave = 'zl_pubmeu_' + usuarioAtual.uid;
+        if (localStorage.getItem(chave) === JSON.stringify(pub)) return;
+        try { await setDoc(doc(db, "perfis", p.handle), pub); localStorage.setItem(chave, JSON.stringify(pub)); }
+        catch (err) { console.warn('Perfil público:', err.message); }
+    }
+
+    // Coloca "eu" na agenda do outro (com meu token de aviso) para ele poder me chamar
+    async function apresentarAoContato(uidOutro) {
+        const meu = await obterMeuPerfil();
+        const base = entradaDir({ ...meu, email: usuarioAtual.email });
+        const k = (localStorage.getItem('zapleve_fcm_' + usuarioAtual.uid) || '').slice(0, 400);
+        const sig = JSON.stringify({ ...base, k });
+        const chave = 'zl_hs_' + usuarioAtual.uid + '_' + uidOutro;
+        if (localStorage.getItem(chave) === sig) return;
+        await setDoc(doc(db, "agenda", uidOutro), { c: { [usuarioAtual.uid]: { ...base, k, t: Date.now() } } }, { merge: true });
+        localStorage.setItem(chave, sig);
+    }
+
+    async function processarConvite() {
+        const h = localStorage.getItem('zl_convite');
+        if (!h || !usuarioAtual) return;
+        localStorage.removeItem('zl_convite');
+        try {
+            const snap = await getDoc(doc(db, "perfis", h));
+            if (!snap.exists()) return alert('Link de convite inválido ou expirado.');
+            const p = snap.data();
+            if (p.uid === usuarioAtual.uid) return;
+            await setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { [p.uid]: { n: p.n || 'Usuário', f: p.f || '', l: p.l || '', t: Date.now() } } }, { merge: true });
+            await apresentarAoContato(p.uid);
+            window.abrirChat(p.uid, p.n || 'Usuário', p.f || '');
+        } catch (e) { alert('Erro ao abrir o convite: ' + e.message); }
+    }
+
+    async function meuLinkAtendimento() {
+        let url = window.location.origin + '/';
+        try {
+            const p = await obterMeuPerfil();
+            if (p.slug) return url + p.slug;
+            const h = p.handle || await garantirHandle(p);
+            if (h) url += '?u=' + h;
+        } catch (_) {}
+        return url;
+    }
+
+    // ---------- página pública da loja ----------
+    async function abrirLojaPublica(slug) {
+        const ov = document.getElementById('loja-publica');
+        const lista = document.getElementById('lp-lista');
+        ov.classList.remove('hidden');
+        lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px;'>Carregando loja...</p>";
+        try {
+            const sp = await getDoc(doc(db, "slugs", slug));
+            if (!sp.exists()) { lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px;'>Loja não encontrada.</p>"; return; }
+            const p = sp.data();
+            lojaPublica = { uid: p.uid, n: p.n || 'Loja', f: p.f || '', slug, e: !!p.e };
+            const btnF = document.querySelector('#loja-publica button[onclick="falarComVendedor()"]');
+            if (btnF) btnF.innerText = p.e ? '💬 Falar com o atendimento' : '💬 Falar com o vendedor';
+            const lp = await getDoc(doc(db, "lojas", p.uid));
+            const loja = lp.exists() ? lp.data() : { itens: [] };
+            const nome = loja.nome || p.n || 'Loja';
+            document.getElementById('lp-nome').innerText = nome;
+            document.title = nome + ' - Zap Leve';
+            const foto = urlSegura(p.f, true);
+            const img = document.getElementById('lp-foto'), ini = document.getElementById('lp-inicial');
+            if (foto) { img.src = foto; img.classList.remove('hidden'); ini.classList.add('hidden'); }
+            else { ini.innerText = nome.charAt(0).toUpperCase(); ini.classList.remove('hidden'); img.classList.add('hidden'); }
+            const itens = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            lojaPublicaItens = itens;
+            if (!itens.length) { lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px; opacity:0.7;'>Esta loja ainda não tem produtos.</p>"; return; }
+            lista.innerHTML = '';
+            itens.forEach((prod) => {
+                const im = urlSegura(prod.imagem);
+                const link = linkPermitido(prod.link) ? urlSegura(prod.link) : '';
+                lista.innerHTML += `
+                    <div style="background: var(--input-bg); border-radius:10px; border:1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column;">
+                        ${im ? `<img src="${esc(im)}" onclick="abrirDetalheProduto('${esc(prod.id)}', true)" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">` : `<div onclick="abrirDetalheProduto('${esc(prod.id)}', true)" style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05); cursor:pointer;">📦</div>`}
+                        <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
+                            <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
+                            ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
+                            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="margin-top:auto; display:block; text-align:center; background:#00a884; color:white; padding:8px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:12px;">Ver mais 🔗</a>` : ''}
+                        </div>
+                    </div>`;
+            });
+        } catch (e) {
+            lista.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:13px; color:red;'>Não foi possível carregar a loja.</p>";
+        }
+    }
+
+    window.fecharLojaPublica = () => { document.getElementById('loja-publica').classList.add('hidden'); };
+
+    // Foto do catálogo -> tela do produto com "Falar com o vendedor" e "Voltar para o catálogo"
+    window.abrirDetalheProduto = (id, publica = false) => {
+        const lista = publica ? lojaPublicaItens : cacheProdutosVitrine;
+        const prod = lista.find((p) => p.id === id);
+        if (!prod) return;
+        const origem = publica ? 'publica' : (lojaCtx.modo === 'ver' && noChat() ? 'chat' : 'ver');
+        detalheProduto = { prod, origem };
+        const im = urlSegura(prod.imagem, true);
+        const img = document.getElementById('mp-img'), sem = document.getElementById('mp-sem-img');
+        if (im) { img.src = im; img.style.display = 'block'; sem.style.display = 'none'; }
+        else { img.style.display = 'none'; sem.style.display = 'block'; }
+        document.getElementById('mp-titulo').innerText = prod.titulo || 'Produto';
+        document.getElementById('mp-preco').innerText = prod.preco ? 'R$ ' + fmtPreco(prod.preco) : '';
+        const meuProprio = origem === 'publica' && usuarioAtual && lojaPublica && lojaPublica.uid === usuarioAtual.uid;
+        document.getElementById('mp-btn-falar').innerText = (origem === 'publica' && lojaPublica && lojaPublica.e) ? '💬 Falar com o atendimento' : '💬 Falar com o vendedor';
+        document.getElementById('mp-btn-falar').style.display = ((origem === 'chat' || origem === 'publica') && !meuProprio) ? 'block' : 'none';
+        document.getElementById('modal-produto').style.display = 'flex';
+    };
+
+    window.fecharDetalheProduto = () => { document.getElementById('modal-produto').style.display = 'none'; };
+
+    // Manda o cartão do produto (com o botão Comprar) para o chat com o vendedor
+    async function enviarInteresseProduto(prod) {
+        if (!contatoSelecionado || !usuarioAtual || !prod) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const preco = prod.preco ? ' — R$ ' + fmtPreco(prod.preco) : '';
+        await postarMensagem({
+            texto: `Olá! Tenho interesse neste produto: ${String(prod.titulo || 'produto').slice(0, 100)}${preco}`,
+            imagemUrlProduto: urlSegura(prod.imagem, true) ? String(prod.imagem).slice(0, 500) : '',
+            linkAfiliado: linkPermitido(prod.link) ? String(prod.link).slice(0, 500) : '',
+            remetente: usuarioAtual.email,
+            tipo: 'produto',
+            criadoEm: serverTimestamp()
+        });
+    }
+
+    window.falarSobreProduto = async () => {
+        const d = detalheProduto;
+        if (!d) return;
+        try {
+            if (d.origem === 'chat') {
+                await enviarInteresseProduto(d.prod);
+                window.fecharDetalheProduto();
+                window.fecharVitrineAfiliado();
+                return;
+            }
+            if (!usuarioAtual) { // visitante sem conta: guarda o produto e o vendedor para depois do login
+                localStorage.setItem('zl_convite_slug', lojaPublica.slug);
+                localStorage.setItem('zl_produto_pendente', JSON.stringify({ titulo: d.prod.titulo || '', preco: d.prod.preco || '', imagem: d.prod.imagem || '', link: d.prod.link || '' }));
+                window.fecharDetalheProduto();
+                window.fecharLojaPublica();
+                const av = document.getElementById('aviso-convite');
+                av.textContent = '💬 Entre ou abra uma conta para falar com ' + lojaPublica.n + ' sobre este produto';
+                av.classList.remove('hidden');
+                return;
+            }
+            window.fecharDetalheProduto();
+            await conectarComVendedor(lojaPublica, d.prod);
+        } catch (e) { alert('Erro ao falar com o vendedor: ' + e.message); }
+    };
+
+    async function conectarComVendedor(p, prod) {
+        if (p.uid === usuarioAtual.uid) return alert('Esta é a sua loja.');
+        const nome = p.n || 'Vendedor';
+        window.fecharLojaPublica();
+        if (p.e) { // loja com atendimento (Zap Leve Negócios): conversa com a empresa, não com uma pessoa
+            await abrirChatEmpresaCliente(p.uid, nome, p.f || '');
+            if (prod) await enviarInteresseProduto(prod);
+            return;
+        }
+        await setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { [p.uid]: { n: nome, f: p.f || '', l: '', t: Date.now() } } }, { merge: true });
+        await apresentarAoContato(p.uid);
+        window.abrirChat(p.uid, nome, p.f || '');
+        if (prod) await enviarInteresseProduto(prod);
+    }
+
+    window.falarComVendedor = async () => {
+        if (!lojaPublica) return;
+        if (!usuarioAtual) {
+            localStorage.setItem('zl_convite_slug', lojaPublica.slug);
+            localStorage.removeItem('zl_produto_pendente');
+            window.fecharLojaPublica();
+            const av = document.getElementById('aviso-convite');
+            av.textContent = '💬 Entre ou abra uma conta para falar com ' + lojaPublica.n;
+            av.classList.remove('hidden');
+            return;
+        }
+        try { await conectarComVendedor(lojaPublica); } catch (e) { alert('Erro ao conectar: ' + e.message); }
+    };
+
+    async function processarConviteSlug() {
+        const sl = localStorage.getItem('zl_convite_slug');
+        if (!sl || !usuarioAtual) return;
+        localStorage.removeItem('zl_convite_slug');
+        try {
+            const sp = await getDoc(doc(db, "slugs", sl));
+            if (!sp.exists()) return;
+            const p = sp.data();
+            let prod = null;
+            try { prod = JSON.parse(localStorage.getItem('zl_produto_pendente') || 'null'); } catch (_) {}
+            localStorage.removeItem('zl_produto_pendente');
+            await conectarComVendedor({ uid: p.uid, n: p.n, f: p.f, slug: sl, e: !!p.e }, prod);
+        } catch (e) { alert('Erro ao abrir a loja: ' + e.message); }
+    }
+
+    let audioCtx = null;
+    let ringInterval = null;
+    let cacheProdutosVitrine = [];
+    let meuNomeAtual = "";
+    
+    const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
+
+    // Instalação PWA
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        atualizarVisibilidadeBotaoInstalacao();
+    });
+
+    function verificarSeEstaInstalado() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function atualizarVisibilidadeBotaoInstalacao() {
+        const btnPush = document.getElementById('btn-ativar-push');
+        if (btnPush) {
+            if ('Notification' in window && Notification.permission !== 'granted') btnPush.classList.remove('hidden');
+            else btnPush.classList.add('hidden');
+        }
+        const btnInstalar = document.getElementById('btn-instalar-no-perfil');
+        if (!btnInstalar) return;
+        if (!verificarSeEstaInstalado()) {
+            btnInstalar.classList.remove('hidden');
+        } else {
+            btnInstalar.classList.add('hidden');
+        }
+    }
+
+    window.abrirInstalacaoDoPerfil = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                deferredPrompt = null;
+                document.getElementById('btn-instalar-no-perfil').classList.add('hidden');
+            }
+        } else {
+            const instrucoes = document.getElementById('instrucoes-texto');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                instrucoes.innerHTML = "Para instalar no seu iPhone/iPad:<br>1. Toque no botão de <b>Partilha</b> (quadrado com seta para cima) no Safari.<br>2. Role para baixo e escolha <b>'Adicionar ao Ecrã Principal'</b>.";
+            } else {
+                instrucoes.innerHTML = "Para instalar no seu dispositivo:<br>1. Toque no menu do navegador (três pontos no canto superior direito).<br>2. Selecione <b>'Instalar aplicativo'</b> ou <b>'Adicionar à tela inicial'</b>.";
+            }
+            document.getElementById('modal-instalar').style.display = 'flex';
+        }
+    };
+
+    window.fecharInstalacao = () => {
+        document.getElementById('modal-instalar').style.display = 'none';
+    };
+
+    // Push de chamadas (app fechado)
+    const VAPID_KEY = 'BCawnk4OcT7_geAcyKsPZb8EKiYzIsFoFWvdu4qnjwIXdS1f9eEkOxSAscZFCpfIbBXdiS0-WrB3bfmUQ00_L1M';
+
+    async function obterTokenPush() {
+        await carregarMessaging();
+        let reg = await navigator.serviceWorker.register('sw.js');
+        await navigator.serviceWorker.ready;
+        const pedir = (r) => getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: r });
+        try { return await pedir(reg); }
+        catch (e) {
+            // limpa inscrição antiga e tenta mais uma vez
+            try { const sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); await reg.unregister(); } catch (_) {}
+            reg = await navigator.serviceWorker.register('sw.js');
+            await navigator.serviceWorker.ready;
+            return await pedir(reg);
+        }
+    }
+
+    async function registrarPush() {
+        if (!usuarioAtual || !('serviceWorker' in navigator) || !('Notification' in window)) return false;
+        const token = await obterTokenPush();
+        // só grava no Firestore se o token mudou (economiza escritas)
+        if (token && localStorage.getItem('zapleve_fcm_' + usuarioAtual.uid) !== token) {
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fcmToken: token });
+            localStorage.setItem('zapleve_fcm_' + usuarioAtual.uid, token);
+        }
+        return !!token;
+    }
+
+    window.ativarNotificacoes = async () => {
+        try {
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') return alert('Permissão negada. Ative as notificações deste site nas configurações do navegador.');
+            await registrarPush();
+            alert('Avisos de chamada ativados!');
+            atualizarVisibilidadeBotaoInstalacao();
+        } catch (e) { alert('Erro ao ativar avisos: ' + e.message); }
+    };
+
+    window.testarAviso = async () => {
+        const rel = [];
+        try {
+            rel.push('Permissão: ' + (('Notification' in window) ? Notification.permission : 'sem suporte'));
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                return alert(rel.join('\n') + '\n\nToque em "Ativar avisos de chamada" primeiro.');
+            }
+            const token = await obterTokenPush();
+            rel.push('Service worker: ok');
+            rel.push('Token: ' + (token ? 'gerado' : 'vazio'));
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fcmToken: token });
+            localStorage.setItem('zapleve_fcm_' + usuarioAtual.uid, token);
+            rel.push('Salvo no Firestore: sim');
+            const idToken = await auth.currentUser.getIdToken();
+            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token, nome: 'Teste', video: false, teste: true }) });
+            rel.push('Worker: ' + r.status + ' ' + (await r.text()).slice(0, 200));
+        } catch (e) { rel.push('ERRO: ' + e.message); }
+        alert(rel.join('\n'));
+    };
+
+    function registrarPushSePermitido() {
+        if ('Notification' in window && Notification.permission === 'granted') registrarPush().catch(() => {});
+    }
+
+    async function enviarPushChamada(comVideo) {
+        try {
+            const c = contatosCache[contatoSelecionado.uid];
+            const tk = c && c.token;
+            if (!tk) { console.log('Contato sem aviso de chamada ativado.'); return; }
+            const idToken = await auth.currentUser.getIdToken();
+            const r = await fetch(`${R2_WORKER}/notificar`, { method: 'POST', headers: { Authorization: 'Bearer ' + idToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tk, nome: meuNomeAtual, video: !!comVideo }) });
+            if (!r.ok) console.warn('Push falhou', r.status, (await r.text()).slice(0, 300));
+        } catch (e) { console.warn('Erro no push:', e.message); }
+    }
+
+    // Zoom de Imagem
+    window.ampliarImagem = (src) => {
+        document.getElementById('imagem-zoom-src').src = src;
+        document.getElementById('modal-zoom-imagem').style.display = 'flex';
+    };
+
+    window.fecharZoomImagem = () => {
+        document.getElementById('modal-zoom-imagem').style.display = 'none';
+    };
+
+    window.toggleMenuAnexos = (e) => {
+        e.stopPropagation();
+        const menu = document.getElementById('menu-anexos');
+        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.fecharMenuAnexos = () => {
+        document.getElementById('menu-anexos').style.display = 'none';
+    };
+
+    window.addEventListener('click', () => {
+        fecharMenuAnexos();
+    });
+
+    window.abrirMeuPerfil = async () => {
+        if (!usuarioAtual) return;
+        const dados = await obterMeuPerfil();
+        
+        const avatarGrande = document.getElementById('perfil-avatar-grande');
+        const imgGrande = document.getElementById('perfil-img-grande');
+
+        if (dados.fotoUrl) {
+            imgGrande.src = dados.fotoUrl;
+            imgGrande.classList.remove('hidden');
+            avatarGrande.classList.add('hidden');
+        } else {
+            avatarGrande.innerText = (dados.nome || usuarioAtual.email).charAt(0).toUpperCase();
+            avatarGrande.classList.remove('hidden');
+            imgGrande.classList.add('hidden');
+        }
+
+        const nomeDoUser = dados.nome || usuarioAtual.email.split('@')[0];
+        document.getElementById('perfil-nome-exibicao').innerText = nomeDoUser;
+        document.getElementById('perfil-email-exibicao').innerText = usuarioAtual.email;
+        document.getElementById('input-meu-nome').value = nomeDoUser;
+        
+        // Verificar se perfil está incompleto para mostrar aviso vermelho na Bio
+        const alertaBio = document.getElementById('alerta-perfil-bio');
+        if (!dados.nome || dados.nome.trim() === "" || dados.nome.includes("@") || !dados.linkPessoal) {
+            alertaBio.classList.remove('hidden');
+        } else {
+            alertaBio.classList.add('hidden');
+        }
+
+        const linkSalvo = dados.linkPessoal || "";
+        const linkContainer = document.getElementById('perfil-link-container');
+        if (linkSalvo) {
+            linkContainer.innerHTML = '';
+            const aLink = document.createElement('a');
+            aLink.href = urlSegura(linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo) || '#';
+            aLink.target = '_blank';
+            aLink.rel = 'noopener noreferrer';
+            aLink.style.cssText = 'color: #0275d8; text-decoration: underline;';
+            aLink.textContent = linkSalvo;
+            linkContainer.appendChild(aLink);
+        } else {
+            linkContainer.innerText = "Nenhum link ou vídeo configurado.";
+        }
+
+        document.getElementById('input-meu-link').value = linkSalvo;
+        document.getElementById('input-foto-perfil').value = "";
+        document.getElementById('meu-painel-edicao-link').classList.remove('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
+        document.getElementById('modal-perfil-usuario').style.display = 'flex';
+    };
+
+    window.abrirPerfilContatoSelecionado = async () => {
+        if (!contatoSelecionado) return;
+        const eC = (lerCache('zl_agenda_' + usuarioAtual.uid, Infinity) || {})[contatoSelecionado.uid] || {};
+        const dados = { fotoUrl: eC.f || '', linkPessoal: eC.l || '', email: '' };
+
+        const avatarGrande = document.getElementById('perfil-avatar-grande');
+        const imgGrande = document.getElementById('perfil-img-grande');
+
+        if (dados.fotoUrl) {
+            imgGrande.src = dados.fotoUrl;
+            imgGrande.classList.remove('hidden');
+            avatarGrande.classList.add('hidden');
+        } else {
+            avatarGrande.innerText = contatoSelecionado.nome.charAt(0).toUpperCase();
+            avatarGrande.classList.remove('hidden');
+            imgGrande.classList.add('hidden');
+        }
+
+        document.getElementById('perfil-nome-exibicao').innerText = contatoSelecionado.nome;
+        document.getElementById('perfil-email-exibicao').innerText = dados.email || "Utilizador Zap Leve";
+        document.getElementById('alerta-perfil-bio').classList.add('hidden');
+
+        const linkSalvo = dados.linkPessoal || "";
+        const linkContainer = document.getElementById('perfil-link-container');
+        if (linkSalvo) {
+            linkContainer.innerHTML = '';
+            const aLink = document.createElement('a');
+            aLink.href = urlSegura(linkSalvo.startsWith('http') ? linkSalvo : 'https://' + linkSalvo) || '#';
+            aLink.target = '_blank';
+            aLink.rel = 'noopener noreferrer';
+            aLink.style.cssText = 'color: #0275d8; text-decoration: underline;';
+            aLink.textContent = linkSalvo;
+            linkContainer.appendChild(aLink);
+        } else {
+            linkContainer.innerText = "Este usuário ainda não adicionou nenhum link.";
+        }
+
+        document.getElementById('meu-painel-edicao-link').classList.add('hidden');
+        
+        atualizarVisibilidadeBotaoInstalacao();
+        document.getElementById('modal-perfil-usuario').style.display = 'flex';
+    };
+
+    window.fecharPerfilUsuario = () => {
+        document.getElementById('modal-perfil-usuario').style.display = 'none';
+    };
+
+    window.salvarMeuPerfilCompleto = async () => {
+        if (!usuarioAtual) return;
+        const novoNome = document.getElementById('input-meu-nome').value.trim();
+        const novoLink = document.getElementById('input-meu-link').value.trim();
+        const fileInput = document.getElementById('input-foto-perfil');
+        if (!novoNome) return alert("O nome de usuário não pode estar vazio.");
+        try {
+            const dadosAtualizacao = { nome: novoNome, linkPessoal: novoLink };
+            if (fileInput.files && fileInput.files[0]) {
+                const blob = await comprimirImagem(fileInput.files[0], 256, 0.8);
+                dadosAtualizacao.fotoUrl = await subirParaR2(blob, 'webp');
+            }
+            try { await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao); }
+            catch (e1) { await garantirDocUsuario(); await updateDoc(doc(db, "usuarios", usuarioAtual.uid), dadosAtualizacao); }
+            meuNomeAtual = novoNome;
+            document.getElementById('user-display-contacts').innerText = novoNome;
+            if (dadosAtualizacao.fotoUrl) {
+                document.getElementById('meu-img-topo').src = dadosAtualizacao.fotoUrl;
+                document.getElementById('meu-img-topo').classList.remove('hidden');
+                document.getElementById('meu-avatar-topo').classList.add('hidden');
+            }
+            const perfil = { ...(await obterMeuPerfil()), ...dadosAtualizacao };
+            salvarCache('zl_perfil_' + usuarioAtual.uid, perfil);
+            await sincronizarPerfilPublico(perfil);
+            if (perfil.slug) { try { await setDoc(doc(db, "slugs", perfil.slug), { uid: usuarioAtual.uid, n: String(perfil.nome || 'Loja').slice(0, 60), f: /^https?:\/\//i.test(perfil.fotoUrl || '') ? String(perfil.fotoUrl).slice(0, 300) : '', e: !!perfil.empresa }); } catch (_) {} }
+            alert("Perfil atualizado com sucesso!");
+            fecharPerfilUsuario();
+        } catch (e) {
+            alert("Erro ao atualizar perfil: " + e.message);
+        }
+    };
+
+    // TOQUE DE TELEFONE ALTO E REALISTA
+    const toqueAudio = new Audio('toque.mp3');
+    toqueAudio.loop = true;
+    toqueAudio.preload = 'auto';
+
+    function iniciarSomCampainha(tipo = 'tocar') {
+        toqueAudio.volume = tipo === 'tocar' ? 1 : 0.5;
+        toqueAudio.currentTime = 0;
+        toqueAudio.play().catch(() => {});
+    }
+
+    function pararSomCampainha() {
+        toqueAudio.pause();
+        toqueAudio.currentTime = 0;
+    }
 
     window.alternarModoEscuro = () => {
         document.body.classList.toggle('dark-mode');
@@ -331,471 +1172,410 @@
         document.body.classList.add('dark-mode');
     }
 
-    // Atalho padrão "Olá" limpo por defeito
-    let atalhosRapidos = JSON.parse(localStorage.getItem('zapleve_atalhos')) || [
-        { titulo: "👋 Olá", texto: "Olá! Tudo bem?", imagem: "", link: "" }
-    ];
-
-    window.atualizarBarraAtalhos = () => {
-        const barra = document.getElementById('barra-atalhos-rapidos');
-        let html = `<button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>`;
-        atalhosRapidos.forEach((item, index) => {
-            html += `<button class="quick-chip" onclick="usarAtalhosRapidos(${index})">${item.titulo}</button>`;
-        });
-        barra.innerHTML = html;
+    const DOMINIOS_OK = ['shopee.com.br', 'shp.ee', 'mercadolivre.com.br', 'mercadolivre.com', 'mercadolibre.com', 'meli.la', 'amazon.com.br', 'amazon.com', 'amzn.to', 'magazinevoce.com.br', 'magalu.com', 'aliexpress.com', 'shein.com', 'shein.com.br', 'shein.top', 'shope.ee', 'amzn.com', 'a.co'];
+    const linkPermitido = (u) => {
+        try { const h = new URL(u).hostname.toLowerCase(); return /^https?:$/.test(new URL(u).protocol) && DOMINIOS_OK.some((d) => h === d || h.endsWith('.' + d)); }
+        catch (_) { return false; }
     };
 
-    window.abrirModalQuick = () => {
-        renderizarListaConfigQuick();
-        document.getElementById('modal-quick-config').style.display = 'flex';
+    const EXTRATOR_ML = 'https://extrator-ml-alibr.vercel.app/api/extract-list';
+    const ehLinkML = (u) => {
+        try { const x = new URL(u); const h = x.hostname.toLowerCase(); return x.protocol === 'https:' && (h === 'meli.la' || /(^|\.)mercadolivre\.com(\.br)?$/.test(h)); }
+        catch (_) { return false; }
     };
+    const fmtPreco = (p) => /^\d+(\.\d+)?$/.test(String(p)) ? Number(p).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(p);
 
-    window.fecharModalQuick = () => {
-        document.getElementById('modal-quick-config').style.display = 'none';
-        atualizarBarraAtalhos();
-    };
-
-    window.renderizarListaConfigQuick = () => {
-        const div = document.getElementById('lista-qr-config');
-        div.innerHTML = "";
-        atalhosRapidos.forEach((item, index) => {
-            div.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:6px; border-radius:4px; font-size:12px;">
-                    <div><b>${item.titulo}</b></div>
-                    <button class="btn-danger" style="width:auto; padding:2px 6px; font-size:10px;" onclick="apagarAtalho(${index})">Apagar</button>
-                </div>`;
-        });
-    };
-
-    window.salvarNovaRespostaRapida = () => {
-        const titulo = document.getElementById('qr-titulo').value.trim();
-        const texto = document.getElementById('qr-texto').value.trim();
-        const imagem = document.getElementById('qr-img').value.trim();
-        const link = document.getElementById('qr-link').value.trim();
-        if (!titulo || !texto) return alert("Preencha Título e Mensagem.");
-        atalhosRapidos.push({ titulo, texto, imagem, link });
-        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
-        document.getElementById('qr-titulo').value = '';
-        document.getElementById('qr-texto').value = '';
-        document.getElementById('qr-img').value = '';
-        document.getElementById('qr-link').value = '';
-        renderizarListaConfigQuick();
-        atualizarBarraAtalhos();
-        alert("Atalho salvo!");
-    };
-
-    window.apagarAtalho = (index) => {
-        atalhosRapidos.splice(index, 1);
-        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
-        renderizarListaConfigQuick();
-        atualizarBarraAtalhos();
-    };
-
-    window.usarAtalhosRapidos = async (index) => {
-        const item = atalhosRapidos[index];
-        if (!contatoSelecionado) return;
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-            texto: item.texto,
-            imagemUrlProduto: item.imagem || "",
-            linkAfiliado: item.link || "",
-            remetente: usuarioAtual.email,
-            tipo: item.imagem || item.link ? "produto" : "texto",
-            criadoEm: serverTimestamp()
-        });
-    };
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
-        authDomain: "zapleve.firebaseapp.com",
-        projectId: "zapleve",
-        storageBucket: "zapleve.firebasestorage.app",
-        messagingSenderId: "426242600158",
-        appId: "1:426242600158:web:c2427064b5702948fc264f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const EMAIL_ADMIN = "afiliado9591@gmail.com";
-
-    let usuarioAtual = null;
-    let contatoSelecionado = null;
-    let unsubscribeChat = null;
-    let cacheMensagensAtuais = [];
-
-    // WEBRTC (CHAMADAS P2P)
-    let peerConnection = null;
-    let localStream = null;
-    let unsubscribeCall = null;
-    const serversConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
-    window.iniciarChamada = async (comVideo) => {
-        if (!contatoSelecionado) return;
-        document.getElementById('call-screen').classList.remove('hidden');
-        document.getElementById('call-status').innerText = "A ligar...";
-
+    window.extrairProdutoML = async () => {
+        const link = (document.getElementById('admin-prod-link-ml').value.trim() || document.getElementById('admin-prod-link').value.trim());
+        if (!ehLinkML(link)) return alert('O preenchimento automático só funciona com links do Mercado Livre (mercadolivre.com.br ou meli.la). Para os outros sites, preencha à mão.');
+        const btn = document.getElementById('btn-extrair-ml');
+        const texto = btn.innerText;
+        btn.innerText = '⏳ Buscando dados...'; btn.disabled = true;
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: comVideo });
-            document.getElementById('local-video').srcObject = localStream;
-
-            peerConnection = new RTCPeerConnection(serversConfig);
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-            peerConnection.ontrack = (event) => {
-                document.getElementById('remote-video').srcObject = event.streams[0];
-            };
-
-            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            const callDoc = doc(db, "chamadas", idChamada);
-            const offerCandidates = collection(callDoc, "offerCandidates");
-            const answerCandidates = collection(callDoc, "answerCandidates");
-
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    addDoc(offerCandidates, event.candidate.toJSON());
-                }
-            };
-
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-
-            await setDoc(callDoc, {
-                oferta: { type: offer.type, sdp: offer.sdp },
-                remetente: usuarioAtual.email,
-                destinatario: contatoSelecionado.uid,
-                comVideo: comVideo,
-                status: 'pendente'
-            });
-
-            escutarRespostaChamada(callDoc, answerCandidates);
-        } catch (err) {
-            alert("Erro ao aceder à câmara/microfone: " + err.message);
-            encerrarChamada();
-        }
+            const idToken = await auth.currentUser.getIdToken();
+            const r = await fetch(`${R2_WORKER}/extrair?url=${encodeURIComponent(link)}`, { headers: { Authorization: 'Bearer ' + idToken } });
+            const d = await r.json();
+            const lista = d.products || [];
+            if (!lista.length) return alert(d.error || 'Não consegui ler esse link. Preencha à mão.');
+            if (lista.length > 1) return alert('Esse link é de uma lista de produtos. Cole o link de UM produto.');
+            const p = lista[0];
+            if (p.nome) document.getElementById('admin-prod-titulo').value = String(p.nome).slice(0, 100);
+            if (p.preco) document.getElementById('admin-prod-preco').value = p.preco;
+            if (p.linkImagem) document.getElementById('admin-prod-img').value = p.linkImagem;
+            alert('Dados preenchidos! Confira nome, preço e foto antes de salvar. O seu link de afiliado foi mantido.');
+        } catch (e) { alert('Erro ao buscar os dados: ' + e.message + '\nPreencha à mão.'); }
+        finally { btn.innerText = texto; btn.disabled = false; }
     };
 
-    function escutarRespostaChamada(callDoc, answerCandidates) {
-        unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
-            const data = snapshot.data();
-            if (data && data.resposta && !peerConnection.currentRemoteDescription) {
-                const answer = new RTCSessionDescription(data.resposta);
-                await peerConnection.setRemoteDescription(answer);
-                document.getElementById('call-status').innerText = "Em chamada";
-            }
-        });
-
-        onSnapshot(collection(callDoc, "answerCandidates"), (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === 'added') {
-                    const candidate = new RTCIceCandidate(change.doc.data());
-                    peerConnection.addIceCandidate(candidate);
-                }
-            });
-        });
+    async function obterConfig(forcar = false) {
+        let c = forcar ? null : lerCache('zl_config', 30 * 60 * 1000);
+        if (!c) {
+            try {
+                const snap = await getDoc(doc(db, "config", "app"));
+                c = snap.exists() ? snap.data() : {};
+                salvarCache('zl_config', c);
+            } catch (_) { c = lerCache('zl_config', Infinity) || {}; }
+        }
+        return c;
     }
 
-    function escutarChamadasEntrantes(uidUsuario) {
-        const q = query(collection(db, "chamadas"));
-        onSnapshot(q, (snapshot) => {
-            snapshot.docChanges().forEach(async (change) => {
-                if (change.type === 'added') {
-                    const data = change.doc.data();
-                    if (data.destinatario === uidUsuario && data.status === 'pendente') {
-                        window.chamadaEntranteDocId = change.doc.id;
-                        document.getElementById('incoming-caller-text').innerText = `📞 Chamada entrante de ${data.remetente.split('@')[0]}`;
-                        document.getElementById('modal-incoming-call').style.display = 'flex';
-                    }
-                }
-            });
-        });
+    // O admin sempre vê o extrator; os usuários só veem se o admin ligar
+    async function aplicarVisibilidadeExtrator() {
+        const bloco = document.getElementById('bloco-extrator');
+        if (!bloco) return;
+        const cfg = await obterConfig();
+        bloco.classList.toggle('hidden', !(ehAdminApp() || cfg.extratorML === true));
+        const chk = document.getElementById('chk-extrator');
+        if (chk) chk.checked = cfg.extratorML === true;
     }
 
-    window.aceitarChamada = async () => {
-        document.getElementById('modal-incoming-call').style.display = 'none';
-        document.getElementById('call-screen').classList.remove('hidden');
-        document.getElementById('call-status').innerText = "A conectar...";
-
-        const callDoc = doc(db, "chamadas", window.chamadaEntranteDocId);
-        const callSnap = await getDoc(callDoc);
-        const data = callSnap.data();
-
+    window.alternarExtratorML = async (ligado) => {
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
-            document.getElementById('local-video').srcObject = localStream;
+            await setDoc(doc(db, "config", "app"), { extratorML: !!ligado }, { merge: true });
+            salvarCache('zl_config', { ...(lerCache('zl_config', Infinity) || {}), extratorML: !!ligado });
+            alert(ligado ? 'Extrator do Mercado Livre LIGADO para os usuários (pode levar até 30 min para aparecer para todos).' : 'Extrator do Mercado Livre DESLIGADO para os usuários.');
+        } catch (e) { alert('Erro ao salvar: ' + e.message); }
+    };
 
-            peerConnection = new RTCPeerConnection(serversConfig);
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    let lojaCtx = { modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' };
+    const ehAdminApp = () => !!(usuarioAtual && usuarioAtual.email === EMAIL_ADMIN);
+    const noChat = () => !!contatoSelecionado && !document.getElementById('chat-screen').classList.contains('hidden');
 
-            peerConnection.ontrack = (event) => {
-                document.getElementById('remote-video').srcObject = event.streams[0];
-            };
+    function configurarModalLoja(ctx) {
+        lojaCtx = ctx;
+        document.getElementById('titulo-loja').innerText = ctx.titulo;
+        const admin = ctx.modo === 'admin' && ehAdminApp();
+        document.getElementById('btn-abrir-admin').classList.toggle('hidden', !admin);
+        document.getElementById('painel-admin-geral').classList.toggle('hidden', ctx.modo !== 'minha');
+        document.getElementById('abas-admin').classList.toggle('hidden', ctx.modo === 'minha');
+        document.getElementById('linha-endereco-loja').classList.add('hidden');
+        if (ctx.modo === 'minha') mudarAbaAdmin('produtos');
+        document.getElementById('modal-vitrine').style.display = 'flex';
+        aplicarVisibilidadeExtrator();
+    }
 
-            const answerCandidates = collection(callDoc, "answerCandidates");
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    addDoc(answerCandidates, event.candidate.toJSON());
-                }
-            };
+    // Carrinho: no chat abre a loja do contato; fora do chat abre a minha
+    window.abrirVitrineAfiliado = async () => {
+        if (!usuarioAtual) return alert('Entre na sua conta para ver as lojas.');
+        if (noChat()) {
+            if (ctxEmpresa && ctxEmpresa.papel === 'atendente') return abrirLojaEmpresaEnvio();
+            return abrirLojaDoContato(contatoSelecionado.uid, contatoSelecionado.nome);
+        }
+        return window.abrirMinhaLoja();
+    };
 
-            const offer = data.oferta;
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
+    window.fecharVitrineAfiliado = () => {
+        document.getElementById('modal-vitrine').style.display = 'none';
+        document.getElementById('painel-admin-geral').classList.add('hidden');
+    };
 
-            await updateDoc(callDoc, {
-                resposta: { type: answer.type, sdp: answer.sdp },
-                status: 'aceita'
-            });
-
-            onSnapshot(collection(callDoc, "offerCandidates"), (snapshot) => {
-                snapshot.docChanges().forEach((change) => {
-                    if (change.type === 'added') {
-                        const candidate = new RTCIceCandidate(change.doc.data());
-                        peerConnection.addIceCandidate(candidate);
-                    }
-                });
-            });
-
-            document.getElementById('call-status').innerText = "Em chamada";
-        } catch (err) {
-            alert("Erro ao atender: " + err.message);
-            encerrarChamada();
+    window.togglePainelAdmin = () => {
+        const painel = document.getElementById('painel-admin-geral');
+        painel.classList.toggle('hidden');
+        if (!painel.classList.contains('hidden')) {
+            carregarListaUsuariosAdmin();
         }
     };
 
-    window.recusarChamada = async () => {
-        document.getElementById('modal-incoming-call').style.display = 'none';
-        if (window.chamadaEntranteDocId) {
-            await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId));
-        }
-    };
-
-    window.encerrarChamada = async () => {
-        if (localStream) { localStream.getTracks().forEach(track => track.stop()); }
-        if (peerConnection) { peerConnection.close(); }
-        if (unsubscribeCall) { unsubscribeCall(); }
-        document.getElementById('call-screen').classList.add('hidden');
-        document.getElementById('remote-video').srcObject = null;
-        document.getElementById('local-video').srcObject = null;
-        if (contatoSelecionado) {
-            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-            try { await deleteDoc(doc(db, "chamadas", idChamada)); } catch(e){}
-        }
-    };
-
-    window.alternarMicrofone = () => {
-        if (localStream) {
-            const audioTrack = localStream.getAudioTracks()[0];
-            audioTrack.enabled = !audioTrack.enabled;
-            document.getElementById('btn-toggle-mic').style.background = audioTrack.enabled ? '#333' : '#ea0038';
-        }
-    };
-
-    window.alternarCamera = () => {
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled;
-                document.getElementById('btn-toggle-cam').style.background = videoTrack.enabled ? '#333' : '#ea0038';
-            }
-        }
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            usuarioAtual = user;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('chat-screen').classList.add('hidden');
-            document.getElementById('contacts-screen').classList.remove('hidden');
-            document.getElementById('user-display-contacts').innerText = user.email;
-            escutarChamadasEntrantes(user.uid);
-            carregarContatos();
-            atualizarBarraAtalhos();
+    window.mudarAbaAdmin = (aba) => {
+        if (aba === 'produtos') {
+            document.getElementById('aba-admin-produtos').classList.remove('hidden');
+            document.getElementById('aba-admin-utilizadores').classList.add('hidden');
         } else {
-            usuarioAtual = null;
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('contacts-screen').classList.add('hidden');
-            document.getElementById('chat-screen').classList.add('hidden');
+            document.getElementById('aba-admin-produtos').classList.add('hidden');
+            document.getElementById('aba-admin-utilizadores').classList.remove('hidden');
         }
-    });
+    };
 
-    window.cadastrar = async () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('password').value;
-        if (!email || !senha) return alert("Preencha e-mail e senha.");
+    async function migrarProdutosAntigos() {
+        const snap = await getDocs(collection(db, "produtos"));
+        const itens = [];
+        snap.forEach((d) => { const x = d.data(); itens.push({ id: d.id, titulo: x.titulo || '', preco: x.preco || '', imagem: x.imagem || '', link: x.link || '', criadoEm: (x.criadoEm && x.criadoEm.toMillis) ? x.criadoEm.toMillis() : 0 }); });
+        try { await setDoc(doc(db, "vitrine", "produtos"), { itens }); } catch (err) { console.warn('Vitrine:', err.message); }
+        return itens;
+    }
+
+    async function carregarVitrineSegregada(forcar = false) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar vitrine...</p>";
         try {
-            const cred = await createUserWithEmailAndPassword(auth, email, senha);
-            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: email.split('@')[0], bloqueado: false });
-            alert("Conta criada!");
-        } catch (e) { alert(e.message); }
+            let itens = forcar ? null : lerCache('zl_vitrine', 6 * 3600 * 1000);
+            if (!itens) {
+                const snap = await getDoc(doc(db, "vitrine", "produtos"));
+                if (snap.exists()) itens = snap.data().itens || [];
+                else if (ehAdminApp()) itens = await migrarProdutosAntigos();
+                else itens = [];
+                itens.sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+                salvarCache('zl_vitrine', itens);
+            }
+            const perfil = await obterMeuPerfil();
+            const limite = Number(perfil.limiteProdutos) || 10;
+            cacheProdutosVitrine = ehAdminApp() ? itens : itens.slice(0, limite);
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
+        }
+    }
+
+    // Loja de outra pessoa (1 leitura, cache de 1 h). Sem loja: mostra as ofertas do admin.
+    async function abrirLojaDoContato(uid, nome) {
+        configurarModalLoja({ modo: 'ver', titulo: '🏪 Loja de ' + nome });
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar loja...</p>";
+        try {
+            let loja = lerCache('zl_loja_' + uid, 3600 * 1000);
+            if (!loja) {
+                const snap = await getDoc(doc(db, "lojas", uid));
+                loja = snap.exists() ? snap.data() : { vazio: true };
+                salvarCache('zl_loja_' + uid, loja);
+            }
+            if (loja.vazio) {
+                configurarModalLoja({ modo: 'admin', titulo: '🛍️ Ofertas do Zap Leve' });
+                return carregarVitrineSegregada();
+            }
+            cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar a loja.</p>";
+        }
+    }
+
+    window.abrirMinhaLoja = async () => {
+        if (!usuarioAtual) return;
+        fecharPerfilUsuario();
+        if (ehAdminApp()) { configurarModalLoja({ modo: 'admin', titulo: '🛍️ Minha loja (Ofertas do Zap Leve)' }); return carregarVitrineSegregada(); }
+        configurarModalLoja({ modo: 'minha', titulo: '🏪 Minha loja' });
+        await carregarMinhaLoja(false);
     };
 
-    window.entrar = async () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('password').value;
-        if (!email || !senha) return alert("Preencha e-mail e senha.");
-        try { await signInWithEmailAndPassword(auth, email, senha); } catch (e) { alert(e.message); }
+    async function carregarMinhaLoja(forcar = false) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar...</p>";
+        try {
+            let loja = forcar ? null : lerCache('zl_loja_' + usuarioAtual.uid, 6 * 3600 * 1000);
+            if (!loja) {
+                const snap = await getDoc(doc(db, "lojas", usuarioAtual.uid));
+                loja = snap.exists() ? snap.data() : { vazio: true };
+                salvarCache('zl_loja_' + usuarioAtual.uid, loja);
+            }
+            if (loja.vazio) {
+                document.getElementById('painel-admin-geral').classList.add('hidden');
+                container.innerHTML = `<div class="col-total" style="text-align:center; padding:12px;"><p style="font-size:13px; line-height:1.4;">Você ainda não tem loja.<br>Crie a sua para os seus contatos verem seus produtos. Enquanto você não criar, eles veem as ofertas do Zap Leve.</p><button class="btn-alt" onclick="criarMinhaLoja()">🏪 Criar minha loja</button></div>`;
+                return;
+            }
+            cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+            document.getElementById('titulo-loja').innerText = '🏪 ' + (loja.nome || 'Minha loja');
+            mostrarEnderecoLoja((await obterMeuPerfil()).slug);
+        } catch (e) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar sua loja.</p>";
+        }
+    }
+
+    // Reserva o endereço zapleve.alibr.com.br/<nome> (único: as regras do Firebase impedem repetir)
+    async function reservarEndereco(bruto, p, antigo) {
+        const slug = limparSlug(bruto);
+        if (!/^[a-z0-9-]{3,30}$/.test(slug) || RESERVADOS.includes(slug)) { alert('Nome inválido. Use de 3 a 30 letras minúsculas, números ou hífen.'); return ''; }
+        if (slug === antigo) return slug;
+        try {
+            await setDoc(doc(db, "slugs", slug), { uid: usuarioAtual.uid, n: String(p.nome || 'Loja').slice(0, 60), f: /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '', e: !!p.empresa });
+        } catch (e) { console.warn('Endereço:', e.message); alert('Esse nome já está em uso (ou as regras ainda não foram publicadas). Tente outro.'); return ''; }
+        if (antigo) { try { await deleteDoc(doc(db, "slugs", antigo)); } catch (_) {} }
+        await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { slug });
+        salvarCache('zl_perfil_' + usuarioAtual.uid, { ...p, slug });
+        return slug;
+    }
+
+    function mostrarEnderecoLoja(slug) {
+        const el = document.getElementById('linha-endereco-loja');
+        el.classList.remove('hidden');
+        const b = 'width:auto; padding:5px 9px; margin:0; font-size:11px;';
+        el.innerHTML = (slug
+            ? `🔗 <b>${esc(location.host)}/${esc(slug)}</b> <button class="btn-alt" style="${b}" onclick="copiarEnderecoLoja()">Copiar</button> <button class="btn-alt" style="${b} background:#d4a24c;" onclick="definirEnderecoLoja()">Alterar endereço</button>`
+            : `<button class="btn-alt" style="${b} background:#d4a24c;" onclick="definirEnderecoLoja()">🔗 Definir o endereço da minha loja</button>`)
+            + ` <button class="btn-alt" style="${b} background:#6c4ab6;" onclick="editarNomeLoja()">✏️ Nome da loja</button>`;
+    }
+
+    window.copiarEnderecoLoja = async () => {
+        const p = await obterMeuPerfil();
+        const url = location.origin + '/' + p.slug;
+        try { await navigator.clipboard.writeText(url); alert('Endereço da loja copiado!\n' + url); } catch (_) { prompt('Copie o endereço:', url); }
     };
 
-    window.sair = async () => { await signOut(auth); };
+    window.editarNomeLoja = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            const lojaCache = lerCache('zl_loja_' + usuarioAtual.uid, Infinity) || {};
+            const novo = prompt('Nome da sua loja (aparece na página da loja):', lojaCache.nome || p.nome || '');
+            if (novo === null) return;
+            const nome = novo.trim().slice(0, 60);
+            if (nome.length < 2) return alert('Digite um nome com pelo menos 2 letras.');
+            await updateDoc(doc(db, "lojas", usuarioAtual.uid), { nome });
+            if (p.slug) await setDoc(doc(db, "slugs", p.slug), { uid: usuarioAtual.uid, n: nome, f: /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '', e: !!p.empresa });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            await carregarMinhaLoja(true);
+            alert('Nome da loja atualizado!');
+        } catch (e) { alert('Erro ao editar o nome: ' + e.message); }
+    };
 
-    function carregarContatos() {
-        onSnapshot(collection(db, "usuarios"), (snapshot) => {
-            const listaDiv = document.getElementById('lista-contatos');
-            listaDiv.innerHTML = "";
+    window.definirEnderecoLoja = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            const bruto = prompt('Escolha o endereço da sua loja (letras, números e hífen).\nEx.: modaflor  →  ' + location.host + '/modaflor', p.slug || '');
+            if (bruto === null) return;
+            const slug = await reservarEndereco(bruto, p, p.slug || '');
+            if (!slug) return;
+            await updateDoc(doc(db, "lojas", usuarioAtual.uid), { slug });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            await carregarMinhaLoja(true);
+        } catch (e) { alert('Erro ao definir o endereço: ' + e.message); }
+    };
+
+    window.criarMinhaLoja = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            const bruto = prompt('Escolha o endereço da sua loja (letras, números e hífen).\nEx.: modaflor  →  ' + location.host + '/modaflor');
+            if (bruto === null) return;
+            const slug = await reservarEndereco(bruto, p, '');
+            if (!slug) return;
+            await setDoc(doc(db, "lojas", usuarioAtual.uid), { nome: String(p.nome || 'Minha loja').slice(0, 60), itens: [], criadoEm: Date.now(), slug });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            configurarModalLoja({ modo: 'minha', titulo: '🏪 Minha loja' });
+            await carregarMinhaLoja(true);
+        } catch (e) { alert('Erro ao criar a loja: ' + e.message); }
+    };
+
+    const docLojaAtual = () => lojaCtx.modo === 'minha' ? doc(db, "lojas", usuarioAtual.uid) : doc(db, "vitrine", "produtos");
+    async function recarregarLojaAtual() {
+        if (lojaCtx.modo === 'minha') { localStorage.removeItem('zl_loja_' + usuarioAtual.uid); await carregarMinhaLoja(true); }
+        else await carregarVitrineSegregada(true);
+    }
+
+    let salvandoProduto = false;
+
+    // Atualiza a lista guardada no celular sem ler o Firebase de novo
+    function atualizarCachesLoja(fn) {
+        const chave = lojaCtx.modo === 'minha' ? 'zl_loja_' + usuarioAtual.uid : 'zl_vitrine';
+        const c = lerCache(chave, Infinity);
+        if (!c) return;
+        if (Array.isArray(c)) salvarCache(chave, fn(c));
+        else if (c.itens) salvarCache(chave, { ...c, itens: fn(c.itens) });
+    }
+
+    window.salvarProdutoFirebase = async () => {
+        if (salvandoProduto) return;
+        const titulo = document.getElementById('admin-prod-titulo').value.trim();
+        const preco = document.getElementById('admin-prod-preco').value.trim();
+        let imagem = document.getElementById('admin-prod-img').value.trim();
+        const link = document.getElementById('admin-prod-link').value.trim();
+        const fotoInput = document.getElementById('admin-prod-foto');
+        if (!titulo) return alert("Digite o nome do produto.");
+        if (lojaCtx.modo === 'minha') {
+            if (!link) return alert("Cole o link de afiliado do produto.");
+            if (!linkPermitido(link)) return alert("Use um link de Shopee, Mercado Livre, Amazon, Shein, Magalu ou AliExpress (começando com https://).");
+        }
+        const repetido = cacheProdutosVitrine.some((p) => (link && p.link === link) || String(p.titulo || '').toLowerCase() === titulo.toLowerCase());
+        if (repetido && !confirm('Já existe um produto com esse nome ou link na lista. Cadastrar mesmo assim?')) return;
+        const btn = document.querySelector('button[onclick="salvarProdutoFirebase()"]');
+        salvandoProduto = true;
+        if (btn) { btn.disabled = true; btn.dataset.t = btn.innerText; btn.innerText = '⏳ Salvando...'; }
+        try {
+            if (fotoInput.files && fotoInput.files[0]) {
+                imagem = await subirParaR2(await comprimirImagem(fotoInput.files[0], 800, 0.8), 'webp');
+            }
+            if (lojaCtx.modo === 'minha') {
+                const p = await obterMeuPerfil();
+                const limite = Number(p.limiteProdutos) || 10;
+                if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos.`);
+            }
+            const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
+            await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
+            cacheProdutosVitrine.unshift(item);
+            atualizarCachesLoja((l) => [item, ...l]);
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+            ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-link-ml', 'admin-prod-foto'].forEach((id) => { document.getElementById(id).value = ''; });
+            alert("Produto cadastrado com sucesso!");
+        } catch (e) {
+            alert("Erro ao salvar: " + e.message);
+        } finally {
+            salvandoProduto = false;
+            if (btn) { btn.disabled = false; btn.innerText = btn.dataset.t || '➕ Salvar Produto'; }
+        }
+    };
+
+    window.apagarProdutoFirebase = async (idProduto) => {
+        const item = cacheProdutosVitrine.find((p) => p.id === idProduto);
+        if (!item) return;
+        if (!confirm('Apagar "' + (item.titulo || 'este produto') + '"?')) return;
+        try {
+            await updateDoc(docLojaAtual(), { itens: arrayRemove(item) });
+            cacheProdutosVitrine = cacheProdutosVitrine.filter((p) => p.id !== idProduto);
+            atualizarCachesLoja((l) => l.filter((p) => p.id !== idProduto));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) {
+            alert("Erro ao apagar: " + e.message);
+        }
+    };
+
+    async function carregarListaUsuariosAdmin() {
+        const div = document.getElementById('lista-usuarios-admin');
+        div.innerHTML = "<p style='font-size:11px; text-align:center;'>A carregar...</p>";
+        try {
+            const snapshot = await getDocs(query(collection(db, "usuarios"), limit(50)));
+            div.innerHTML = "";
             snapshot.forEach((docItem) => {
-                const dados = docItem.data();
-                if (dados.email !== usuarioAtual.email && !dados.bloqueado) {
-                    listaDiv.innerHTML += `
-                        <div class="contact-item" onclick="abrirChat('${docItem.id}', '${dados.nome}')">
-                            <div class="contact-info">
-                                <div class="avatar">${dados.nome.charAt(0).toUpperCase()}</div>
-                                <span class="contact-name">${dados.nome}</span>
-                            </div>
-                            <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
-                        </div>`;
-                }
-            });
-        });
-    }
-
-    window.abrirChat = (uidContato, nomeContato) => {
-        contatoSelecionado = { uid: uidContato, nome: nomeContato };
-        document.getElementById('chat-title').innerText = nomeContato;
-        document.getElementById('contacts-screen').classList.add('hidden');
-        document.getElementById('chat-screen').classList.remove('hidden');
-        escutarMensagensPrivadas();
-    };
-
-    window.voltarParaContatos = () => {
-        if (unsubscribeChat) unsubscribeChat();
-        document.getElementById('chat-screen').classList.add('hidden');
-        document.getElementById('contacts-screen').classList.remove('hidden');
-    };
-
-    function obterIdSala(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
-
-    function escutarMensagensPrivadas() {
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        const q = query(collection(db, "conversas", idSala, "mensagens"), orderBy("criadoEm", "asc"));
-        if (unsubscribeChat) unsubscribeChat();
-        unsubscribeChat = onSnapshot(q, (snapshot) => {
-            cacheMensagensAtuais = [];
-            snapshot.forEach((docItem) => { cacheMensagensAtuais.push({ id: docItem.id, ...docItem.data() }); });
-            renderizarListaMensagens(cacheMensagensAtuais);
-        });
-    }
-
-    function renderizarListaMensagens(lista) {
-        const box = document.getElementById('mensagens');
-        box.innerHTML = "";
-        lista.forEach((data) => {
-            const eMinha = data.remetente === usuarioAtual.email;
-            let conteudoHtml = `<div style="font-size: 14px;">${data.texto}</div>`;
-            if (data.tipo === 'produto') {
-                let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${data.texto}</div>`;
-                if (data.imagemUrlProduto) cartaoHtml += `<img src="${data.imagemUrlProduto}" style="width:100%; max-height:180px; object-fit:cover; border-radius:4px; margin-bottom:6px;">`;
-                if (data.linkAfiliado) cartaoHtml += `<a href="${data.linkAfiliado}" target="_blank" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Ver Oferta / Comprar 🛒</a>`;
-                conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
-            } else if (data.tipo === 'imagem') {
-                conteudoHtml += `<img class="msg-img" src="${data.imagemUrlLocal}"><br><a class="msg-download-btn" href="${data.imagemUrlLocal}" download="foto.jpg">📥 Baixar</a>`;
-            } else if (data.tipo === 'video') {
-                conteudoHtml += `<video controls width="100%"><source src="${data.videoUrlLocal}" type="video/mp4"></video><br><a class="msg-download-btn" href="${data.videoUrlLocal}" download="video.mp4">📥 Baixar</a>`;
-            } else if (data.tipo === 'audio') {
-                const audioId = "audio_" + data.id;
-                conteudoHtml += `
-                    <div class="wa-audio-player">
-                        <button class="wa-play-btn" id="btn_${audioId}" onclick="tocarAudioLocal('${audioId}')">▶</button>
-                        <div class="wa-audio-info">
-                            <div class="wa-audio-bar" onclick="seekAudio(event, '${audioId}')"><div class="wa-audio-progress" id="prog_${audioId}"></div></div>
-                            <span class="wa-audio-time" id="time_${audioId}">0:00</span>
-                        </div>
-                        <audio id="${audioId}" src="${data.audioUrlLocal}" preload="metadata" ontimeupdate="atualizarProgressoAudio('${audioId}')" onended="audioTerminou('${audioId}')"></audio>
+                const u = docItem.data();
+                const limiteAtual = u.limiteProdutos || 10;
+                div.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
+                        <span><b>${esc(u.nome || u.email)}</b></span>
+                        <select onchange="atualizarLimiteUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
+                            <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
+                            <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
+                            <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
+                            <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
+                        </select>
                     </div>`;
-            }
-            box.innerHTML += `<div class="${eMinha ? 'msg msg-minha' : 'msg'}"><div class="msg-content">${conteudoHtml}</div></div>`;
-        });
-        box.scrollTop = box.scrollHeight;
+            });
+        } catch (e) {
+            div.innerHTML = "<p style='font-size:11px; color:red;'>Erro ao carregar utilizadores.</p>";
+        }
     }
 
-    window.tocarAudioLocal = (id) => {
-        const audio = document.getElementById(id);
-        const btn = document.getElementById('btn_' + id);
-        if (audio.paused) { audio.play(); btn.innerText = "⏸"; } else { audio.pause(); btn.innerText = "▶"; }
-    };
-
-    window.atualizarProgressoAudio = (id) => {
-        const audio = document.getElementById(id);
-        const prog = document.getElementById('prog_' + id);
-        const time = document.getElementById('time_' + id);
-        if (audio.duration) {
-            prog.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
-            const min = Math.floor(audio.currentTime / 60);
-            const sec = Math.floor(audio.currentTime % 60);
-            time.innerText = min + ':' + (sec < 10 ? '0' : '') + sec;
+    window.atualizarLimiteUsuario = async (uidUser, novoLimite) => {
+        try {
+            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Number(novoLimite) });
+            alert("Limite atualizado com sucesso!");
+        } catch (e) {
+            alert("Erro ao atualizar limite: " + e.message);
         }
     };
 
-    window.audioTerminou = (id) => {
-        document.getElementById('btn_' + id).innerText = "▶";
-        document.getElementById('prog_' + id).style.width = '0%';
-    };
-
-    window.enviarMensagemPrivada = async () => {
-        const inputEl = document.getElementById('mensagem-texto');
-        if (!inputEl.value.trim() || !contatoSelecionado) return;
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-            texto: inputEl.value, remetente: usuarioAtual.email, tipo: "texto", criadoEm: serverTimestamp()
-        });
-        inputEl.value = "";
-    };
-
-    window.enviarImagemLocal = async (inputElement) => {
-        const file = inputElement.files[0];
-        if (!file || !contatoSelecionado) return;
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-            texto: "📷 Imagem", imagemUrlLocal: URL.createObjectURL(file), remetente: usuarioAtual.email, tipo: "imagem", criadoEm: serverTimestamp()
-        });
-    };
-
-    window.enviarVideoLocal = async (inputElement) => {
-        const file = inputElement.files[0];
-        if (!file || !contatoSelecionado) return;
-        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-        await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-            texto: "📹 Vídeo", videoUrlLocal: URL.createObjectURL(file), remetente: usuarioAtual.email, tipo: "video", criadoEm: serverTimestamp()
-        });
-    };
-
-    let mediaRecorder = null, audioChunks = [];
-    window.toggleGravarAudio = async () => {
-        const btnAudio = document.getElementById('btn-gravar-audio');
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
-                await addDoc(collection(db, "conversas", idSala, "mensagens"), {
-                    texto: "🎙️ Áudio", audioUrlLocal: URL.createObjectURL(new Blob(audioChunks, { type: 'audio/webm' })), remetente: usuarioAtual.email, tipo: "audio", criadoEm: serverTimestamp()
-                });
-            };
-            mediaRecorder.start();
-            btnAudio.classList.add('gravando');
-            btnAudio.innerText = "⏹️";
-        } else {
-            mediaRecorder.stop();
-            mediaRecorder.stream.getTracks().forEach(t => t.stop());
-            btnAudio.classList.remove('gravando');
-            btnAudio.innerText = "🎙️";
+    function renderizarProdutosVitrine(lista) {
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "";
+        const modo = lojaCtx.modo;
+        const dono = modo === 'minha' || (modo === 'admin' && ehAdminApp());
+        const enviar = noChat() && (modo === 'minha' || modo === 'admin' || modo === 'envio');
+        const ver = modo === 'ver' || (modo === 'admin' && !ehAdminApp());
+        if (lista.length === 0) {
+            container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
+            return;
         }
-    };
-    window.indicarAmigo = () => { prompt("Copie o link:", window.location.href); };
-</script>
-
-</body>
-</html>
+        if (dono) container.innerHTML = `<p style='font-size:11px; opacity:0.8; margin:0; text-align:center;'>🗑️ Para excluir um produto, toque em <b>Apagar</b> no cartão dele.</p>`;
+        lista.forEach((prod) => {
+            const img = urlSegura(prod.imagem);
+            const link = modo === 'admin' ? urlSegura(prod.link) : (linkPermitido(prod.link) ? urlSegura(prod.link) : '');
+            const btn = 'display:block; text-align:center; padding:8px; border-radius:6px; font-size:12px; font-weight:bold; margin:0; text-decoration:none;';
+            container.innerHTML += `
+                <div style="background: var(--input-bg); border-radius:10px; border: 1px solid var(--border-color); overflow:hidden; font-size:12px; display:flex; flex-direction:column; flex-shrink:0;">
+                    ${img
+                        ? `<img src="${esc(img)}" onclick="abrirDetalheProduto('${esc(prod.id)}')" title="Toque para ver o produto" style="width:100%; height:150px; object-fit:contain; background:#fff; display:block; cursor:pointer; margin:0; border-radius:0;">`
+                        : `<div onclick="abrirDetalheProduto('${esc(prod.id)}')" style="height:90px; display:flex; align-items:center; justify-content:center; font-size:34px; background:rgba(0,0,0,0.05); cursor:pointer;">📦</div>`}
+                    <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
+                        <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
+                        ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-top:auto;">
+                            ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
+                            ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
+                            ${dono ? `<but
