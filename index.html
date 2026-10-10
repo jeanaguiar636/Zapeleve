@@ -315,7 +315,7 @@
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #0b5ed7;" onclick="abrirNegocios()">🏢 Zap Leve Negócios (atendentes)</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 07/10 · completo</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 06/10c · Negócios</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -333,6 +333,7 @@
                 <p style="margin: 0; color: #aaa; font-size: 13px;">A aguardar resposta...</p>
             </div>
             <video id="remote-video" autoplay playsinline></video>
+            <audio id="remote-audio" autoplay playsinline></audio>
             <video id="local-video" autoplay playsinline muted></video>
         </div>
         <div class="call-controls">
@@ -594,7 +595,7 @@
 
     // Contas sem documento de perfil (cadastro interrompido) não conseguem salvar nada: cria só os campos básicos
     async function garantirDocUsuario() {
-        await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 10 }, { merge: true });
+        await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 20 }, { merge: true });
     }
 
     // Perfil próprio em cache (24 h): evita ler o Firestore a cada abertura
@@ -608,7 +609,7 @@
             return { email: usuarioAtual.email };
         }
         const d = snap.data();
-        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 20, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
         return p;
     }
@@ -1172,7 +1173,6 @@
         document.body.classList.add('dark-mode');
     }
 
-    const MAX_PRODUTOS = 50; // máximo de produtos por catálogo
     const DOMINIOS_OK = ['shopee.com.br', 'shp.ee', 'mercadolivre.com.br', 'mercadolivre.com', 'mercadolibre.com', 'meli.la', 'amazon.com.br', 'amazon.com', 'amzn.to', 'magazinevoce.com.br', 'magalu.com', 'aliexpress.com', 'shein.com', 'shein.com.br', 'shein.top', 'shope.ee', 'amzn.com', 'a.co'];
     const linkPermitido = (u) => {
         try { const h = new URL(u).hostname.toLowerCase(); return /^https?:$/.test(new URL(u).protocol) && DOMINIOS_OK.some((d) => h === d || h.endsWith('.' + d)); }
@@ -1309,7 +1309,9 @@
                 itens.sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
                 salvarCache('zl_vitrine', itens);
             }
-            cacheProdutosVitrine = itens.slice(0, MAX_PRODUTOS);
+            const perfil = await obterMeuPerfil();
+            const limite = Math.min(Number(perfil.limiteProdutos) || 20, MAX_PRODUTOS);
+            cacheProdutosVitrine = ehAdminApp() ? itens.slice(0, MAX_PRODUTOS) : itens.slice(0, limite);
             renderizarProdutosVitrine(cacheProdutosVitrine);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
@@ -1482,7 +1484,12 @@
             if (fotoInput.files && fotoInput.files[0]) {
                 imagem = await subirParaR2(await comprimirImagem(fotoInput.files[0], 800, 0.8), 'webp');
             }
-            if (cacheProdutosVitrine.length >= MAX_PRODUTOS) return alert(`O catálogo já tem o máximo de ${MAX_PRODUTOS} produtos. Apague algum para cadastrar outro.`);
+            if (cacheProdutosVitrine.length >= MAX_PRODUTOS) return alert(`O catálogo aceita no máximo ${MAX_PRODUTOS} produtos.`);
+            if (lojaCtx.modo === 'minha') {
+                const p = await obterMeuPerfil();
+                const limite = Math.min(Number(p.limiteProdutos) || 20, MAX_PRODUTOS);
+                if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos.`);
+            }
             const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
             await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
             cacheProdutosVitrine.unshift(item);
@@ -1520,15 +1527,14 @@
             div.innerHTML = "";
             snapshot.forEach((docItem) => {
                 const u = docItem.data();
-                const limiteAtual = u.limiteProdutos || 10;
+                const limiteAtual = u.limiteProdutos || 20;
                 div.innerHTML += `
                     <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
                         <span><b>${esc(u.nome || u.email)}</b></span>
                         <select onchange="atualizarLimiteUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
-                            <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
-                            <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
-                            <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
-                            <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
+                            <option value="20" ${limiteAtual <= 20 ? 'selected' : ''}>20 itens</option>
+                            <option value="30" ${limiteAtual == 30 ? 'selected' : ''}>30 itens</option>
+                            <option value="50" ${limiteAtual >= 50 ? 'selected' : ''}>50 itens</option>
                         </select>
                     </div>`;
             });
@@ -1539,14 +1545,20 @@
 
     window.atualizarLimiteUsuario = async (uidUser, novoLimite) => {
         try {
-            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Number(novoLimite) });
+            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Math.min(Number(novoLimite), MAX_PRODUTOS) });
             alert("Limite atualizado com sucesso!");
         } catch (e) {
             alert("Erro ao atualizar limite: " + e.message);
         }
     };
 
-    function renderizarProdutosVitrine(lista) {
+    const MAX_PRODUTOS = 50, POR_PAGINA = 20;
+    let paginaVitrine = 1, listaVitrineAtual = [];
+    window.verMaisProdutos = () => { paginaVitrine++; renderizarProdutosVitrine(listaVitrineAtual, true); };
+    function renderizarProdutosVitrine(listaTotal, manterPagina) {
+        if (!manterPagina) paginaVitrine = 1;
+        listaVitrineAtual = (listaTotal || []).slice(0, MAX_PRODUTOS);
+        const lista = listaVitrineAtual.slice(0, paginaVitrine * POR_PAGINA);
         const container = document.getElementById('lista-produtos-vitrine');
         container.innerHTML = "";
         const modo = lojaCtx.modo;
@@ -1557,7 +1569,7 @@
             container.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.6;'>Nenhum produto disponível.</p>";
             return;
         }
-        if (dono) container.innerHTML = `<p style='font-size:11px; opacity:0.8; margin:0; text-align:center;'>🗑️ Para excluir um produto, toque em <b>Apagar</b> no cartão dele.<br>${lista.length} de ${MAX_PRODUTOS} produtos</p>`;
+        if (dono) container.innerHTML = `<p style='font-size:11px; opacity:0.8; margin:0; text-align:center;'>🗑️ Para excluir um produto, toque em <b>Apagar</b> no cartão dele.</p>`;
         lista.forEach((prod) => {
             const img = urlSegura(prod.imagem);
             const link = modo === 'admin' ? urlSegura(prod.link) : (linkPermitido(prod.link) ? urlSegura(prod.link) : '');
@@ -1574,4 +1586,1168 @@
                             ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
                             ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
                             ${dono ? `<button class="btn-danger" style="${btn} width:100%;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️ Apagar</button>` : ''}
-                    
+                        </div>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML += `<p class="col-total" style="font-size:11px; opacity:0.7; margin:4px 0; text-align:center;">Mostrando ${lista.length} de ${listaVitrineAtual.length} produtos (máx. ${MAX_PRODUTOS})</p>`;
+        if (listaVitrineAtual.length > lista.length) container.innerHTML += `<button class="btn-alt col-total" style="grid-column:1/-1; margin:0;" onclick="verMaisProdutos()">Ver mais produtos ⬇️</button>`;
+    }
+
+    window.enviarProdutoPorId = (id) => {
+        const p = cacheProdutosVitrine.find((x) => x.id === id);
+        if (!p) return;
+        window.enviarProdutoVitrine(encodeURIComponent(p.titulo || ''), urlSegura(p.imagem), urlSegura(p.link));
+    };
+
+    window.filtrarProdutosLocais = () => {
+        const termo = document.getElementById('filtro-vitrine').value.toLowerCase();
+        const filtrados = cacheProdutosVitrine.filter(p => (p.titulo || '').toLowerCase().includes(termo));
+        renderizarProdutosVitrine(filtrados);
+    };
+
+    window.enviarProdutoVitrine = async (tituloEnc, imagem, link) => {
+        const titulo = decodeURIComponent(tituloEnc);
+        if (!contatoSelecionado) return alert("Abra uma conversa primeiro!");
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await postarMensagem({
+            texto: `Oferta imperdível: ${titulo}`,
+            imagemUrlProduto: imagem,
+            linkAfiliado: link,
+            remetente: usuarioAtual.email,
+            tipo: "produto",
+            criadoEm: serverTimestamp()
+        });
+        alert("Produto enviado para o chat!");
+        fecharVitrineAfiliado();
+    };
+
+    let atalhosRapidos = JSON.parse(localStorage.getItem('zapleve_atalhos')) || [
+        { titulo: "👋 Olá", texto: "Olá! Tudo bem?", imagem: "", link: "" }
+    ];
+
+    window.atualizarBarraAtalhos = () => {
+        const barra = document.getElementById('barra-atalhos-rapidos');
+        let html = `<button class="btn-config-quick" onclick="abrirModalQuick()" title="Gerir Atalhos">⚙️</button>`;
+        atalhosRapidos.forEach((item, index) => {
+            html += `<button class="quick-chip" onclick="usarAtalhosRapidos(${index})">${esc(item.titulo)}</button>`;
+        });
+        barra.innerHTML = html;
+    };
+
+    window.abrirModalQuick = () => {
+        renderizarListaConfigQuick();
+        document.getElementById('modal-quick-config').style.display = 'flex';
+    };
+
+    window.fecharModalQuick = () => {
+        document.getElementById('modal-quick-config').style.display = 'none';
+        atualizarBarraAtalhos();
+    };
+
+    window.renderizarListaConfigQuick = () => {
+        const div = document.getElementById('lista-qr-config');
+        div.innerHTML = "";
+        atalhosRapidos.forEach((item, index) => {
+            div.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--input-bg); padding:6px; border-radius:4px; font-size:12px;">
+                    <div><b>${esc(item.titulo)}</b></div>
+                    <button class="btn-danger" style="width:auto; padding:2px 6px; font-size:10px;" onclick="apagarAtalho(${index})">Apagar</button>
+                </div>`;
+        });
+    };
+
+    window.salvarNovaRespostaRapida = () => {
+        const titulo = document.getElementById('qr-titulo').value.trim();
+        const texto = document.getElementById('qr-texto').value.trim();
+        const imagem = document.getElementById('qr-img').value.trim();
+        const link = document.getElementById('qr-link').value.trim();
+        if (!titulo || !texto) return alert("Preencha Título e Mensagem.");
+        atalhosRapidos.push({ titulo, texto, imagem, link });
+        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
+        document.getElementById('qr-titulo').value = '';
+        document.getElementById('qr-texto').value = '';
+        document.getElementById('qr-img').value = '';
+        document.getElementById('qr-link').value = '';
+        renderizarListaConfigQuick();
+        atualizarBarraAtalhos();
+        alert("Atalho salvo!");
+    };
+
+    window.apagarAtalho = (index) => {
+        atalhosRapidos.splice(index, 1);
+        localStorage.setItem('zapleve_atalhos', JSON.stringify(atalhosRapidos));
+        renderizarListaConfigQuick();
+        atualizarBarraAtalhos();
+    };
+
+    window.usarAtalhosRapidos = async (index) => {
+        const item = atalhosRapidos[index];
+        if (!contatoSelecionado) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await postarMensagem({
+            texto: item.texto,
+            imagemUrlProduto: item.imagem || "",
+            linkAfiliado: item.link || "",
+            remetente: usuarioAtual.email,
+            tipo: item.imagem || item.link ? "produto" : "texto",
+            criadoEm: serverTimestamp()
+        });
+    };
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
+        authDomain: "zapleve.firebaseapp.com",
+        projectId: "zapleve",
+        storageBucket: "zapleve.firebasestorage.app",
+        messagingSenderId: "426242600158",
+        appId: "1:426242600158:web:c2427064b5702948fc264f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let usuarioAtual = null;
+    let contatoSelecionado = null;
+    let unsubscribeChat = null;
+    let unsubChamadasEntrantes = null;
+    let limiteMsgs = 30;
+    let vitrineCacheTs = 0;
+    let limiteUsuarioCache = null;
+
+    let peerConnection = null;
+    let localStream = null;
+    let unsubscribeCall = null;
+    let unsubCandidatos = null;
+    const candidatosMeus = [];
+    const nomeSub = (p, n) => n ? p + '_' + n : (p === 'o' ? 'offerCandidates' : 'answerCandidates');
+    const serversConfig = { iceServers: [
+        { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+        { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
+    ] };
+    // Liga o som e o vídeo do outro lado (forçando o play, pois o celular bloqueia o autoplay)
+    function conectarMidiaRemota(event) {
+        const stream = (event.streams && event.streams[0]) || new MediaStream([event.track]);
+        const v = document.getElementById('remote-video');
+        const a = document.getElementById('remote-audio');
+        v.srcObject = stream; v.muted = true; // o som sai pelo elemento de áudio
+        a.srcObject = stream; a.muted = false; a.volume = 1;
+        const tocar = () => { a.play().catch(() => {}); v.play().catch(() => {}); };
+        tocar();
+        document.getElementById('call-screen').addEventListener('click', tocar, { once: true });
+    }
+
+    window.iniciarChamada = async (comVideo) => {
+        if (!contatoSelecionado) return;
+        
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("O seu navegador ou dispositivo não suporta chamadas de áudio/vídeo P2P (certifique-se de usar HTTPS).");
+            return;
+        }
+
+        document.getElementById('call-screen').classList.remove('hidden');
+        document.getElementById('call-status').innerText = `A ligar para ${contatoSelecionado.nome}...`;
+        document.getElementById('call-active-name').innerText = contatoSelecionado.nome;
+        document.getElementById('call-active-avatar').innerText = contatoSelecionado.nome.charAt(0).toUpperCase();
+        document.getElementById('call-placeholder-info').style.display = 'flex';
+        iniciarSomCampainha('chamando');
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: comVideo });
+            document.getElementById('local-video').srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection(serversConfig);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = (event) => {
+                pararSomCampainha();
+                document.getElementById('call-placeholder-info').style.display = 'none';
+                conectarMidiaRemota(event);
+            };
+
+            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const callDoc = doc(db, "chamadas", idChamada);
+            const nonce = Date.now().toString(36);
+            const offerCandidates = collection(callDoc, nomeSub('o', nonce));
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    addDoc(offerCandidates, event.candidate.toJSON()).then((r) => candidatosMeus.push(r)).catch(() => {});
+                }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            await setDoc(callDoc, {
+                oferta: { type: offer.type, sdp: offer.sdp },
+                remetente: usuarioAtual.email,
+                remetenteNome: meuNomeAtual || usuarioAtual.email.split('@')[0],
+                destinatario: contatoSelecionado.uid,
+                comVideo: comVideo,
+                n: nonce,
+                ts: Date.now(),
+                status: 'pendente'
+            });
+
+            enviarPushChamada(comVideo);
+            escutarRespostaChamada(callDoc, nonce);
+        } catch (err) {
+            pararSomCampainha();
+            alert("Erro ao aceder à câmara/microfone. Verifique as permissões do navegador: " + err.message);
+            fecharTelaChamadaUI();
+        }
+    };
+
+    function escutarRespostaChamada(callDoc, nonce) {
+        unsubscribeCall = onSnapshot(callDoc, async (snapshot) => {
+            const data = snapshot.data();
+            if (!data) {
+                // Se o documento da chamada sumiu (foi desligada pelo outro lado), fecha aqui também
+                fecharTelaChamadaUI();
+                return;
+            }
+
+            if (data.resposta && peerConnection && !peerConnection.currentRemoteDescription) {
+                pararSomCampainha();
+                const answer = new RTCSessionDescription(data.resposta);
+                await peerConnection.setRemoteDescription(answer);
+                document.getElementById('call-status').innerText = "Em chamada";
+                document.getElementById('call-placeholder-info').style.display = 'none';
+            }
+        });
+
+        unsubCandidatos = onSnapshot(collection(callDoc, nomeSub('a', nonce)), (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added' && peerConnection) {
+                    const candidate = new RTCIceCandidate(change.doc.data());
+                    peerConnection.addIceCandidate(candidate).catch(() => {});
+                }
+            });
+        });
+    }
+
+    function escutarChamadasEntrantes(uidUsuario) {
+        const q = query(collection(db, "chamadas"), where("destinatario", "==", uidUsuario));
+        if (unsubChamadasEntrantes) unsubChamadasEntrantes();
+        unsubChamadasEntrantes = onSnapshot(q, (snapshot) => {
+            let chamouAinda = false;
+            snapshot.forEach((docItem) => {
+                const data = docItem.data();
+                if (data.ts && Date.now() - data.ts > 60000) { deleteDoc(docItem.ref).catch(() => {}); return; }
+                if (data.destinatario === uidUsuario && data.status === 'pendente') {
+                    chamouAinda = true;
+                    if (window.chamadaEntranteDocId !== docItem.id) {
+                        window.chamadaEntranteDocId = docItem.id;
+                        const nomeChamada = data.remetenteNome || data.remetente.split('@')[0];
+                        document.getElementById('incoming-caller-name').innerText = `📞 ${nomeChamada}`;
+                        document.getElementById('incoming-caller-avatar').innerText = nomeChamada.charAt(0).toUpperCase();
+                        document.getElementById('modal-incoming-call').style.display = 'flex';
+                        iniciarSomCampainha('tocar');
+                    }
+                }
+            });
+            // Se a chamada pendente foi cancelada/desligada antes de atender
+            if (!chamouAinda && window.chamadaEntranteDocId) {
+                document.getElementById('modal-incoming-call').style.display = 'none';
+                pararSomCampainha();
+                window.chamadaEntranteDocId = null;
+            }
+        });
+    }
+
+    window.aceitarChamada = async () => {
+        pararSomCampainha();
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('call-screen').classList.remove('hidden');
+        document.getElementById('call-status').innerText = "A conectar...";
+        document.getElementById('call-placeholder-info').style.display = 'none';
+
+        const callDoc = doc(db, "chamadas", window.chamadaEntranteDocId);
+        const callSnap = await getDoc(callDoc);
+        if (!callSnap.exists()) return;
+        const data = callSnap.data();
+
+        // Identificar o contato que ligou para sincronizar encerramento correto
+        // Buscamos o UID do remetente pelo e-mail ou criamos o chat sala
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: data.comVideo });
+            document.getElementById('local-video').srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection(serversConfig);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('call-placeholder-info').style.display = 'none';
+                conectarMidiaRemota(event);
+            };
+
+            const answerCandidates = collection(callDoc, nomeSub('a', data.n));
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    addDoc(answerCandidates, event.candidate.toJSON()).then((r) => candidatosMeus.push(r)).catch(() => {});
+                }
+            };
+
+            const offer = data.oferta;
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            await updateDoc(callDoc, {
+                resposta: { type: answer.type, sdp: answer.sdp },
+                status: 'aceita'
+            });
+
+            // Escutar se o chamador desligou
+            unsubscribeCall = onSnapshot(callDoc, (snapshot) => {
+                if (!snapshot.exists()) {
+                    fecharTelaChamadaUI();
+                }
+            });
+
+            unsubCandidatos = onSnapshot(collection(callDoc, nomeSub('o', data.n)), (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added' && peerConnection) {
+                        const candidate = new RTCIceCandidate(change.doc.data());
+                        peerConnection.addIceCandidate(candidate).catch(() => {});
+                    }
+                });
+            });
+
+            document.getElementById('call-status').innerText = "Em chamada";
+        } catch (err) {
+            alert("Erro ao atender chamada: " + err.message);
+            encerrarChamada();
+        }
+    };
+
+    window.recusarChamada = async () => {
+        pararSomCampainha();
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+    };
+
+    // BOTÃO DESLIGAR (Sincronizado em ambas as pontas)
+    window.encerrarChamada = async () => {
+        pararSomCampainha();
+        if (contatoSelecionado && usuarioAtual) {
+            const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            try { await deleteDoc(doc(db, "chamadas", idChamada)); } catch(e){}
+        }
+        if (window.chamadaEntranteDocId) {
+            try { await deleteDoc(doc(db, "chamadas", window.chamadaEntranteDocId)); } catch(e){}
+            window.chamadaEntranteDocId = null;
+        }
+        fecharTelaChamadaUI();
+    };
+
+    function fecharTelaChamadaUI() {
+        pararSomCampainha();
+        if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+        if (peerConnection) { peerConnection.close(); peerConnection = null; }
+        if (unsubscribeCall) { unsubscribeCall(); unsubscribeCall = null; }
+        if (unsubCandidatos) { unsubCandidatos(); unsubCandidatos = null; }
+        candidatosMeus.splice(0).forEach((r) => deleteDoc(r).catch(() => {}));
+        document.getElementById('call-screen').classList.add('hidden');
+        document.getElementById('modal-incoming-call').style.display = 'none';
+        document.getElementById('remote-video').srcObject = null;
+        document.getElementById('remote-audio').srcObject = null;
+        document.getElementById('local-video').srcObject = null;
+    }
+
+    window.alternarMicrofone = () => {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            document.getElementById('btn-toggle-mic').style.background = audioTrack.enabled ? '#333' : '#ea0038';
+        }
+    };
+
+    window.alternarCamera = () => {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('btn-toggle-cam').style.background = videoTrack.enabled ? '#333' : '#ea0038';
+            }
+        }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            usuarioAtual = user;
+            document.querySelectorAll('.btn-sair').forEach((b) => b.classList.toggle('hidden', user.email !== EMAIL_ADMIN));
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+            document.getElementById('contacts-screen').classList.remove('hidden');
+            
+            let perfilMeu;
+            try { perfilMeu = await obterMeuPerfil(); } catch (err) { console.warn('Perfil:', err.message); perfilMeu = { email: user.email }; }
+            document.getElementById('btn-atendimento').classList.toggle('hidden', !perfilMeu.empresa);
+            let nomeExibicao = perfilMeu.nome || user.email.split('@')[0];
+            let fotoUrl = perfilMeu.fotoUrl || "";
+            meuNomeAtual = nomeExibicao;
+            document.getElementById('user-display-contacts').innerText = nomeExibicao;
+            
+            if (fotoUrl) {
+                document.getElementById('meu-img-topo').src = fotoUrl;
+                document.getElementById('meu-img-topo').classList.remove('hidden');
+                document.getElementById('meu-avatar-topo').classList.add('hidden');
+            } else {
+                document.getElementById('meu-avatar-topo').innerText = nomeExibicao.charAt(0).toUpperCase();
+                document.getElementById('meu-avatar-topo').classList.remove('hidden');
+                document.getElementById('meu-img-topo').classList.add('hidden');
+            }
+
+            escutarChamadasEntrantes(user.uid);
+            iniciarAgenda();
+            atualizarBarraAtalhos();
+            registrarPushSePermitido();
+            (async () => { await garantirHandle(perfilMeu); await sincronizarPerfilPublico(perfilMeu); processarConvite(); processarConviteSlug(); processarConviteEmpresa(); })();
+        } else {
+            usuarioAtual = null;
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('contacts-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.add('hidden');
+        }
+    });
+
+    const erroLogin = (e) => {
+        const c = (e && e.code) || '';
+        const m = {
+            'auth/invalid-email': 'E-mail inválido.',
+            'auth/invalid-credential': 'E-mail ou senha incorretos.',
+            'auth/wrong-password': 'Senha incorreta.',
+            'auth/user-not-found': 'Conta não encontrada. Toque em "Abrir Conta".',
+            'auth/email-already-in-use': 'Este e-mail já tem conta. Toque em "Entrar".',
+            'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+            'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
+            'auth/network-request-failed': 'Sem conexão com a internet.',
+            'auth/unauthorized-domain': 'Este site não está autorizado no Firebase. Adicione o domínio em Authentication > Configurações > Domínios autorizados: ' + location.hostname,
+            'auth/operation-not-allowed': 'Ative o login por E-mail/senha no Firebase (Authentication > Método de login).'
+        };
+        alert(m[c] || ('Erro: ' + ((e && e.message) || e)));
+    };
+
+    window.cadastrar = async () => {
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('password').value;
+        if (!email || !senha) return alert("Preencha e-mail e senha.");
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, senha);
+            const nomeInicial = email.split('@')[0];
+            const h = gerarHandle();
+            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: nomeInicial, bloqueado: false, limiteProdutos: 20, linkPessoal: "", fotoUrl: "", handle: h });
+            try { await setDoc(doc(db, "perfis", h), { uid: cred.user.uid, n: nomeInicial.slice(0, 60), f: '', l: '' }); } catch (_) {}
+            alert("Conta criada!");
+        } catch (e) { erroLogin(e); }
+    };
+
+    window.entrar = async () => {
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('password').value;
+        if (!email || !senha) return alert("Preencha e-mail e senha.");
+        try { await signInWithEmailAndPassword(auth, email, senha); } catch (e) { erroLogin(e); }
+    };
+
+    window.sair = async () => {
+        if (unsubChamadasEntrantes) { unsubChamadasEntrantes(); unsubChamadasEntrantes = null; }
+        if (unsubAgenda) { unsubAgenda(); unsubAgenda = null; }
+        if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
+        limiteUsuarioCache = null; vitrineCacheTs = 0;
+        Object.keys(localStorage).filter((k) => k.startsWith('zl_m_')).forEach((k) => localStorage.removeItem(k));
+        await signOut(auth);
+    };
+
+    // ================= ZAP LEVE NEGÓCIOS (vários atendentes numa conta) =================
+    let ctxEmpresa = null;   // { emp, cli, papel: 'cliente'|'atendente', nomeEmp, meta }
+    let empresaAtual = null; // { emp, dados }
+    let unsubInbox = null;
+    let inboxMeta = {};
+
+    const refMensagens = () => ctxEmpresa
+        ? collection(db, "empresas", ctxEmpresa.emp, "conversas", ctxEmpresa.cli, "mensagens")
+        : collection(db, "conversas", obterIdSala(usuarioAtual.uid, contatoSelecionado.uid), "mensagens");
+    const chaveCacheChat = () => ctxEmpresa ? `zl_m_e_${ctxEmpresa.emp}_${ctxEmpresa.cli}` : 'zl_m_' + obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+    const gerarCodigo = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+
+    // Toda mensagem passa por aqui: no atendimento marca o lado (cliente ou empresa) e atualiza a caixa de entrada
+    async function postarMensagem(dados) {
+        if (ctxEmpresa) {
+            dados.lado = ctxEmpresa.papel === 'atendente' ? 'emp' : 'cli';
+            if (ctxEmpresa.papel === 'atendente') { dados.por = usuarioAtual.uid; dados.porN = String(meuNomeAtual || '').slice(0, 40); }
+        }
+        const r = await addDoc(refMensagens(), dados);
+        if (ctxEmpresa) atualizarMetaEmpresa(dados).catch((e) => console.warn('Atendimento:', e.message));
+        return r;
+    }
+
+    async function atualizarMetaEmpresa(dados) {
+        const c = ctxEmpresa;
+        if (!c) return;
+        const ref = doc(db, "empresas", c.emp, "conversas", c.cli);
+        const resumo = String(dados.texto || (dados.tipo ? '[' + dados.tipo + ']' : '')).slice(0, 80);
+        if (c.papel === 'cliente') {
+            const p = await obterMeuPerfil();
+            const base = { cliN: String(p.nome || usuarioAtual.email.split('@')[0]).slice(0, 60), cliF: /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '', ultimoTxt: resumo, ultimoT: Date.now() };
+            if (!c.meta || c.meta.status === 'fim') {
+                await setDoc(ref, { ...base, status: 'espera' }, { merge: true });
+                c.meta = { ...(c.meta || {}), ...base, status: 'espera' };
+            } else {
+                await updateDoc(ref, base);
+                c.meta = { ...c.meta, ...base };
+            }
+        } else {
+            const alt = { ultimoTxt: resumo, ultimoT: Date.now() };
+            if (!c.meta || !c.meta.atendente) Object.assign(alt, { status: 'atendendo', atendente: usuarioAtual.uid, atendenteN: String(meuNomeAtual || '').slice(0, 40) });
+            await updateDoc(ref, alt);
+            c.meta = { ...(c.meta || {}), ...alt };
+        }
+    }
+
+    function ajustarBotoesChat() {
+        const c = ctxEmpresa;
+        const mostrar = (id, ok) => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', !ok); };
+        mostrar('btn-limpar', !c);
+        mostrar('btn-assumir', !!c && c.papel === 'atendente');
+        mostrar('btn-finalizar', !!c && c.papel === 'atendente');
+        mostrar('btn-video', !c || c.papel === 'atendente');
+        mostrar('btn-audio', !c || c.papel === 'atendente');
+    }
+
+    // ----- ativar o modo Negócios -----
+    async function criarEmpresa(p) {
+        const nome = String(p.nome || usuarioAtual.email.split('@')[0]).slice(0, 60);
+        const foto = /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '';
+        await setDoc(doc(db, "empresas", usuarioAtual.uid), { dono: usuarioAtual.uid, nome, atendentes: { [usuarioAtual.uid]: { n: nome, f: foto, st: 'livre', t: Date.now() } }, convite: gerarCodigo(), criadoEm: Date.now() });
+        await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { empresa: usuarioAtual.uid });
+        salvarCache('zl_perfil_' + usuarioAtual.uid, { ...p, empresa: usuarioAtual.uid });
+        if (p.slug) { try { await setDoc(doc(db, "slugs", p.slug), { uid: usuarioAtual.uid, n: nome, f: foto, e: true }); } catch (_) {} }
+        document.getElementById('btn-atendimento').classList.remove('hidden');
+    }
+
+    window.abrirNegocios = async () => {
+        try {
+            const p = await obterMeuPerfil();
+            if (!p.empresa) {
+                if (!confirm('Ativar o Zap Leve Negócios?\n\nVocê poderá convidar atendentes para responder os clientes numa caixa de entrada compartilhada.')) return;
+                await criarEmpresa(p);
+            }
+            fecharPerfilUsuario();
+            await window.abrirAtendimento();
+        } catch (e) { alert('Erro ao ativar o Negócios: ' + e.message); }
+    };
+
+    // ----- painel de atendimento -----
+    window.abrirAtendimento = async () => {
+        const modal = document.getElementById('modal-atendimento');
+        try {
+            const p = await obterMeuPerfil();
+            if (!p.empresa) return alert('Você ainda não faz parte de nenhuma empresa.');
+            modal.style.display = 'flex';
+            document.getElementById('atend-lista').innerHTML = "<p style='text-align:center; font-size:12px;'>Carregando...</p>";
+            const snap = await getDoc(doc(db, "empresas", p.empresa));
+            if (!snap.exists()) { modal.style.display = 'none'; return alert('Empresa não encontrada.'); }
+            empresaAtual = { emp: p.empresa, dados: snap.data() };
+            desenharAtendimento();
+            if (unsubInbox) unsubInbox();
+            unsubInbox = onSnapshot(query(collection(db, "empresas", p.empresa, "conversas"), where("status", "in", ["espera", "atendendo"])), (s) => {
+                inboxMeta = {};
+                s.forEach((d) => { inboxMeta[d.id] = d.data(); });
+                desenharInbox();
+            }, (err) => console.warn('Inbox:', err.message));
+        } catch (e) { modal.style.display = 'none'; alert('Erro ao abrir o atendimento: ' + e.message); }
+    };
+
+    window.fecharAtendimento = () => {
+        document.getElementById('modal-atendimento').style.display = 'none';
+        if (unsubInbox) { unsubInbox(); unsubInbox = null; }
+    };
+
+    function desenharAtendimento() {
+        const { emp, dados } = empresaAtual;
+        const eu = (dados.atendentes || {})[usuarioAtual.uid];
+        const dono = emp === usuarioAtual.uid;
+        document.getElementById('atend-titulo').innerText = '🎧 ' + (dados.nome || 'Atendimento');
+        const st = eu ? eu.st : 'livre';
+        document.getElementById('atend-status').innerHTML = `<button class="btn-alt" style="margin:0; padding:8px; font-size:12px; background:${st === 'livre' ? '#28a745' : '#c0392b'};" onclick="alternarStatusAtendente()">${st === 'livre' ? '🟢 Livre (toque para ficar Ocupado)' : '🔴 Ocupado (toque para ficar Livre)'}</button>`;
+        const box = document.getElementById('atend-dono');
+        if (!dono) { box.classList.add('hidden'); return; }
+        box.classList.remove('hidden');
+        const lista = Object.entries(dados.atendentes || {}).map(([uid, a]) => `<div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:4px 0;"><span>${a.st === 'livre' ? '🟢' : '🔴'} ${esc(a.n)}${uid === emp ? ' (você)' : ''}</span>${uid === emp ? '' : `<button class="btn-danger" style="width:auto; padding:3px 8px; margin:0; font-size:11px;" onclick="removerAtendente('${esc(uid)}')">Remover</button>`}</div>`).join('');
+        box.innerHTML = `<p style="font-size:12px; font-weight:bold; margin:0 0 4px 0;">👥 Atendentes</p>${lista}
+            <div style="display:flex; gap:6px; margin-top:8px;">
+                <button class="btn-alt" style="margin:0; padding:7px; font-size:11px;" onclick="copiarConviteAtendente()">🔗 Copiar link de convite</button>
+                <button class="btn-alt" style="margin:0; padding:7px; font-size:11px; background:#d4a24c;" onclick="novoConviteAtendente()">♻️ Novo código</button>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+                <button class="btn-alt" style="margin:0; padding:7px; font-size:11px; background:#6c4ab6;" onclick="editarNomeEmpresa()">✏️ Nome da empresa</button>
+                <button class="btn-alt" style="margin:0; padding:7px; font-size:11px; background:#6c4ab6;" onclick="document.getElementById('logo-empresa-input').click()">🖼️ Logo da empresa</button>
+            </div>`;
+    }
+
+    function desenharInbox() {
+        const box = document.getElementById('atend-lista');
+        const itens = Object.entries(inboxMeta).sort((a, b) => (b[1].ultimoT || 0) - (a[1].ultimoT || 0));
+        if (!itens.length) { box.innerHTML = "<p style='text-align:center; font-size:12px; opacity:0.7;'>Nenhuma conversa em andamento.</p>"; return; }
+        box.innerHTML = itens.map(([cli, m]) => `
+            <div class="contact-item" onclick="abrirConversaEmpresa('${esc(cli)}')">
+                <div class="contact-info">
+                    <div class="avatar">${esc((m.cliN || 'C').charAt(0).toUpperCase())}</div>
+                    <div style="min-width:0;"><span class="contact-name">${esc(m.cliN || 'Cliente')}</span><br><span style="font-size:11px; opacity:0.75;">${esc(m.ultimoTxt || '')}</span></div>
+                </div>
+                <span style="font-size:11px; font-weight:bold; white-space:nowrap;">${m.status === 'espera' ? '🟡 Espera' : '🟢 ' + esc(m.atendenteN || 'Atendendo')}</span>
+            </div>`).join('');
+    }
+
+    window.alternarStatusAtendente = async () => {
+        const e = empresaAtual;
+        if (!e) return;
+        const atual = ((e.dados.atendentes || {})[usuarioAtual.uid] || {}).st || 'livre';
+        const novo = atual === 'livre' ? 'ocupado' : 'livre';
+        try {
+            await updateDoc(doc(db, "empresas", e.emp), { [`atendentes.${usuarioAtual.uid}.st`]: novo });
+            e.dados.atendentes[usuarioAtual.uid].st = novo;
+            desenharAtendimento();
+        } catch (err) { alert('Erro ao mudar o status: ' + err.message); }
+    };
+
+    window.copiarConviteAtendente = async () => {
+        const e = empresaAtual;
+        const url = `${location.origin}/?emp=${e.emp}&c=${e.dados.convite}`;
+        try { await navigator.clipboard.writeText(url); alert('Link de convite copiado!\nEnvie para o atendente. Ele precisa criar conta ou entrar e o acesso é liberado.\n' + url); }
+        catch (_) { prompt('Copie o link de convite:', url); }
+    };
+
+    window.novoConviteAtendente = async () => {
+        if (!confirm('Gerar um novo código? O link antigo deixa de funcionar (quem já é atendente continua).')) return;
+        try {
+            const c = gerarCodigo();
+            await updateDoc(doc(db, "empresas", empresaAtual.emp), { convite: c });
+            empresaAtual.dados.convite = c;
+            alert('Novo código gerado. Use "Copiar link de convite".');
+        } catch (e) { alert('Erro: ' + e.message); }
+    };
+
+    window.removerAtendente = async (uid) => {
+        if (!confirm('Remover este atendente?')) return;
+        try {
+            await updateDoc(doc(db, "empresas", empresaAtual.emp), { ['atendentes.' + uid]: deleteField() });
+            delete empresaAtual.dados.atendentes[uid];
+            desenharAtendimento();
+        } catch (e) { alert('Erro ao remover: ' + e.message); }
+    };
+
+    window.editarNomeEmpresa = async () => {
+        const e = empresaAtual;
+        if (!e || e.emp !== usuarioAtual.uid) return;
+        const novo = prompt('Nome da empresa (aparece para os clientes):', e.dados.nome || '');
+        if (novo === null) return;
+        const nome = novo.trim().slice(0, 60);
+        if (nome.length < 2) return alert('Digite um nome com pelo menos 2 letras.');
+        try {
+            await updateDoc(doc(db, "empresas", e.emp), { nome });
+            e.dados.nome = nome;
+            const p = await obterMeuPerfil();
+            if (p.slug) await setDoc(doc(db, "slugs", p.slug), { uid: usuarioAtual.uid, n: nome, f: /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '', e: true });
+            try { await updateDoc(doc(db, "lojas", e.emp), { nome }); localStorage.removeItem('zl_loja_' + e.emp); } catch (_) {}
+            desenharAtendimento();
+        } catch (err) { alert('Erro ao salvar o nome: ' + err.message); }
+    };
+
+    // A logo da empresa é a foto da conta da empresa (aparece na página da loja e no atendimento)
+    window.trocarLogoEmpresa = async (input) => {
+        const file = input.files[0];
+        input.value = '';
+        const e = empresaAtual;
+        if (!file || !e || e.emp !== usuarioAtual.uid) return;
+        try {
+            const url = await subirParaR2(await comprimirImagem(file, 256, 0.8), 'webp');
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { fotoUrl: url });
+            const p = { ...(await obterMeuPerfil()), fotoUrl: url };
+            salvarCache('zl_perfil_' + usuarioAtual.uid, p);
+            await updateDoc(doc(db, "empresas", e.emp), { [`atendentes.${usuarioAtual.uid}.f`]: url });
+            if (p.slug) await setDoc(doc(db, "slugs", p.slug), { uid: usuarioAtual.uid, n: e.dados.nome || p.nome || 'Empresa', f: url.slice(0, 300), e: true });
+            const topo = document.getElementById('meu-img-topo');
+            topo.src = url; topo.classList.remove('hidden'); document.getElementById('meu-avatar-topo').classList.add('hidden');
+            alert('Logo atualizada!');
+        } catch (err) { alert('Erro ao trocar a logo: ' + err.message); }
+    };
+
+    async function processarConviteEmpresa() {
+        const v = localStorage.getItem('zl_convite_emp');
+        if (!v || !usuarioAtual) return;
+        localStorage.removeItem('zl_convite_emp');
+        const [emp, c] = v.split(':');
+        try {
+            const p = await obterMeuPerfil();
+            const nome = String(p.nome || usuarioAtual.email.split('@')[0]).slice(0, 60);
+            const foto = /^https?:\/\//i.test(p.fotoUrl || '') ? String(p.fotoUrl).slice(0, 300) : '';
+            await setDoc(doc(db, "empresas", emp), { atendentes: { [usuarioAtual.uid]: { n: nome, f: foto, st: 'livre', t: Date.now() } }, conviteUsado: c }, { merge: true });
+            await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { empresa: emp });
+            salvarCache('zl_perfil_' + usuarioAtual.uid, { ...p, empresa: emp });
+            document.getElementById('btn-atendimento').classList.remove('hidden');
+            alert('Pronto! Você agora é atendente. Toque em "🎧 Atendimento" para ver as conversas.');
+        } catch (e) { alert('Convite inválido ou expirado.'); }
+    }
+
+    // ----- conversas -----
+    window.abrirConversaEmpresa = (cliUid) => {
+        const m = inboxMeta[cliUid] || {};
+        const ctx = { emp: empresaAtual.emp, cli: cliUid, papel: 'atendente', nomeEmp: empresaAtual.dados.nome, meta: m };
+        window.fecharAtendimento();
+        window.abrirChat(cliUid, m.cliN || 'Cliente', m.cliF || '', ctx);
+    };
+
+    async function abrirChatEmpresaCliente(emp, nome, foto) {
+        const ctx = { emp, cli: usuarioAtual.uid, papel: 'cliente', nomeEmp: nome, meta: null };
+        try { const s = await getDoc(doc(db, "empresas", emp, "conversas", usuarioAtual.uid)); ctx.meta = s.exists() ? s.data() : null; } catch (_) {}
+        if (!contatosCache['e_' + emp]) { // guarda a empresa na minha lista para voltar depois
+            setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { ['e_' + emp]: { n: String(nome).slice(0, 60), f: foto || '', l: '', k: '', t: Date.now() } } }, { merge: true }).catch(() => {});
+        }
+        window.abrirChat(emp, nome, foto || '', ctx);
+    }
+
+    window.abrirChatEmpresaCliente = abrirChatEmpresaCliente;
+
+    window.assumirConversa = async () => {
+        const c = ctxEmpresa;
+        if (!c) return;
+        const ref = doc(db, "empresas", c.emp, "conversas", c.cli);
+        try {
+            await runTransaction(db, async (tx) => {
+                const s = await tx.get(ref);
+                const d = s.exists() ? s.data() : {};
+                if (d.atendente && d.atendente !== usuarioAtual.uid) throw new Error('Esta conversa já está com ' + (d.atendenteN || 'outro atendente') + '.');
+                tx.update(ref, { status: 'atendendo', atendente: usuarioAtual.uid, atendenteN: String(meuNomeAtual || '').slice(0, 40) });
+            });
+            c.meta = { ...(c.meta || {}), status: 'atendendo', atendente: usuarioAtual.uid, atendenteN: meuNomeAtual };
+            alert('Você assumiu esta conversa.');
+        } catch (e) { alert(e.message); }
+    };
+
+    window.finalizarConversa = async () => {
+        const c = ctxEmpresa;
+        if (!c) return;
+        if (!confirm('Finalizar este atendimento?')) return;
+        try {
+            await updateDoc(doc(db, "empresas", c.emp, "conversas", c.cli), { status: 'fim', atendente: '', atendenteN: '' });
+            window.voltarParaContatos();
+        } catch (e) { alert('Erro ao finalizar: ' + e.message); }
+    };
+
+    // Carrinho do atendente: catálogo da empresa para mandar ao cliente
+    async function abrirLojaEmpresaEnvio() {
+        configurarModalLoja({ modo: 'envio', titulo: '🏢 Catálogo da empresa' });
+        const container = document.getElementById('lista-produtos-vitrine');
+        container.innerHTML = "<p style='text-align:center; font-size:12px;'>A carregar...</p>";
+        try {
+            let loja = lerCache('zl_loja_' + ctxEmpresa.emp, 3600 * 1000);
+            if (!loja) {
+                const snap = await getDoc(doc(db, "lojas", ctxEmpresa.emp));
+                loja = snap.exists() ? snap.data() : { itens: [] };
+                salvarCache('zl_loja_' + ctxEmpresa.emp, loja);
+            }
+            cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+            renderizarProdutosVitrine(cacheProdutosVitrine);
+        } catch (e) { container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar o catálogo.</p>"; }
+    }
+
+    function renderizarAgenda(dados) {
+        const listaDiv = document.getElementById('lista-contatos');
+        const itens = Object.entries(dados).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+        listaDiv.innerHTML = "";
+        itens.forEach(([uid, e]) => {
+            const nomeBase = e.n || 'Usuário';
+            const nomeContato = (uid.startsWith('e_') ? '🏢 ' : '') + nomeBase;
+            contatosCache[uid] = { nome: nomeBase, foto: e.f || '', token: e.k || '' };
+            const avatarHtml = e.f ?
+                `<img src="${esc(urlSegura(e.f, true))}" class="avatar">` :
+                `<div class="avatar">${esc(nomeBase.charAt(0).toUpperCase())}</div>`;
+            listaDiv.innerHTML += `
+                <div class="contact-item" onclick="abrirChatPorId('${esc(uid)}')">
+                    <div class="contact-info">
+                        ${avatarHtml}
+                        <span class="contact-name">${esc(nomeContato)}</span>
+                    </div>
+                    <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
+                </div>`;
+        });
+        if (!itens.length) listaDiv.innerHTML = "<p style='text-align:center; opacity:0.7; font-size:13px; margin:20px 10px;'>Você ainda não tem contatos.<br>Toque em <b>Compartilhar</b> para enviar o seu link de atendimento.</p>";
+    }
+
+    function iniciarAgenda() {
+        if (unsubAgenda) unsubAgenda();
+        const chave = 'zl_agenda_' + usuarioAtual.uid;
+        const c = lerCache(chave, Infinity);
+        if (c) renderizarAgenda(c);
+        unsubAgenda = onSnapshot(doc(db, "agenda", usuarioAtual.uid), (snap) => {
+            const dados = snap.exists() ? (snap.data().c || {}) : {};
+            salvarCache(chave, dados);
+            renderizarAgenda(dados);
+        }, (err) => console.warn('Agenda:', err.message));
+    }
+
+    window.abrirChatPorId = (id) => {
+        const c = contatosCache[id];
+        if (!c) return;
+        if (id.startsWith('e_')) return abrirChatEmpresaCliente(id.slice(2), c.nome, c.foto);
+        window.abrirChat(id, c.nome, c.foto);
+    };
+
+    window.abrirChat = (uidContato, nomeContato, fotoContato, ctx = null) => {
+        ctxEmpresa = ctx;
+        contatoSelecionado = { uid: uidContato, nome: nomeContato, fotoUrl: fotoContato };
+        if (!ctx) apresentarAoContato(uidContato).catch((e) => console.warn('Apresentação:', e.message));
+        document.getElementById('chat-title').innerText = nomeContato;
+        
+        const chatAvatar = document.getElementById('chat-avatar-topo');
+        const chatImg = document.getElementById('chat-img-topo');
+        if (fotoContato) {
+            chatImg.src = fotoContato;
+            chatImg.classList.remove('hidden');
+            chatAvatar.classList.add('hidden');
+        } else {
+            chatAvatar.innerText = nomeContato.charAt(0).toUpperCase();
+            chatAvatar.classList.remove('hidden');
+            chatImg.classList.add('hidden');
+        }
+
+        document.getElementById('contacts-screen').classList.add('hidden');
+        document.getElementById('chat-screen').classList.remove('hidden');
+        limiteMsgs = 30;
+        ajustarBotoesChat();
+        escutarMensagensPrivadas();
+    };
+
+    window.verMaisMensagens = async () => {
+        try {
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const maisAntiga = msgsAtuais.length ? msgsAtuais[0].t : Date.now();
+            const snap = await getDocs(query(refMensagens(), where("criadoEm", "<", Timestamp.fromMillis(maisAntiga)), orderBy("criadoEm", "desc"), limit(30)));
+            let cortou = false;
+            snap.docs.forEach((d) => {
+                if (cortou) return;
+                const m = sanitizarMsg(d.id, d.data());
+                if (m.tipo === 'limpar') { cortou = true; return; }
+                if (!msgsAtuais.some((x) => x.id === m.id)) msgsAtuais.push(m);
+            });
+            temAnteriores = snap.size >= 30 && !cortou;
+            salvarMsgsCache();
+            renderizarListaMensagens(msgsAtuais, temAnteriores);
+        } catch (e) { alert("Erro ao carregar mensagens anteriores: " + e.message); }
+    };
+
+    window.filtrarMensagensLocais = () => {
+        const t = document.getElementById('input-busca-msg').value.toLowerCase();
+        document.querySelectorAll('#mensagens .msg').forEach((m) => { m.style.display = m.innerText.toLowerCase().includes(t) ? '' : 'none'; });
+    };
+
+    window.voltarParaContatos = () => {
+        tokenEscuta++;
+        if (unsubscribeChat) unsubscribeChat();
+        const eraAtendente = ctxEmpresa && ctxEmpresa.papel === 'atendente';
+        ctxEmpresa = null;
+        ajustarBotoesChat();
+        document.getElementById('chat-screen').classList.add('hidden');
+        document.getElementById('contacts-screen').classList.remove('hidden');
+        if (eraAtendente) window.abrirAtendimento();
+    };
+
+    function obterIdSala(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
+
+    window.limparConversaAtual = async () => {
+        if (!contatoSelecionado || !usuarioAtual) return;
+        if (!confirm("Tem certeza que deseja apagar todas as mensagens, áudios, fotos e vídeos desta conversa?")) return;
+        try {
+            const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+            const ids = msgsAtuais.map((m) => m.id);
+            // marcador: faz o outro celular limpar o cache local sem ler nada
+            await postarMensagem({ tipo: 'limpar', texto: '', remetente: usuarioAtual.email, criadoEm: serverTimestamp() });
+            await Promise.all(ids.map((id) => deleteDoc(doc(refMensagens(), id))));
+            alert("Conversa limpa com sucesso!");
+        } catch (err) {
+            alert("Erro ao limpar conversa: " + err.message);
+        }
+    };
+
+    const sanitizarMsg = (id, d) => { const { criadoEm, ...resto } = d; return { id, ...resto, t: criadoEm && criadoEm.toMillis ? criadoEm.toMillis() : Date.now() }; };
+
+    function salvarMsgsCache() {
+        msgsAtuais.sort((a, b) => a.t - b.t);
+        if (msgsAtuais.length > 300) msgsAtuais = msgsAtuais.slice(-300);
+        const sem = (m) => { const c = { ...m }; ['imagemBase64', 'videoBase64', 'audioBase64'].forEach((k) => delete c[k]); return c; };
+        try { localStorage.setItem(msgsChave, JSON.stringify({ base: msgsBase, msgs: msgsAtuais })); }
+        catch (_) { try { localStorage.setItem(msgsChave, JSON.stringify({ base: msgsBase, msgs: msgsAtuais.slice(-50).map(sem) })); } catch (__) {} }
+    }
+
+    function aplicarMsg(docSnap, tipo) {
+        const m = sanitizarMsg(docSnap.id, docSnap.data({ serverTimestamps: 'estimate' }));
+        if (!docSnap.metadata.hasPendingWrites && m.t > msgsBase) msgsBase = m.t;
+        if (tipo === 'removed') { msgsAtuais = msgsAtuais.filter((x) => x.id !== m.id); return; }
+        if (m.tipo === 'limpar') { msgsAtuais = msgsAtuais.filter((x) => x.t > m.t); temAnteriores = false; return; }
+        const i = msgsAtuais.findIndex((x) => x.id === m.id);
+        if (i >= 0) msgsAtuais[i] = m; else msgsAtuais.push(m);
+    }
+
+    // Abre o chat: mostra o cache local e só lê do Firestore o que é NOVO
+    async function escutarMensagensPrivadas() {
+        const meuToken = ++tokenEscuta;
+        if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        msgsChave = chaveCacheChat();
+        msgsAtuais = []; msgsBase = 0;
+        try { const c = JSON.parse(localStorage.getItem(msgsChave)); if (c) { msgsAtuais = c.msgs || []; msgsBase = c.base || 0; } } catch (_) {}
+        temAnteriores = msgsAtuais.length >= 30;
+        renderizarListaMensagens(msgsAtuais, temAnteriores);
+        const ref = refMensagens();
+        try {
+            if (!msgsBase) { // primeira vez neste aparelho: 1 leitura única das últimas 30
+                const snap = await getDocs(query(ref, orderBy("criadoEm", "desc"), limit(30)));
+                if (meuToken !== tokenEscuta) return;
+                temAnteriores = snap.size >= 30;
+                snap.docs.slice().reverse().forEach((d) => aplicarMsg(d, 'added'));
+                salvarMsgsCache();
+                renderizarListaMensagens(msgsAtuais, temAnteriores);
+            }
+            const q = query(ref, where("criadoEm", ">", Timestamp.fromMillis(msgsBase + 1)), orderBy("criadoEm", "asc"));
+            unsubscribeChat = onSnapshot(q, (snapshot) => {
+                const mudancas = snapshot.docChanges();
+                if (!mudancas.length) return;
+                mudancas.forEach((ch) => aplicarMsg(ch.doc, ch.type));
+                salvarMsgsCache();
+                renderizarListaMensagens(msgsAtuais, temAnteriores);
+            });
+        } catch (e) { console.warn('Chat:', e.message); }
+    }
+
+    function formatarTextoComMidia(texto) {
+        if (!texto) return '';
+        texto = esc(texto);
+        const padraoUrl = /((https?:\/\/[^\s]+)|(www\.[^\s]+))/g;
+        let textoFormatado = texto.replace(padraoUrl, (url) => {
+            let urlCompleta = url;
+            if (url.startsWith('www.')) {
+                urlCompleta = 'https://' + url;
+            }
+            return `<a href="${urlCompleta}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+
+        let embedHtml = '';
+        const matchYoutube = texto.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (matchYoutube && matchYoutube[1]) {
+            const videoId = matchYoutube[1];
+            embedHtml += `<div class="embed-container"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`;
+        }
+
+        const matchTiktok = texto.match(/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@[\w.-]+\/video\/(\d+)/);
+        if (matchTiktok && matchTiktok[1]) {
+            const tiktokId = matchTiktok[1];
+            embedHtml += `<div class="embed-container" style="aspect-ratio: 9/16;"><iframe src="https://www.tiktok.com/embed/v2/${tiktokId}" allowfullscreen></iframe></div>`;
+        }
+
+        return textoFormatado + embedHtml;
+    }
+
+    function renderizarListaMensagens(lista, temMais) {
+        const box = document.getElementById('mensagens');
+        box.innerHTML = temMais ? '<button onclick="verMaisMensagens()" style="width:auto; align-self:center; padding:6px 14px; font-size:12px; border-radius:16px; margin:0 0 6px;">⬆ Ver anteriores</button>' : '';
+        lista.forEach((data) => {
+            const eMinha = ctxEmpresa ? (ctxEmpresa.papel === 'atendente' ? data.lado === 'emp' : data.lado !== 'emp') : data.remetente === usuarioAtual.email;
+            const rotuloAtend = (ctxEmpresa && data.lado === 'emp' && data.porN) ? `<div style="font-size:10px; opacity:0.7; font-weight:bold;">${esc(data.porN)}</div>` : '';
+            let conteudoHtml = `<div style="font-size: 14px;">${formatarTextoComMidia(data.texto)}</div>`;
+            
+            if (data.tipo === 'produto') {
+                let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
+                if (urlSegura(data.imagemUrlProduto, true)) cartaoHtml += `<img src="${esc(urlSegura(data.imagemUrlProduto, true))}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem(this.src)">`;
+                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Comprar 🛒</a>`;
+                conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
+            } else if (data.tipo === 'imagem') {
+                let imgSrc = esc(urlSegura(data.imagemUrlLocal || data.imagemBase64, true));
+                conteudoHtml += `<img class="msg-img" src="${imgSrc}" onclick="ampliarImagem(this.src)" title="Toque para ampliar"><br><a class="msg-download-btn" href="${imgSrc}" download="foto.jpg">📥 Baixar Imagem</a>`;
+            } else if (data.tipo === 'video') {
+                let vidSrc = esc(urlSegura(data.videoUrlLocal || data.videoBase64, true));
+                conteudoHtml += `<video controls width="100%"><source src="${vidSrc}" type="video/mp4"></video><br><a class="msg-download-btn" href="${vidSrc}" download="video.mp4">📥 Baixar Vídeo</a>`;
+            } else if (data.tipo === 'audio') {
+                const audioId = "audio_" + data.id;
+                let audSrc = esc(urlSegura(data.audioUrlLocal || data.audioBase64, true));
+                conteudoHtml += `
+                    <div class="wa-audio-player">
+                        <button class="wa-play-btn" id="btn_${audioId}" onclick="tocarAudioLocal('${audioId}')">▶</button>
+                        <div class="wa-audio-info">
+                            <div class="wa-audio-bar" onclick="seekAudio(event, '${audioId}')"><div class="wa-audio-progress" id="prog_${audioId}"></div></div>
+                            <span class="wa-audio-time" id="time_${audioId}">0:00</span>
+                        </div>
+                        <audio id="${audioId}" src="${audSrc}" preload="metadata" ontimeupdate="atualizarProgressoAudio('${audioId}')" onended="audioTerminou('${audioId}')"></audio>
+                    </div>`;
+            }
+            box.innerHTML += `<div class="${eMinha ? 'msg msg-minha' : 'msg'}"><div class="msg-content">${rotuloAtend}${conteudoHtml}</div></div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    window.tocarAudioLocal = (id) => {
+        const audio = document.getElementById(id);
+        const btn = document.getElementById('btn_' + id);
+        if (audio.paused) { 
+            audio.play().catch(e => alert("Erro ao reproduzir áudio: " + e.message)); 
+            btn.innerText = "⏸"; 
+        } else { 
+            audio.pause(); 
+            btn.innerText = "▶"; 
+        }
+    };
+
+    window.seekAudio = (event, id) => {
+        const audio = document.getElementById(id);
+        const bar = event.currentTarget;
+        const rect = bar.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const width = bar.offsetWidth;
+        if (audio.duration) {
+            audio.currentTime = (clickX / width) * audio.duration;
+        }
+    };
+
+    window.atualizarProgressoAudio = (id) => {
+        const audio = document.getElementById(id);
+        const prog = document.getElementById('prog_' + id);
+        const time = document.getElementById('time_' + id);
+        if (audio.duration) {
+            prog.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+            const min = Math.floor(audio.currentTime / 60);
+            const sec = Math.floor(audio.currentTime % 60);
+            time.innerText = min + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+    };
+
+    window.audioTerminou = (id) => {
+        const btn = document.getElementById('btn_' + id);
+        const prog = document.getElementById('prog_' + id);
+        if(btn) btn.innerText = "▶";
+        if(prog) prog.style.width = '0%';
+    };
+
+    window.enviarMensagemPrivada = async () => {
+        const inputEl = document.getElementById('mensagem-texto');
+        if (!inputEl.value.trim() || !contatoSelecionado) return;
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        await postarMensagem({
+            texto: inputEl.value, remetente: usuarioAtual.email, tipo: "texto", criadoEm: serverTimestamp()
+        });
+        inputEl.value = "";
+    };
+
+    const R2_WORKER = 'https://zapleve-uploader.bmlimp8.workers.dev'; // troque pela URL do seu Worker
+    const MAX_VIDEO_MB = 15;
+
+    async function subirParaR2(blob, ext) {
+        const token = await auth.currentUser.getIdToken();
+        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });
+        if (!r.ok) throw new Error('Falha no upload (' + r.status + ')');
+        return (await r.json()).url;
+    }
+
+    function comprimirImagem(file, maxLado = 1280, qualidade = 0.75) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const k = Math.min(1, maxLado / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                URL.revokeObjectURL(img.src);
+                c.toBlob((b) => b ? resolve(b) : reject(new Error('Falha ao comprimir')), 'image/webp', qualidade);
+            };
+            img.onerror = () => reject(new Error('Imagem inválida'));
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    async function enviarMidia(blob, ext, tipo, texto, campo) {
+        const idSala = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
+        const url = await subirParaR2(blob, ext);
+        await postarMensagem({ texto, [campo]: url, remetente: usuarioAtual.email, tipo, criadoEm: serverTimestamp() });
+    }
+
+    window.enviarImagemGlobal = async (input) => {
+        const file = input.files[0]; input.value = '';
+        if (!file || !contatoSelecionado) return;
+        try { await enviarMidia(await comprimirImagem(file), 'webp', 'imagem', '📷 Imagem', 'imagemUrlLocal'); }
+        catch (e) { alert('Erro ao enviar imagem: ' + e.message); }
+    };
+
+    window.enviarVideoGlobal = async (input) => {
+        const file = input.files[0]; input.value = '';
+        if (!file || !contatoSelecionado) return;
+        if (file.size > MAX_VIDEO_MB * 1048576) return alert(`Vídeo muito grande (máx. ${MAX_VIDEO_MB} MB).`);
+        try { await enviarMidia(file, file.type.includes('webm') ? 'webm' : 'mp4', 'video', '📹 Vídeo', 'videoUrlLocal'); }
+        catch (e) { alert('Erro ao enviar vídeo: ' + e.message); }
+    };
+
+    let mediaRecorder = null, audioChunks = [];
+    window.toggleGravarAudio = async () => {
+        const btnAudio = document.getElementById('btn-gravar-audio');
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("O seu navegador não permite gravação de áudio (necessário HTTPS).");
+                    return;
+                }
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { 
+                        echoCancellation: true, 
+                        noiseSuppression: true, 
+                        autoGainControl: true 
+                    } 
+                });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    try { await enviarMidia(blob, 'webm', 'audio', '🎙️ Áudio', 'audioUrlLocal'); }
+                    catch (e) { alert('Erro ao enviar áudio: ' + e.message); }
+                };
+                mediaRecorder.start();
+                btnAudio.classList.add('gravando');
+                btnAudio.innerText = "⏹️";
+            } catch (err) {
+                alert("Erro ao aceder ao microfone. Verifique as permissões do seu navegador: " + err.message);
+            }
+        } else {
+            mediaRecorder.stop();
+            if(mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+            }
+            btnAudio.classList.remove('gravando');
+            btnAudio.innerText = "🎙️";
+        }
+    };
+    window.indicarAmigo = async () => {
+        const url = await meuLinkAtendimento();
+        const dados = { title: 'Zap Leve', text: 'Fale comigo no Zap Leve! Chat e chamadas grátis ⚡💬', url };
+        try {
+            if (navigator.share) { await navigator.share(dados); return; }
+            await navigator.clipboard.writeText(dados.text + ' ' + url);
+            alert('Link copiado! Cole no WhatsApp ou onde quiser compartilhar.');
+        } catch (e) {
+            if (e.name !== 'AbortError') prompt('Copie o link:', url);
+        }
+    };
+
+    window.copiarMeuLink = async () => {
+        const url = await meuLinkAtendimento();
+        try { await navigator.clipboard.writeText(url); alert('Link de atendimento copiado!\n' + url); }
+        catch (e) { prompt('Copie o link:', url); }
+    };
+    if (slugInicial) abrirLojaPublica(slugInicial);
+</script>
+
+</body>
+</html>
