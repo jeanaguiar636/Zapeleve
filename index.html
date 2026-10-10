@@ -554,7 +554,6 @@
     carregarMessaging().catch((e) => console.warn('Messaging:', e.message));
     // <<FIM-CARREGADOR>>
 
-    // Configuração oficial correta do Firebase inserida no local ideal
     const firebaseConfig = {
         apiKey: "AIzaSyDzi_rystX7ymNbkeifTiO-YOxx2A9UCjI",
         authDomain: "zapleve.firebaseapp.com",
@@ -574,8 +573,8 @@
     let ctxEmpresa = null;
     let unsubscribeChat = null;
     let limiteMsgs = 30;
+    let unsubAgenda = null;
 
-    // Segurança: escape de HTML e validação de URLs
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const urlSegura = (u, midia = false) => {
         u = String(u || '').trim();
@@ -587,14 +586,7 @@
     const contatosCache = {};
     const lerCache = (k, ttl) => { try { const o = JSON.parse(localStorage.getItem(k)); if (o && Date.now() - o.ts < ttl) return o.d; } catch (_) {} return null; };
     const salvarCache = (k, d) => { try { localStorage.setItem(k, JSON.stringify({ ts: Date.now(), d })); } catch (_) {} };
-    const entradaDir = (x) => ({
-        n: String(x.nome || String(x.email || '').split('@')[0] || 'Usuário').slice(0, 60),
-        f: /^https?:\/\//i.test(x.fotoUrl || '') ? String(x.fotoUrl).slice(0, 300) : '',
-        l: String(x.linkPessoal || '').slice(0, 200)
-    });
-
-    let msgsAtuais = [], msgsChave = '', msgsBase = 0, temAnteriores = false, tokenEscuta = 0;
-
+    
     async function garantirDocUsuario() {
         await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 10 }, { merge: true });
     }
@@ -614,21 +606,44 @@
         return p;
     }
 
-    const gerarHandle = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
-    const perfilPublico = (p) => ({ uid: usuarioAtual.uid, ...entradaDir(p) });
-    let unsubAgenda = null;
+    function renderizarAgenda(dados) {
+        const listaDiv = document.getElementById('lista-contatos');
+        const itens = Object.entries(dados).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+        listaDiv.innerHTML = "";
+        itens.forEach(([uid, e]) => {
+            const nomeBase = e.n || 'Usuário';
+            const nomeContato = (uid.startsWith('e_') ? '🏢 ' : '') + nomeBase;
+            contatosCache[uid] = { nome: nomeBase, foto: e.f || '', token: e.k || '' };
+            const avatarHtml = e.f ?
+                `<img src="${esc(urlSegura(e.f, true))}" class="avatar">` :
+                `<div class="avatar">${esc(nomeBase.charAt(0).toUpperCase())}</div>`;
+            listaDiv.innerHTML += `
+                <div class="contact-item" onclick="abrirChatPorId('${esc(uid)}')">
+                    <div class="contact-info">
+                        ${avatarHtml}
+                        <span class="contact-name">${esc(nomeContato)}</span>
+                    </div>
+                    <span style="font-size: 11px; color: #00a884; font-weight: bold;">Conversar 💬</span>
+                </div>`;
+        });
+        if (!itens.length) listaDiv.innerHTML = "<p style='text-align:center; opacity:0.7; font-size:13px; margin:20px 10px;'>Você ainda não tem contatos.<br>Toque em <b>Compartilhar</b> para enviar o seu link de atendimento.</p>";
+    }
 
-    let lojaPublica = null;
-    let lojaPublicaItens = [];
-    let detalheProduto = null;
-    const RESERVADOS = ['admin', 'api', 'app', 'index', 'login', 'sw', 'manifest', 'toque', 'icon', 'badge', 'cname', 'loja', 'lojas', 'perfil', 'config', 'u', 'www'];
-    const limparSlug = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+    // Função que faltava e causava o erro
+    function iniciarAgenda() {
+        if (unsubAgenda) unsubAgenda();
+        const chave = 'zl_agenda_' + usuarioAtual.uid;
+        const c = lerCache(chave, Infinity);
+        if (c) renderizarAgenda(c);
+        unsubAgenda = onSnapshot(doc(db, "agenda", usuarioAtual.uid), (snap) => {
+            const dados = snap.exists() ? (snap.data().c || {}) : {};
+            salvarCache(chave, dados);
+            renderizarAgenda(dados);
+        }, (err) => console.warn('Agenda:', err.message));
+    }
 
-    let cacheProdutosVitrine = [];
     let meuNomeAtual = "";
-    const EMAIL_ADMIN = "afiliado9591@gmail.com"; 
 
-    // Funções Globais expostas no objeto window
     window.entrar = async () => {
         const email = document.getElementById('email').value.trim();
         const senha = document.getElementById('password').value;
@@ -691,4 +706,3 @@
 
 </body>
 </html>
-
