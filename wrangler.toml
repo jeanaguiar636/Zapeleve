@@ -1,0 +1,76 @@
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // Configuração de CORS para permitir requisições do GitHub Pages
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, PUT, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+
+    // Responde às requisições de teste CORS (OPTIONS)
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: corsHeaders,
+      });
+    }
+
+    try {
+      // Rota para Upload (PUT ou POST)
+      if (request.method === "PUT" || request.method === "POST") {
+        const filename = url.pathname.slice(1) || `media_${Date.now()}`;
+        
+        // Verifica se a variável BUCKET está configurada corretamente
+        if (!env.BUCKET) {
+          return new Response(JSON.stringify({ error: "Erro de configuração: Variável BUCKET não encontrada." }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        // Salva o ficheiro no R2
+        await env.BUCKET.put(filename, request.body);
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: "Upload realizado com sucesso!",
+          filename: filename 
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      // Rota para Download/Visualização (GET)
+      if (request.method === "GET") {
+        const filename = url.pathname.slice(1);
+        if (!filename) {
+          return new Response("Zap Leve Uploader Ativo", { status: 200, headers: corsHeaders });
+        }
+
+        const object = await env.BUCKET.get(filename);
+
+        if (!object) {
+          return new Response("Ficheiro não encontrado", { status: 404, headers: corsHeaders });
+        }
+
+        const headers = new Headers(corsHeaders);
+        object.writeHttpMetadata(headers);
+        headers.set("etag", object.httpEtag);
+
+        return new Response(object.body, {
+          headers,
+        });
+      }
+
+      return new Response("Método não permitido", { status: 405, headers: corsHeaders });
+
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+  },
+};
