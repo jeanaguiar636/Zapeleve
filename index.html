@@ -196,7 +196,8 @@
     </style>
 </head>
 <body>
-<script>
+<script> 
+    {"returncode":0,"stdout":"2602:    async function subirParaR2(blob, ext) {\n    async function subirParaR2(blob, ext) {\n        const token = await auth.currentUser.getIdToken();\n        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });\n        if (!r.ok) throw new Error('Falha no upload (' + r.status + ')');\n        return (await r.json()).url;\n    }\n","stderr":""}
 // Aviso na tela se o app não carregar ou der erro (guarda o motivo do erro)
 (function () {
     var ultimoErro = '';
