@@ -196,8 +196,7 @@
     </style>
 </head>
 <body>
-<script> 
-    {"returncode":0,"stdout":"2602:    async function subirParaR2(blob, ext) {\n    async function subirParaR2(blob, ext) {\n        const token = await auth.currentUser.getIdToken();\n        const r = await fetch(`${R2_WORKER}/upload?ext=${ext}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });\n        if (!r.ok) throw new Error('Falha no upload (' + r.status + ')');\n        return (await r.json()).url;\n    }\n","stderr":""}
+<script>
 // Aviso na tela se o app não carregar ou der erro (guarda o motivo do erro)
 (function () {
     var ultimoErro = '';
@@ -334,7 +333,6 @@
                 <p style="margin: 0; color: #aaa; font-size: 13px;">A aguardar resposta...</p>
             </div>
             <video id="remote-video" autoplay playsinline></video>
-            <audio id="remote-audio" autoplay playsinline></audio>
             <video id="local-video" autoplay playsinline muted></video>
         </div>
         <div class="call-controls">
@@ -596,7 +594,7 @@
 
     // Contas sem documento de perfil (cadastro interrompido) não conseguem salvar nada: cria só os campos básicos
     async function garantirDocUsuario() {
-        await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 20 }, { merge: true });
+        await setDoc(doc(db, "usuarios", usuarioAtual.uid), { email: usuarioAtual.email, bloqueado: false, limiteProdutos: 10 }, { merge: true });
     }
 
     // Perfil próprio em cache (24 h): evita ler o Firestore a cada abertura
@@ -610,7 +608,7 @@
             return { email: usuarioAtual.email };
         }
         const d = snap.data();
-        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 20, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
         return p;
     }
@@ -1311,8 +1309,8 @@
                 salvarCache('zl_vitrine', itens);
             }
             const perfil = await obterMeuPerfil();
-            const limite = Math.min(Number(perfil.limiteProdutos) || 20, MAX_PRODUTOS);
-            cacheProdutosVitrine = ehAdminApp() ? itens.slice(0, MAX_PRODUTOS) : itens.slice(0, limite);
+            const limite = Number(perfil.limiteProdutos) || 10;
+            cacheProdutosVitrine = ehAdminApp() ? itens : itens.slice(0, limite);
             renderizarProdutosVitrine(cacheProdutosVitrine);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar produtos.</p>";
@@ -1485,10 +1483,9 @@
             if (fotoInput.files && fotoInput.files[0]) {
                 imagem = await subirParaR2(await comprimirImagem(fotoInput.files[0], 800, 0.8), 'webp');
             }
-            if (cacheProdutosVitrine.length >= MAX_PRODUTOS) return alert(`O catálogo aceita no máximo ${MAX_PRODUTOS} produtos.`);
             if (lojaCtx.modo === 'minha') {
                 const p = await obterMeuPerfil();
-                const limite = Math.min(Number(p.limiteProdutos) || 20, MAX_PRODUTOS);
+                const limite = Number(p.limiteProdutos) || 10;
                 if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos.`);
             }
             const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
@@ -1528,14 +1525,15 @@
             div.innerHTML = "";
             snapshot.forEach((docItem) => {
                 const u = docItem.data();
-                const limiteAtual = u.limiteProdutos || 20;
+                const limiteAtual = u.limiteProdutos || 10;
                 div.innerHTML += `
                     <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
                         <span><b>${esc(u.nome || u.email)}</b></span>
                         <select onchange="atualizarLimiteUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
-                            <option value="20" ${limiteAtual <= 20 ? 'selected' : ''}>20 itens</option>
-                            <option value="30" ${limiteAtual == 30 ? 'selected' : ''}>30 itens</option>
-                            <option value="50" ${limiteAtual >= 50 ? 'selected' : ''}>50 itens</option>
+                            <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
+                            <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
+                            <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
+                            <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
                         </select>
                     </div>`;
             });
@@ -1546,20 +1544,14 @@
 
     window.atualizarLimiteUsuario = async (uidUser, novoLimite) => {
         try {
-            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Math.min(Number(novoLimite), MAX_PRODUTOS) });
+            await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Number(novoLimite) });
             alert("Limite atualizado com sucesso!");
         } catch (e) {
             alert("Erro ao atualizar limite: " + e.message);
         }
     };
 
-    const MAX_PRODUTOS = 50, POR_PAGINA = 20;
-    let paginaVitrine = 1, listaVitrineAtual = [];
-    window.verMaisProdutos = () => { paginaVitrine++; renderizarProdutosVitrine(listaVitrineAtual, true); };
-    function renderizarProdutosVitrine(listaTotal, manterPagina) {
-        if (!manterPagina) paginaVitrine = 1;
-        listaVitrineAtual = (listaTotal || []).slice(0, MAX_PRODUTOS);
-        const lista = listaVitrineAtual.slice(0, paginaVitrine * POR_PAGINA);
+    function renderizarProdutosVitrine(lista) {
         const container = document.getElementById('lista-produtos-vitrine');
         container.innerHTML = "";
         const modo = lojaCtx.modo;
@@ -1591,8 +1583,6 @@
                     </div>
                 </div>`;
         });
-        container.innerHTML += `<p class="col-total" style="font-size:11px; opacity:0.7; margin:4px 0; text-align:center;">Mostrando ${lista.length} de ${listaVitrineAtual.length} produtos (máx. ${MAX_PRODUTOS})</p>`;
-        if (listaVitrineAtual.length > lista.length) container.innerHTML += `<button class="btn-alt col-total" style="grid-column:1/-1; margin:0;" onclick="verMaisProdutos()">Ver mais produtos ⬇️</button>`;
     }
 
     window.enviarProdutoPorId = (id) => {
@@ -1723,21 +1713,7 @@
     let unsubCandidatos = null;
     const candidatosMeus = [];
     const nomeSub = (p, n) => n ? p + '_' + n : (p === 'o' ? 'offerCandidates' : 'answerCandidates');
-    const serversConfig = { iceServers: [
-        { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
-        { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
-    ] };
-    // Liga o som e o vídeo do outro lado (forçando o play, pois o celular bloqueia o autoplay)
-    function conectarMidiaRemota(event) {
-        const stream = (event.streams && event.streams[0]) || new MediaStream([event.track]);
-        const v = document.getElementById('remote-video');
-        const a = document.getElementById('remote-audio');
-        v.srcObject = stream; v.muted = true; // o som sai pelo elemento de áudio
-        a.srcObject = stream; a.muted = false; a.volume = 1;
-        const tocar = () => { a.play().catch(() => {}); v.play().catch(() => {}); };
-        tocar();
-        document.getElementById('call-screen').addEventListener('click', tocar, { once: true });
-    }
+    const serversConfig = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
 
     window.iniciarChamada = async (comVideo) => {
         if (!contatoSelecionado) return;
@@ -1755,7 +1731,7 @@
         iniciarSomCampainha('chamando');
 
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: comVideo });
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: comVideo });
             document.getElementById('local-video').srcObject = localStream;
 
             peerConnection = new RTCPeerConnection(serversConfig);
@@ -1764,7 +1740,7 @@
             peerConnection.ontrack = (event) => {
                 pararSomCampainha();
                 document.getElementById('call-placeholder-info').style.display = 'none';
-                conectarMidiaRemota(event);
+                document.getElementById('remote-video').srcObject = event.streams[0];
             };
 
             const idChamada = obterIdSala(usuarioAtual.uid, contatoSelecionado.uid);
@@ -1873,7 +1849,7 @@
         // Identificar o contato que ligou para sincronizar encerramento correto
         // Buscamos o UID do remetente pelo e-mail ou criamos o chat sala
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: data.comVideo });
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: data.comVideo });
             document.getElementById('local-video').srcObject = localStream;
 
             peerConnection = new RTCPeerConnection(serversConfig);
@@ -1881,7 +1857,7 @@
 
             peerConnection.ontrack = (event) => {
                 document.getElementById('call-placeholder-info').style.display = 'none';
-                conectarMidiaRemota(event);
+                document.getElementById('remote-video').srcObject = event.streams[0];
             };
 
             const answerCandidates = collection(callDoc, nomeSub('a', data.n));
@@ -1957,7 +1933,6 @@
         document.getElementById('call-screen').classList.add('hidden');
         document.getElementById('modal-incoming-call').style.display = 'none';
         document.getElementById('remote-video').srcObject = null;
-        document.getElementById('remote-audio').srcObject = null;
         document.getElementById('local-video').srcObject = null;
     }
 
@@ -2043,7 +2018,7 @@
             const cred = await createUserWithEmailAndPassword(auth, email, senha);
             const nomeInicial = email.split('@')[0];
             const h = gerarHandle();
-            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: nomeInicial, bloqueado: false, limiteProdutos: 20, linkPessoal: "", fotoUrl: "", handle: h });
+            await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: nomeInicial, bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "", handle: h });
             try { await setDoc(doc(db, "perfis", h), { uid: cred.user.uid, n: nomeInicial.slice(0, 60), f: '', l: '' }); } catch (_) {}
             alert("Conta criada!");
         } catch (e) { erroLogin(e); }
@@ -2644,7 +2619,7 @@
         inputEl.value = "";
     };
 
-    const R2_WORKER = 'https://zapleve-uploader.bmlimp8.workers.dev'; // troque pela URL do seu Worker
+    const R2_WORKER = 'https://zapleve-uploader-novoa.bmlimp8.workers.dev'; // troque pela URL do seu Worker
     const MAX_VIDEO_MB = 15;
 
     async function subirParaR2(blob, ext) {
