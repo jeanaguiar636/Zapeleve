@@ -231,6 +231,13 @@
             <span id="mp-preco" style="font-size:20px; font-weight:bold; color:#7be0b8;"></span>
         </div>
         <div style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin-top:16px;">
+            <div id="mp-bot" style="display:none; background:#fff; color:#222; border-radius:12px; padding:10px; text-align:left;">
+                <b style="font-size:13px;">🤖 Tire suas dúvidas sobre este produto</b>
+                <div id="mp-bot-conversa" style="max-height:30vh; overflow-y:auto; margin:6px 0; font-size:13px; display:flex; flex-direction:column; gap:6px;"></div>
+                <div id="mp-bot-perguntas" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+                <div style="display:flex; gap:5px; margin-top:6px;"><input id="mp-bot-input" placeholder="Digite sua pergunta..." style="margin:0; font-size:13px; padding:8px;" onkeydown="if(event.key==='Enter')perguntarBot()"><button style="width:auto; margin:0; padding:8px 12px; background:#00a884;" onclick="perguntarBot()">➤</button></div>
+            </div>
+            <a id="mp-btn-comprar" target="_blank" rel="noopener noreferrer" style="display:none; background:#ff6d00; color:#fff; text-align:center; padding:13px; border-radius:24px; font-size:15px; font-weight:bold; text-decoration:none;">🛒 Comprar agora</a>
             <button id="mp-btn-falar" style="background:#00a884; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="falarSobreProduto()">💬 Falar com o vendedor</button>
             <button style="background:#5f6b73; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="fecharDetalheProduto()">↩ Voltar para o catálogo</button>
         </div>
@@ -395,6 +402,13 @@
                     <button class="btn-alt" id="btn-extrair-ml" style="padding:6px; font-size:11px; margin:0 0 4px 0; background:#ffb300; color:#222;" onclick="extrairProdutoML()">🔍 Preencher automaticamente (Mercado Livre)</button>
                     <p style="font-size:10px; opacity:0.85; margin:0 0 6px 0; line-height:1.3;">⚠️ O preenchimento automático só funciona com links do <b>Mercado Livre</b>. Para Shopee, Amazon e Shein, preencha à mão.<br>Cole acima o <b>link normal</b> do produto (o que abre o anúncio). O seu link de afiliado vai no campo "Link de Afiliado".</p>
                     </div>
+                    <div style="background: var(--bg-app); padding:6px; border-radius:6px; margin-bottom:6px;">
+                        <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0;">🤖 Chatbot de vendas deste produto <span id="bot-contador"></span></p>
+                        <input type="text" id="admin-bot-pergunta" placeholder="Pergunta (ex: Tem garantia?)" style="font-size:11px; padding:6px; margin-bottom:4px;">
+                        <textarea id="admin-bot-resposta" placeholder="Resposta (ex: Sim, 90 dias de garantia!)" style="font-size:11px; padding:6px; margin-bottom:4px; width:100%; min-height:44px; box-sizing:border-box;"></textarea>
+                        <button class="btn-alt" style="padding:5px; font-size:11px; margin:0; background:#6c4ab6;" onclick="adicionarPerguntaBot()">➕ Adicionar pergunta e resposta</button>
+                        <div id="lista-bot-form" style="display:flex; flex-direction:column; gap:3px; margin-top:4px; font-size:11px;"></div>
+                    </div>
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
                 </div>
 
@@ -410,6 +424,7 @@
                 </div>
             </div>
 
+            <div id="linha-plano-loja" class="hidden" style="font-size:12px; background: var(--input-bg); padding:8px; border-radius:6px; margin-bottom:8px;"></div>
             <div id="linha-endereco-loja" class="hidden" style="font-size:12px; background: var(--input-bg); padding:8px; border-radius:6px; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"></div>
             <input type="text" id="filtro-vitrine" placeholder="🔍 Pesquisar na vitrine..." oninput="filtrarProdutosLocais()" style="font-size: 12px; padding: 8px;">
             <div id="lista-produtos-vitrine" style="max-height: 62vh; overflow-y: auto; margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;">
@@ -608,7 +623,7 @@
             return { email: usuarioAtual.email };
         }
         const d = snap.data();
-        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, plano: d.plano || 'gratis', catalogoPronto: !!d.catalogoPronto, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
         return p;
     }
@@ -770,7 +785,35 @@
         const meuProprio = origem === 'publica' && usuarioAtual && lojaPublica && lojaPublica.uid === usuarioAtual.uid;
         document.getElementById('mp-btn-falar').innerText = (origem === 'publica' && lojaPublica && lojaPublica.e) ? '💬 Falar com o atendimento' : '💬 Falar com o vendedor';
         document.getElementById('mp-btn-falar').style.display = ((origem === 'chat' || origem === 'publica') && !meuProprio) ? 'block' : 'none';
+        const lk = linkPermitido(prod.link) ? urlSegura(prod.link) : '';
+        const bc = document.getElementById('mp-btn-comprar');
+        bc.style.display = lk ? 'block' : 'none'; if (lk) bc.href = lk;
+        const bot = Array.isArray(prod.bot) ? prod.bot : [];
+        document.getElementById('mp-bot').style.display = bot.length ? 'block' : 'none';
+        document.getElementById('mp-bot-conversa').innerHTML = bot.length ? `<div style="background:#e7f8f2; padding:6px 9px; border-radius:10px;">Olá! 👋 Escolha uma pergunta abaixo ou digite a sua.</div>` : '';
+        document.getElementById('mp-bot-perguntas').innerHTML = bot.map((q, i) => `<button style="width:auto; margin:0; padding:5px 9px; font-size:12px; border-radius:14px; background:#6c4ab6;" onclick="responderBot(${i})">${esc(q.p)}</button>`).join('');
         document.getElementById('modal-produto').style.display = 'flex';
+    };
+
+    function balaoBot(txt, meu) {
+        const c = document.getElementById('mp-bot-conversa');
+        const d = document.createElement('div');
+        d.style.cssText = 'padding:6px 9px; border-radius:10px; white-space:pre-wrap; ' + (meu ? 'background:#dcf8c6; align-self:flex-end;' : 'background:#e7f8f2;');
+        d.textContent = txt; c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+    window.responderBot = (i) => {
+        const q = ((detalheProduto && detalheProduto.prod.bot) || [])[i]; if (!q) return;
+        balaoBot(q.p, true); setTimeout(() => balaoBot(q.r + '\n\n🛒 Toque em "Comprar agora" para garantir o seu!', false), 400);
+    };
+    const normTxt = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, ' ');
+    window.perguntarBot = () => {
+        const inp = document.getElementById('mp-bot-input'); const t = inp.value.trim(); if (!t) return; inp.value = '';
+        balaoBot(t, true);
+        const bot = (detalheProduto && detalheProduto.prod.bot) || [];
+        const pal = normTxt(t).split(' ').filter((w) => w.length > 2);
+        let melhor = null, nota = 0;
+        bot.forEach((q) => { const alvo = normTxt(q.p + ' ' + q.r); const n = pal.filter((w) => alvo.includes(w)).length; if (n > nota) { nota = n; melhor = q; } });
+        setTimeout(() => balaoBot(melhor ? melhor.r : 'Não encontrei essa resposta 🤔. Toque em "Falar com o vendedor" que ele te responde!', false), 400);
     };
 
     window.fecharDetalheProduto = () => { document.getElementById('modal-produto').style.display = 'none'; };
@@ -1248,7 +1291,7 @@
         document.getElementById('btn-abrir-admin').classList.toggle('hidden', !admin);
         document.getElementById('painel-admin-geral').classList.toggle('hidden', ctx.modo !== 'minha');
         document.getElementById('abas-admin').classList.toggle('hidden', ctx.modo === 'minha');
-        document.getElementById('linha-endereco-loja').classList.add('hidden');
+        document.getElementById('linha-endereco-loja').classList.add('hidden'); document.getElementById('linha-plano-loja').classList.add('hidden'); lojaFerias = false;
         if (ctx.modo === 'minha') mudarAbaAdmin('produtos');
         document.getElementById('modal-vitrine').style.display = 'flex';
         aplicarVisibilidadeExtrator();
@@ -1366,11 +1409,73 @@
             cacheProdutosVitrine = (loja.itens || []).slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
             renderizarProdutosVitrine(cacheProdutosVitrine);
             document.getElementById('titulo-loja').innerText = '🏪 ' + (loja.nome || 'Minha loja');
+            lojaFerias = !!loja.ferias;
+            mostrarPlanoLoja(await obterMeuPerfil());
             mostrarEnderecoLoja((await obterMeuPerfil()).slug);
         } catch (e) {
             container.innerHTML = "<p style='text-align:center; font-size:12px; color:red;'>Erro ao carregar sua loja.</p>";
         }
     }
+
+    let lojaFerias = false;
+    const PRECO_PRO = 'R$ 26,90/mês', PRECO_CATALOGO = 'R$ 190 (pagamento único)';
+    function mostrarPlanoLoja(p) {
+        const el = document.getElementById('linha-plano-loja'); el.classList.remove('hidden');
+        const b = 'width:auto; padding:6px 10px; margin:3px 3px 0 0; font-size:11px;';
+        const pro = ehPro(p);
+        let h = pro ? `⭐ <b>Plano Pro</b> — produtos e chatbots ilimitados.<br>` : `🆓 <b>Plano grátis</b> — até ${Number(p.limiteProdutos) || 10} produtos, ${LIMITE_BOT_GRATIS} perguntas no chatbot de cada produto.<br>`;
+        if (pro) h += `<label style="display:flex; align-items:center; gap:6px; margin:6px 0; font-weight:bold; cursor:pointer;"><input type="checkbox" style="width:auto; margin:0;" ${lojaFerias ? 'checked' : ''} onchange="alternarFerias(this.checked)"> 🏖️ Modo Férias ${lojaFerias ? '(ATIVO — não é possível postar)' : ''}</label>`;
+        if (!pro) h += `<button class="btn-alt" style="${b} background:#d4a24c;" onclick="contratarPlano('pro')">⭐ Assinar Pro — ${PRECO_PRO}</button>`;
+        if (p.catalogoPronto) h += `<button class="btn-alt" style="${b} background:#00a884;" onclick="importarCatalogoPronto()">📥 Importar catálogo pronto</button>`;
+        else h += `<button class="btn-alt" style="${b} background:#6c4ab6;" onclick="contratarPlano('catalogo')">📦 Catálogo pronto com bots — ${PRECO_CATALOGO}</button>`;
+        el.innerHTML = h;
+        document.getElementById('painel-admin-geral').style.opacity = lojaFerias ? '0.45' : '';
+    }
+    window.alternarFerias = async (on) => {
+        try {
+            await updateDoc(doc(db, "lojas", usuarioAtual.uid), { ferias: !!on });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            await carregarMinhaLoja(true);
+            alert(on ? '🏖️ Modo Férias ativado. Você não poderá postar até desativar.' : 'Modo Férias desativado. Você já pode postar.');
+        } catch (e) { alert('Erro: ' + e.message); }
+    };
+    window.contratarPlano = async (tipo) => {
+        const nome = tipo === 'pro' ? 'Zap Leve Pro — ' + PRECO_PRO : 'Catálogo pronto com bots — ' + PRECO_CATALOGO;
+        if (!confirm('Contratar: ' + nome + '?\n\nVamos registrar seu pedido e o Zap Leve entra em contato pelo chat com o pagamento (Pix).')) return;
+        try {
+            const p = await obterMeuPerfil();
+            await setDoc(doc(db, "pedidos", usuarioAtual.uid + '_' + tipo), { uid: usuarioAtual.uid, email: p.email, nome: p.nome || '', tipo, criadoEm: serverTimestamp() });
+            alert('✅ Pedido enviado! Assim que o pagamento for confirmado, seu plano é liberado.');
+        } catch (e) { alert('Não foi possível registrar o pedido (' + e.message + '). Fale com o suporte do Zap Leve.'); }
+    };
+    window.importarCatalogoPronto = async () => {
+        if (lojaFerias) return alert('Desative o modo Férias para importar.');
+        if (!confirm('Copiar o catálogo pronto (com os chatbots) para a sua loja?\nDepois é só trocar o link de afiliado de cada produto em "🔗 Trocar link".')) return;
+        try {
+            const snap = await getDoc(doc(db, "vitrine", "produtos"));
+            const base = snap.exists() ? (snap.data().itens || []) : [];
+            const ja = new Set(cacheProdutosVitrine.map((x) => String(x.titulo).toLowerCase()));
+            const novos = base.filter((x) => !ja.has(String(x.titulo).toLowerCase())).map((x) => ({ ...x, id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), criadoEm: Date.now() }));
+            await setDoc(doc(db, "lojas", usuarioAtual.uid), { itens: [...novos, ...cacheProdutosVitrine] }, { merge: true });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            await carregarMinhaLoja(true);
+            alert(novos.length + ' produtos importados! Agora troque o link de afiliado de cada um.');
+        } catch (e) { alert('Erro ao importar: ' + e.message); }
+    };
+    window.trocarLinkProduto = async (id) => {
+        if (lojaCtx.modo === 'minha' && lojaFerias) return alert('🏖️ Desative o modo Férias para editar.');
+        const item = cacheProdutosVitrine.find((x) => x.id === id); if (!item) return;
+        const novo = prompt('Cole o SEU link de afiliado para "' + (item.titulo || 'produto') + '":', item.link || '');
+        if (novo === null) return;
+        const l = novo.trim();
+        if (lojaCtx.modo === 'minha' && !linkPermitido(l)) return alert('Use um link de Shopee, Mercado Livre, Amazon, Shein, Magalu ou AliExpress (começando com https://).');
+        try {
+            const itens = cacheProdutosVitrine.map((x) => x.id === id ? { ...x, link: l.slice(0, 500) } : x);
+            await setDoc(docLojaAtual(), { itens }, { merge: true });
+            await recarregarLojaAtual();
+            alert('Link atualizado!');
+        } catch (e) { alert('Erro: ' + e.message); }
+    };
 
     // Reserva o endereço zapleve.alibr.com.br/<nome> (único: as regras do Firebase impedem repetir)
     async function reservarEndereco(bruto, p, antigo) {
@@ -1462,6 +1567,25 @@
         else if (c.itens) salvarCache(chave, { ...c, itens: fn(c.itens) });
     }
 
+    let botForm = [];
+    const ehPro = (p) => p && (p.plano === 'pro');
+    const LIMITE_BOT_GRATIS = 10;
+    function desenharBotForm() {
+        document.getElementById('lista-bot-form').innerHTML = botForm.map((q, i) => `<div style="background: var(--input-bg); padding:4px 6px; border-radius:4px;">❓ <b>${esc(q.p)}</b><br>💬 ${esc(q.r)} <a href="#" onclick="botForm.splice(${i},1);desenharBotForm();return false;" style="color:#e53935;">remover</a></div>`).join('');
+        document.getElementById('bot-contador').innerText = '(' + botForm.length + ')';
+    }
+    window.desenharBotForm = desenharBotForm;
+    Object.defineProperty(window, 'botForm', { get: () => botForm });
+    window.adicionarPerguntaBot = async () => {
+        const p = document.getElementById('admin-bot-pergunta').value.trim();
+        const r = document.getElementById('admin-bot-resposta').value.trim();
+        if (!p || !r) return alert('Preencha a pergunta e a resposta.');
+        if (lojaCtx.modo === 'minha' && !ehPro(await obterMeuPerfil()) && botForm.length >= LIMITE_BOT_GRATIS) return alert('No plano grátis cada produto tem até ' + LIMITE_BOT_GRATIS + ' perguntas. Assine o Pro (R$ 26,90/mês) para ter ilimitado.');
+        botForm.push({ p: p.slice(0, 150), r: r.slice(0, 600) });
+        document.getElementById('admin-bot-pergunta').value = ''; document.getElementById('admin-bot-resposta').value = '';
+        desenharBotForm();
+    };
+
     window.salvarProdutoFirebase = async () => {
         if (salvandoProduto) return;
         const titulo = document.getElementById('admin-prod-titulo').value.trim();
@@ -1469,6 +1593,7 @@
         let imagem = document.getElementById('admin-prod-img').value.trim();
         const link = document.getElementById('admin-prod-link').value.trim();
         const fotoInput = document.getElementById('admin-prod-foto');
+        if (lojaCtx.modo === 'minha' && lojaFerias) return alert('🏖️ O modo Férias está ativo. Desative o botão Férias para postar.');
         if (!titulo) return alert("Digite o nome do produto.");
         if (lojaCtx.modo === 'minha') {
             if (!link) return alert("Cole o link de afiliado do produto.");
@@ -1485,15 +1610,16 @@
             }
             if (lojaCtx.modo === 'minha') {
                 const p = await obterMeuPerfil();
-                const limite = Number(p.limiteProdutos) || 10;
-                if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos.`);
+                const limite = ehPro(p) ? Infinity : (Number(p.limiteProdutos) || 10);
+                if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos do plano grátis.\nAssine o Zap Leve Pro (R$ 26,90/mês) para ter produtos e chatbots ilimitados.`);
             }
-            const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), criadoEm: Date.now() };
+            const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), bot: botForm.slice(), criadoEm: Date.now() };
             await setDoc(docLojaAtual(), { itens: arrayUnion(item) }, { merge: true });
             cacheProdutosVitrine.unshift(item);
             atualizarCachesLoja((l) => [item, ...l]);
             renderizarProdutosVitrine(cacheProdutosVitrine);
             ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-link-ml', 'admin-prod-foto'].forEach((id) => { document.getElementById(id).value = ''; });
+            botForm = []; desenharBotForm();
             alert("Produto cadastrado com sucesso!");
         } catch (e) {
             alert("Erro ao salvar: " + e.message);
@@ -1535,6 +1661,11 @@
                             <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
                             <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
                         </select>
+                        <select onchange="atualizarPlanoUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
+                            <option value="gratis" ${u.plano !== 'pro' ? 'selected' : ''}>Grátis</option>
+                            <option value="pro" ${u.plano === 'pro' ? 'selected' : ''}>⭐ Pro</option>
+                        </select>
+                        <label style="font-size:10px; display:flex; align-items:center; gap:2px;"><input type="checkbox" style="width:auto; margin:0;" ${u.catalogoPronto ? 'checked' : ''} onchange="atualizarCatalogoUsuario('${esc(docItem.id)}', this.checked)">📦</label>
                     </div>`;
             });
         } catch (e) {
@@ -1542,6 +1673,12 @@
         }
     }
 
+    window.atualizarPlanoUsuario = async (uidUser, plano) => {
+        try { await updateDoc(doc(db, "usuarios", uidUser), { plano }); alert(plano === 'pro' ? 'Plano Pro liberado!' : 'Voltou para o plano grátis.'); } catch (e) { alert('Erro: ' + e.message); }
+    };
+    window.atualizarCatalogoUsuario = async (uidUser, on) => {
+        try { await updateDoc(doc(db, "usuarios", uidUser), { catalogoPronto: !!on }); alert(on ? 'Catálogo pronto liberado para este usuário!' : 'Catálogo pronto removido.'); } catch (e) { alert('Erro: ' + e.message); }
+    };
     window.atualizarLimiteUsuario = async (uidUser, novoLimite) => {
         try {
             await updateDoc(doc(db, "usuarios", uidUser), { limiteProdutos: Number(novoLimite) });
@@ -1578,6 +1715,8 @@
                         <div style="display:flex; flex-direction:column; gap:4px; margin-top:auto;">
                             ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
                             ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
+                            ${dono ? `<button class="btn-alt" style="${btn} width:100%; background:#6c4ab6;" onclick="trocarLinkProduto('${esc(prod.id)}')">🔗 Trocar link</button>` : ''}
+                            ${Array.isArray(prod.bot) && prod.bot.length ? `<span onclick="abrirDetalheProduto('${esc(prod.id)}')" style="font-size:11px; text-align:center; cursor:pointer; color:#6c4ab6;">🤖 ${prod.bot.length} respostas</span>` : ''}
                             ${dono ? `<button class="btn-danger" style="${btn} width:100%;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️ Apagar</button>` : ''}
                         </div>
                     </div>
