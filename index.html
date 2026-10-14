@@ -265,7 +265,7 @@
         <span style="color: white; margin-top: 15px; font-size: 13px; background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; cursor: pointer;">Toque em qualquer lugar para fechar</span>
     </div>
 
-    <button class="botao-flutuante-loja" onclick="abrirVitrineAfiliado()" title="Vitrine de Produtos">
+    <button class="botao-flutuante-loja" data-recurso="vitrine" onclick="abrirVitrineAfiliado()" title="Vitrine de Produtos">
         <svg viewBox="0 0 24 24">
             <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
         </svg>
@@ -316,10 +316,10 @@
                 <input type="text" id="input-meu-link" placeholder="https://seu-link-aqui.com" style="font-size: 12px; padding: 8px; margin-bottom: 6px;">
                 
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 0; width: 100%;" onclick="salvarMeuPerfilCompleto()">💾 Salvar Perfil</button>
-                <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
-                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%;" onclick="copiarMeuLink()">🔗 Copiar meu link de atendimento</button>
-                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
-                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #0b5ed7;" onclick="abrirNegocios()">🏢 Zap Leve Negócios (atendentes)</button>
+                <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" data-recurso="testar" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%;" data-recurso="linkatend" onclick="copiarMeuLink()">🔗 Copiar meu link de atendimento</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" data-recurso="loja" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
+                <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #0b5ed7;" data-recurso="negocios" onclick="abrirNegocios()">🏢 Zap Leve Negócios (atendentes)</button>
             </div>
 
             <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 06/10c · Negócios</p>
@@ -424,6 +424,8 @@
                         <input type="checkbox" id="chk-extrator" style="width:auto; margin:0;" onchange="alternarExtratorML(this.checked)">
                         🔍 Mostrar o extrator do Mercado Livre para os usuários
                     </label>
+                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">👁️ Botões do menu (esconder / colocar no ar):</p>
+                    <div id="lista-recursos-admin" style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;"></div>
                     <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Definir Limite de Vitrine por Usuário:</p>
                     <div id="lista-usuarios-admin" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
                         <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
@@ -509,7 +511,7 @@
             <div class="contact-list" id="lista-contatos">
                 <p style="text-align:center; opacity:0.6; font-size:13px; margin-top:20px;">A carregar contactos...</p>
             </div>
-            <button id="btn-atendimento" class="btn-alt hidden" style="background:#0b5ed7; font-size:13px; padding:10px; border-radius:20px; margin-bottom:6px;" onclick="abrirAtendimento()">🎧 Atendimento (Zap Leve Negócios)</button>
+            <button id="btn-atendimento" data-recurso="atendimento" class="btn-alt hidden" style="background:#0b5ed7; font-size:13px; padding:10px; border-radius:20px; margin-bottom:6px;" onclick="abrirAtendimento()">🎧 Atendimento (Zap Leve Negócios)</button>
             <button class="btn-alt" style="background: #005c4b; font-size: 13px; padding: 10px; border-radius: 20px;" onclick="indicarAmigo()">📤 Compartilhar / Convidar Amigo</button>
         </div>
     </div>
@@ -555,7 +557,7 @@
                     <button class="clip-btn" onclick="toggleMenuAnexos(event)" title="Anexar Mídia">📎</button>
 
                     <div id="menu-anexos">
-                        <div class="anexo-opcao" onclick="abrirMinhaLoja()">🛍️ Meus produtos</div>
+                        <div class="anexo-opcao" data-recurso="meusprodutos" onclick="abrirMinhaLoja()">🛍️ Meus produtos</div>
                         <label class="anexo-opcao">
                             📷 Enviar Imagem
                             <input type="file" id="imagem-input" accept="image/*" style="display: none;" onchange="enviarImagemGlobal(this); fecharMenuAnexos();">
@@ -1065,7 +1067,7 @@
         fecharMenuAnexos();
     });
 
-    window.abrirMeuPerfil = async () => {
+    window.abrirMeuPerfil = async () => { aplicarVisibilidadeMenu();
         if (!usuarioAtual) return;
         const dados = await obterMeuPerfil();
         
@@ -1279,6 +1281,41 @@
         if (chk) chk.checked = cfg.extratorML === true;
     }
 
+    const RECURSOS = [
+        ['vitrine', '🛒 Botão do carrinho (Ofertas)'],
+        ['loja', '🏪 Criar / gerenciar minha loja'],
+        ['meusprodutos', '🛍️ Meus produtos (no chat)'],
+        ['negocios', '🏢 Zap Leve Negócios (atendentes)'],
+        ['atendimento', '🎧 Botão de atendimento'],
+        ['linkatend', '🔗 Copiar meu link de atendimento'],
+        ['testar', '🧪 Testar aviso neste celular'],
+    ];
+    async function aplicarVisibilidadeMenu() {
+        const oc = (await obterConfig()).ocultos || {};
+        document.querySelectorAll('[data-recurso]').forEach((el) => {
+            const escondido = !!oc[el.dataset.recurso];
+            if (ehAdminApp()) { el.style.display = ''; el.style.opacity = escondido ? '0.45' : ''; el.title = escondido ? 'Escondido para os usuários' : ''; }
+            else el.style.display = escondido ? 'none' : '';
+        });
+        const lista = document.getElementById('lista-recursos-admin');
+        if (lista && ehAdminApp()) lista.innerHTML = RECURSOS.map(([k, nome]) => {
+            const esc_ = !!oc[k];
+            return `<div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:5px 7px; border-radius:4px; font-size:11px; gap:6px;">
+                <span>${nome}<br><b style="color:${esc_ ? '#e53935' : '#00a884'};">${esc_ ? '⏸️ Escondido' : '✅ No ar'}</b></span>
+                <button class="btn-alt" style="width:auto; padding:5px 9px; margin:0; font-size:11px; background:${esc_ ? '#00a884' : '#e53935'};" onclick="alternarRecurso('${k}', ${!esc_})">${esc_ ? '▶️ Colocar no ar' : '⏸️ Esconder'}</button>
+            </div>`;
+        }).join('');
+    }
+    window.alternarRecurso = async (k, esconder) => {
+        try {
+            const cfg = await obterConfig();
+            const ocultos = { ...(cfg.ocultos || {}), [k]: !!esconder };
+            await setDoc(doc(db, "config", "app"), { ocultos }, { merge: true });
+            salvarCache('zl_config', { ...cfg, ocultos });
+            await aplicarVisibilidadeMenu();
+        } catch (e) { alert('Erro ao salvar: ' + e.message); }
+    };
+
     window.alternarExtratorML = async (ligado) => {
         try {
             await setDoc(doc(db, "config", "app"), { extratorML: !!ligado }, { merge: true });
@@ -1301,7 +1338,7 @@
         document.getElementById('linha-endereco-loja').classList.add('hidden'); document.getElementById('linha-plano-loja').classList.add('hidden'); lojaFerias = false; document.getElementById('bloco-csv').style.display = ehAdminApp() ? '' : 'none';
         if (ctx.modo === 'minha') mudarAbaAdmin('produtos');
         document.getElementById('modal-vitrine').style.display = 'flex';
-        aplicarVisibilidadeExtrator();
+        aplicarVisibilidadeExtrator(); aplicarVisibilidadeMenu();
     }
 
     // Carrinho: no chat abre a loja do contato; fora do chat abre a minha
@@ -2152,7 +2189,7 @@
         }
     };
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, async (user) => { setTimeout(() => aplicarVisibilidadeMenu().catch(() => {}), 1500);
         if (user) {
             usuarioAtual = user;
             document.querySelectorAll('.btn-sair').forEach((b) => b.classList.toggle('hidden', user.email !== EMAIL_ADMIN));
