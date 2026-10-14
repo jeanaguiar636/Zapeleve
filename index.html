@@ -410,6 +410,13 @@
                         <div id="lista-bot-form" style="display:flex; flex-direction:column; gap:3px; margin-top:4px; font-size:11px;"></div>
                     </div>
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
+                    <div id="bloco-csv" style="background: var(--bg-app); padding:6px; border-radius:6px; margin-top:6px;">
+                        <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0;">📄 Inserir planilha de produtos (CSV)</p>
+                        <input type="file" id="admin-csv" accept=".csv,text/csv" style="display:none;" onchange="importarCSV(this)">
+                        <button class="btn-alt" style="padding:6px; font-size:11px; margin:0 0 4px 0; background:#00a884;" onclick="document.getElementById('admin-csv').click()">📤 Enviar arquivo CSV</button>
+                        <button class="btn-alt" style="padding:5px; font-size:11px; margin:0; background:#5f6b73;" onclick="baixarModeloCSV()">⬇️ Baixar planilha modelo</button>
+                        <p style="font-size:10px; opacity:0.8; margin:4px 0 0 0; line-height:1.3;">Colunas: <b>titulo, preco, imagem, link</b> e, se quiser, <b>pergunta1, resposta1 ... pergunta10, resposta10</b>.</p>
+                    </div>
                 </div>
 
                 <div id="aba-admin-utilizadores" class="hidden">
@@ -1291,7 +1298,7 @@
         document.getElementById('btn-abrir-admin').classList.toggle('hidden', !admin);
         document.getElementById('painel-admin-geral').classList.toggle('hidden', ctx.modo !== 'minha');
         document.getElementById('abas-admin').classList.toggle('hidden', ctx.modo === 'minha');
-        document.getElementById('linha-endereco-loja').classList.add('hidden'); document.getElementById('linha-plano-loja').classList.add('hidden'); lojaFerias = false;
+        document.getElementById('linha-endereco-loja').classList.add('hidden'); document.getElementById('linha-plano-loja').classList.add('hidden'); lojaFerias = false; document.getElementById('bloco-csv').style.display = ehAdminApp() ? '' : 'none';
         if (ctx.modo === 'minha') mudarAbaAdmin('produtos');
         document.getElementById('modal-vitrine').style.display = 'flex';
         aplicarVisibilidadeExtrator();
@@ -1584,6 +1591,58 @@
         botForm.push({ p: p.slice(0, 150), r: r.slice(0, 600) });
         document.getElementById('admin-bot-pergunta').value = ''; document.getElementById('admin-bot-resposta').value = '';
         desenharBotForm();
+    };
+
+    function lerCSV(txt) {
+        txt = txt.replace(/^\uFEFF/, '');
+        const primeira = txt.split(/\r?\n/)[0] || '';
+        const sep = (primeira.split(';').length > primeira.split(',').length) ? ';' : ',';
+        const linhas = []; let campo = '', linha = [], aspas = false;
+        for (let i = 0; i < txt.length; i++) {
+            const c = txt[i];
+            if (aspas) { if (c === '"') { if (txt[i + 1] === '"') { campo += '"'; i++; } else aspas = false; } else campo += c; }
+            else if (c === '"') aspas = true;
+            else if (c === sep) { linha.push(campo); campo = ''; }
+            else if (c === '\n' || c === '\r') { if (c === '\r' && txt[i + 1] === '\n') i++; linha.push(campo); linhas.push(linha); linha = []; campo = ''; }
+            else campo += c;
+        }
+        if (campo || linha.length) { linha.push(campo); linhas.push(linha); }
+        return linhas.filter((l) => l.some((x) => x.trim()));
+    }
+    window.baixarModeloCSV = () => {
+        const cab = ['titulo', 'preco', 'imagem', 'link', 'pergunta1', 'resposta1', 'pergunta2', 'resposta2'];
+        const ex = ['Fone Bluetooth', '49.90', 'https://exemplo.com/foto.jpg', 'https://shopee.com.br/seu-link', 'Tem garantia?', 'Sim, 90 dias!', 'Qual o prazo de entrega?', 'De 3 a 7 dias úteis.'];
+        const csv = '\uFEFF' + [cab, ex].map((l) => l.map((x) => '"' + x.replace(/"/g, '""') + '"').join(';')).join('\r\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'modelo-produtos-zapleve.csv'; a.click();
+    };
+    window.importarCSV = async (input) => {
+        const f = input.files && input.files[0]; input.value = '';
+        if (!f) return;
+        if (!ehAdminApp()) return alert('Só o administrador pode importar planilhas.');
+        try {
+            const linhas = lerCSV(await f.text());
+            if (linhas.length < 2) return alert('A planilha está vazia ou só tem o cabeçalho.');
+            const cab = linhas[0].map((h) => normTxt(h).replace(/\s+/g, ''));
+            const col = (nomes) => cab.findIndex((h) => nomes.includes(h));
+            const iT = col(['titulo', 'nome', 'produto']), iP = col(['preco', 'valor']), iI = col(['imagem', 'foto', 'img']), iL = col(['link', 'linkafiliado', 'url']);
+            if (iT < 0) return alert('Não achei a coluna "titulo" na planilha. Baixe a planilha modelo para ver o formato.');
+            const ja = new Set(cacheProdutosVitrine.map((x) => String(x.titulo || '').toLowerCase()));
+            const novos = []; let rep = 0;
+            linhas.slice(1).forEach((l, n) => {
+                const g = (i) => i >= 0 ? String(l[i] || '').trim() : '';
+                const titulo = g(iT); if (!titulo) return;
+                if (ja.has(titulo.toLowerCase())) { rep++; return; }
+                ja.add(titulo.toLowerCase());
+                const bot = [];
+                for (let k = 1; k <= 50; k++) { const p = g(cab.indexOf('pergunta' + k)), r = g(cab.indexOf('resposta' + k)); if (p && r) bot.push({ p: p.slice(0, 150), r: r.slice(0, 600) }); }
+                novos.push({ id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: g(iP).replace(/R\$\s*/i, '').slice(0, 20), imagem: g(iI).slice(0, 500), link: g(iL).slice(0, 500), bot, criadoEm: Date.now() - n });
+            });
+            if (!novos.length) return alert('Nenhum produto novo encontrado' + (rep ? ` (${rep} já existiam).` : '.'));
+            if (!confirm(`Importar ${novos.length} produtos${rep ? ` (${rep} repetidos serão ignorados)` : ''}?`)) return;
+            await setDoc(docLojaAtual(), { itens: [...novos, ...cacheProdutosVitrine] }, { merge: true });
+            await recarregarLojaAtual();
+            alert('✅ ' + novos.length + ' produtos importados!');
+        } catch (e) { alert('Erro ao ler a planilha: ' + e.message); }
     };
 
     window.salvarProdutoFirebase = async () => {
