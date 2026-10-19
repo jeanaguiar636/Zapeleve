@@ -196,6 +196,13 @@
     </style>
 </head>
 <body>
+    <div id="banner-destaque" style="display:none; position:fixed; top:58px; right:8px; z-index:900; width:132px; background:#fff; color:#222; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.35); overflow:hidden; font-size:11px; border:2px solid #ffb300;">
+        <div style="background:#ffb300; color:#222; font-weight:bold; padding:3px 6px; display:flex; justify-content:space-between; align-items:center;">🏆 Destaque <span onclick="document.getElementById('banner-destaque').style.display='none'" style="cursor:pointer; padding:0 3px;">✕</span></div>
+        <a id="bd-link" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none; display:block;">
+            <img id="bd-img" src="" alt="" style="width:100%; height:90px; object-fit:contain; background:#fff; display:block; margin:0; border-radius:0;">
+            <div style="padding:5px 6px;"><b id="bd-titulo" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;"></b><span id="bd-preco" style="color:#00a884; font-weight:bold;"></span><br><span id="bd-loja" style="opacity:0.7;"></span></div>
+        </a>
+    </div>
 <script>
 // Aviso na tela se o app não carregar ou der erro (guarda o motivo do erro)
 (function () {
@@ -410,6 +417,7 @@
                         <div id="lista-bot-form" style="display:flex; flex-direction:column; gap:3px; margin-top:4px; font-size:11px;"></div>
                     </div>
                     <button class="btn-alt" style="padding:6px; font-size:11px; margin:0;" onclick="salvarProdutoFirebase()">➕ Salvar Produto</button>
+                    <button id="btn-cancelar-edicao" class="btn-alt" style="display:none; padding:6px; font-size:11px; margin:4px 0 0 0; background:#5f6b73;" onclick="cancelarEdicao()">✖ Cancelar edição</button>
                     <div id="bloco-csv" style="background: var(--bg-app); padding:6px; border-radius:6px; margin-top:6px;">
                         <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0;">📄 Inserir planilha de produtos (CSV)</p>
                         <input type="file" id="admin-csv" accept=".csv,text/csv" style="display:none;" onchange="importarCSV(this)">
@@ -426,7 +434,7 @@
                     </label>
                     <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">👁️ Botões do menu (esconder / colocar no ar):</p>
                     <div id="lista-recursos-admin" style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;"></div>
-                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Definir Limite de Vitrine por Usuário:</p>
+                    <p style="font-size:11px; font-weight:bold; margin:0 0 4px 0; color: var(--header-bg);">Usuários — 🏅 pontos (−/+ 10, ✏️ editar, 🏆 destacar com 100+ pontos):</p>
                     <div id="lista-usuarios-admin" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
                         <p style="font-size:11px; text-align:center;">A carregar usuários...</p>
                     </div>
@@ -582,12 +590,12 @@
     // Carrega o Firebase com 2 tentativas; se a rede bloquear, o motivo aparece na tela (nunca fica 'sem botões' em silêncio)
     const FB = 'https://www.gstatic.com/firebasejs/10.8.0/';
     const importar = async (arq) => { try { return await import(FB + arq + '.js'); } catch (e1) { await new Promise((r) => setTimeout(r, 800)); return await import(FB + arq + '.js'); } };
-    let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove, runTransaction, deleteField, getMessaging, getToken;
+    let increment, initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove, runTransaction, deleteField, getMessaging, getToken;
     try {
         const [A, B, C] = await Promise.all([importar('firebase-app'), importar('firebase-auth'), importar('firebase-firestore')]);
         ({ initializeApp } = A);
         ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } = B);
-        ({ getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove, runTransaction, deleteField } = C);
+        ({ getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, updateDoc, getDocs, deleteDoc, where, limit, Timestamp, arrayUnion, arrayRemove, runTransaction, deleteField, increment } = C);
     } catch (e) {
         if (window.__zlMostrarErro) window.__zlMostrarErro('Falha ao carregar o Firebase (' + e.message + '). Verifique a internet, bloqueadores de anúncio e o DNS privado.');
         throw e;
@@ -632,7 +640,7 @@
             return { email: usuarioAtual.email };
         }
         const d = snap.data();
-        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, plano: d.plano || 'gratis', catalogoPronto: !!d.catalogoPronto, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
+        const p = { nome: d.nome || '', fotoUrl: d.fotoUrl || '', linkPessoal: d.linkPessoal || '', limiteProdutos: d.limiteProdutos || 10, plano: d.plano || 'gratis', pontos: Number(d.pontos) || 0, catalogoPronto: !!d.catalogoPronto, handle: d.handle || '', slug: d.slug || '', empresa: d.empresa || '', email: d.email || usuarioAtual.email };
         salvarCache(chave, p);
         return p;
     }
@@ -715,6 +723,10 @@
             if (!snap.exists()) return alert('Link de convite inválido ou expirado.');
             const p = snap.data();
             if (p.uid === usuarioAtual.uid) return;
+            if (localStorage.getItem('zl_conta_nova')) { // nova conta indicada: +10 pontos para quem indicou
+                localStorage.removeItem('zl_conta_nova');
+                try { await updateDoc(doc(db, "usuarios", usuarioAtual.uid), { indicadoPor: p.uid }); await updateDoc(doc(db, "usuarios", p.uid), { pontos: increment(PONTOS_INDICACAO) }); } catch (e) { console.warn('Pontos:', e.message); }
+            }
             await setDoc(doc(db, "agenda", usuarioAtual.uid), { c: { [p.uid]: { n: p.n || 'Usuário', f: p.f || '', l: p.l || '', t: Date.now() } } }, { merge: true });
             await apresentarAoContato(p.uid);
             window.abrirChat(p.uid, p.n || 'Usuário', p.f || '');
@@ -1291,7 +1303,9 @@
         ['testar', '🧪 Testar aviso neste celular'],
     ];
     async function aplicarVisibilidadeMenu() {
-        const oc = (await obterConfig()).ocultos || {};
+        const cfgM = await obterConfig();
+        const oc = cfgM.ocultos || {};
+        if (!window._destaqueFechado) mostrarDestaque(cfgM.destaque);
         document.querySelectorAll('[data-recurso]').forEach((el) => {
             const escondido = !!oc[el.dataset.recurso];
             if (ehAdminApp()) { el.style.display = ''; el.style.opacity = escondido ? '0.45' : ''; el.title = escondido ? 'Escondido para os usuários' : ''; }
@@ -1467,7 +1481,8 @@
         const el = document.getElementById('linha-plano-loja'); el.classList.remove('hidden');
         const b = 'width:auto; padding:6px 10px; margin:3px 3px 0 0; font-size:11px;';
         const pro = ehPro(p);
-        let h = pro ? `⭐ <b>Plano Pro</b> — produtos e chatbots ilimitados.<br>` : `🆓 <b>Plano grátis</b> — até ${Number(p.limiteProdutos) || 10} produtos, ${LIMITE_BOT_GRATIS} perguntas no chatbot de cada produto.<br>`;
+        let h = `🏅 <b>${Number(p.pontos) || 0} pontos</b> — ganhe ${PONTOS_INDICACAO} por amigo que criar conta pelo seu link. Com ${PONTOS_DESTAQUE} pontos seu produto pode ir para o Destaque!<br>`;
+        h += pro ? `⭐ <b>Plano Pro</b> — produtos e chatbots ilimitados.<br>` : `🆓 <b>Plano grátis</b> — até ${LIMITE_GRATIS} produtos, ${LIMITE_BOT_GRATIS} perguntas no chatbot de cada produto.<br>`;
         if (pro) h += `<label style="display:flex; align-items:center; gap:6px; margin:6px 0; font-weight:bold; cursor:pointer;"><input type="checkbox" style="width:auto; margin:0;" ${lojaFerias ? 'checked' : ''} onchange="alternarFerias(this.checked)"> 🏖️ Modo Férias ${lojaFerias ? '(ATIVO — não é possível postar)' : ''}</label>`;
         if (!pro) h += `<button class="btn-alt" style="${b} background:#d4a24c;" onclick="contratarPlano('pro')">⭐ Assinar Pro — ${PRECO_PRO}</button>`;
         if (p.catalogoPronto) h += `<button class="btn-alt" style="${b} background:#00a884;" onclick="importarCatalogoPronto()">📥 Importar catálogo pronto</button>`;
@@ -1613,7 +1628,8 @@
 
     let botForm = [];
     const ehPro = (p) => p && (p.plano === 'pro');
-    const LIMITE_BOT_GRATIS = 10;
+    const LIMITE_BOT_GRATIS = 10, LIMITE_GRATIS = 10, PONTOS_INDICACAO = 10, PONTOS_DESTAQUE = 100;
+    let editandoId = null;
     function desenharBotForm() {
         document.getElementById('lista-bot-form').innerHTML = botForm.map((q, i) => `<div style="background: var(--input-bg); padding:4px 6px; border-radius:4px;">❓ <b>${esc(q.p)}</b><br>💬 ${esc(q.r)} <a href="#" onclick="botForm.splice(${i},1);desenharBotForm();return false;" style="color:#e53935;">remover</a></div>`).join('');
         document.getElementById('bot-contador').innerText = '(' + botForm.length + ')';
@@ -1682,6 +1698,52 @@
         } catch (e) { alert('Erro ao ler a planilha: ' + e.message); }
     };
 
+    window.editarProduto = (id) => {
+        if (lojaCtx.modo === 'minha' && lojaFerias) return alert('🏖️ Desative o modo Férias para editar.');
+        const p = cacheProdutosVitrine.find((x) => x.id === id); if (!p) return;
+        editandoId = id;
+        document.getElementById('admin-prod-titulo').value = p.titulo || '';
+        document.getElementById('admin-prod-preco').value = p.preco || '';
+        document.getElementById('admin-prod-img').value = p.imagem || '';
+        document.getElementById('admin-prod-link').value = p.link || '';
+        botForm = Array.isArray(p.bot) ? p.bot.map((q) => ({ ...q })) : []; desenharBotForm();
+        const b = document.querySelector('button[onclick="salvarProdutoFirebase()"]'); if (b) b.innerText = '💾 Salvar alterações';
+        document.getElementById('btn-cancelar-edicao').style.display = 'block';
+        const painel = document.getElementById('painel-admin-geral'); painel.classList.remove('hidden');
+        if (lojaCtx.modo !== 'minha') mudarAbaAdmin('produtos');
+        painel.scrollIntoView({ behavior: 'smooth' });
+    };
+    function cancelarEdicao() {
+        editandoId = null;
+        ['admin-prod-titulo', 'admin-prod-preco', 'admin-prod-img', 'admin-prod-link', 'admin-prod-foto'].forEach((i) => { document.getElementById(i).value = ''; });
+        botForm = []; desenharBotForm();
+        const b = document.querySelector('button[onclick="salvarProdutoFirebase()"]'); if (b) b.innerText = '➕ Salvar Produto';
+        document.getElementById('btn-cancelar-edicao').style.display = 'none';
+    }
+    window.cancelarEdicao = cancelarEdicao;
+
+    // Afiliado usa um produto das Ofertas do Zap Leve na própria loja, só trocando o link
+    window.usarNaMinhaLoja = async (id) => {
+        if (!usuarioAtual) return alert('Entre na sua conta primeiro.');
+        const prod = cacheProdutosVitrine.find((x) => x.id === id); if (!prod) return;
+        try {
+            const snap = await getDoc(doc(db, "lojas", usuarioAtual.uid));
+            if (!snap.exists()) return alert('Crie sua loja primeiro em "🏪 Criar / gerenciar minha loja".');
+            const loja = snap.data();
+            if (loja.ferias) return alert('🏖️ Sua loja está em modo Férias. Desative para postar.');
+            const itens = loja.itens || [];
+            const p = await obterMeuPerfil();
+            if (!ehPro(p) && itens.length >= LIMITE_GRATIS) return alert(`Sua loja já tem ${LIMITE_GRATIS} produtos (limite do plano grátis).\nAssine o Pro (R$ 26,90/mês) para ter produtos ilimitados.`);
+            const l = (prompt('Cole o SEU link de afiliado para "' + (prod.titulo || 'produto') + '":') || '').trim();
+            if (!l) return;
+            if (!linkPermitido(l)) return alert('Use um link de Shopee, Mercado Livre, Amazon, Shein, Magalu ou AliExpress (começando com https://).');
+            const item = { ...prod, id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), link: l.slice(0, 500), criadoEm: Date.now() };
+            await setDoc(doc(db, "lojas", usuarioAtual.uid), { itens: arrayUnion(item) }, { merge: true });
+            localStorage.removeItem('zl_loja_' + usuarioAtual.uid);
+            alert('✅ Produto adicionado à sua loja com o seu link de afiliado!');
+        } catch (e) { alert('Erro: ' + e.message); }
+    };
+
     window.salvarProdutoFirebase = async () => {
         if (salvandoProduto) return;
         const titulo = document.getElementById('admin-prod-titulo').value.trim();
@@ -1695,7 +1757,7 @@
             if (!link) return alert("Cole o link de afiliado do produto.");
             if (!linkPermitido(link)) return alert("Use um link de Shopee, Mercado Livre, Amazon, Shein, Magalu ou AliExpress (começando com https://).");
         }
-        const repetido = cacheProdutosVitrine.some((p) => (link && p.link === link) || String(p.titulo || '').toLowerCase() === titulo.toLowerCase());
+        const repetido = cacheProdutosVitrine.some((p) => p.id !== editandoId && ( (link && p.link === link) || String(p.titulo || '').toLowerCase() === titulo.toLowerCase()));
         if (repetido && !confirm('Já existe um produto com esse nome ou link na lista. Cadastrar mesmo assim?')) return;
         const btn = document.querySelector('button[onclick="salvarProdutoFirebase()"]');
         salvandoProduto = true;
@@ -1704,9 +1766,18 @@
             if (fotoInput.files && fotoInput.files[0]) {
                 imagem = await subirParaR2(await comprimirImagem(fotoInput.files[0], 800, 0.8), 'webp');
             }
+            if (editandoId) {
+                const antigo = cacheProdutosVitrine.find((x) => x.id === editandoId) || {};
+                const itemE = { ...antigo, titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: (imagem || antigo.imagem || '').slice(0, 500), link: link.slice(0, 500), bot: botForm.slice() };
+                const itens = cacheProdutosVitrine.map((x) => x.id === editandoId ? itemE : x);
+                await setDoc(docLojaAtual(), { itens }, { merge: true });
+                cancelarEdicao();
+                await recarregarLojaAtual();
+                return alert('Produto atualizado!');
+            }
             if (lojaCtx.modo === 'minha') {
                 const p = await obterMeuPerfil();
-                const limite = ehPro(p) ? Infinity : (Number(p.limiteProdutos) || 10);
+                const limite = ehPro(p) ? Infinity : LIMITE_GRATIS;
                 if (cacheProdutosVitrine.length >= limite) return alert(`Sua loja já tem o máximo de ${limite} produtos do plano grátis.\nAssine o Zap Leve Pro (R$ 26,90/mês) para ter produtos e chatbots ilimitados.`);
             }
             const item = { id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: titulo.slice(0, 100), preco: preco.slice(0, 20), imagem: imagem.slice(0, 500), link: link.slice(0, 500), bot: botForm.slice(), criadoEm: Date.now() };
@@ -1751,12 +1822,12 @@
                 div.innerHTML += `
                     <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-app); padding:4px 6px; border-radius:4px; font-size:11px;">
                         <span><b>${esc(u.nome || u.email)}</b></span>
-                        <select onchange="atualizarLimiteUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
-                            <option value="10" ${limiteAtual == 10 ? 'selected' : ''}>10 itens</option>
-                            <option value="25" ${limiteAtual == 25 ? 'selected' : ''}>25 itens</option>
-                            <option value="50" ${limiteAtual == 50 ? 'selected' : ''}>50 itens</option>
-                            <option value="100" ${limiteAtual == 100 ? 'selected' : ''}>100 itens</option>
-                        </select>
+                        <span style="display:flex; align-items:center; gap:2px;">🏅<b>${Number(u.pontos) || 0}</b>
+                            <button style="width:auto; padding:1px 6px; margin:0; font-size:11px; background:#e53935;" onclick="mudarPontos('${esc(docItem.id)}', -10)">−</button>
+                            <button style="width:auto; padding:1px 6px; margin:0; font-size:11px; background:#00a884;" onclick="mudarPontos('${esc(docItem.id)}', 10)">+</button>
+                            <button style="width:auto; padding:1px 6px; margin:0; font-size:11px; background:#5f6b73;" onclick="definirPontos('${esc(docItem.id)}', ${Number(u.pontos) || 0})">✏️</button>
+                            ${(Number(u.pontos) || 0) >= PONTOS_DESTAQUE ? `<button style="width:auto; padding:1px 6px; margin:0; font-size:11px; background:#ffb300; color:#222;" onclick="escolherDestaque('${esc(docItem.id)}', '${esc(String(u.nome || u.email || '').replace(/'/g, ''))}')">🏆</button>` : ''}
+                        </span>
                         <select onchange="atualizarPlanoUsuario('${esc(docItem.id)}', this.value)" style="width:auto; padding:2px; font-size:11px; margin:0;">
                             <option value="gratis" ${u.plano !== 'pro' ? 'selected' : ''}>Grátis</option>
                             <option value="pro" ${u.plano === 'pro' ? 'selected' : ''}>⭐ Pro</option>
@@ -1769,6 +1840,46 @@
         }
     }
 
+    window.mudarPontos = async (uidUser, delta) => {
+        try { await updateDoc(doc(db, "usuarios", uidUser), { pontos: increment(delta) }); carregarListaUsuariosAdmin(); } catch (e) { alert('Erro: ' + e.message); }
+    };
+    window.definirPontos = async (uidUser, atual) => {
+        const v = prompt('Quantos pontos este usuário deve ter?', atual);
+        if (v === null) return;
+        const n = Math.max(0, Math.round(Number(v)));
+        if (!Number.isFinite(n)) return alert('Digite um número.');
+        try { await updateDoc(doc(db, "usuarios", uidUser), { pontos: n }); carregarListaUsuariosAdmin(); } catch (e) { alert('Erro: ' + e.message); }
+    };
+    window.escolherDestaque = async (uidUser, nome) => {
+        try {
+            const snap = await getDoc(doc(db, "lojas", uidUser));
+            const itens = snap.exists() ? (snap.data().itens || []) : [];
+            if (!itens.length) return alert('Este usuário ainda não tem produtos na loja.');
+            const lista = itens.slice(0, 50).map((p, i) => (i + 1) + ' - ' + (p.titulo || 'Produto')).join('\n');
+            const n = Number(prompt('Qual produto de ' + nome + ' vai para o Destaque?\n\n' + lista + '\n\nDigite o número (ou 0 para tirar o destaque):', '1'));
+            if (!Number.isFinite(n)) return;
+            if (n === 0) { await setDoc(doc(db, "config", "app"), { destaque: deleteField() }, { merge: true }); localStorage.removeItem('zl_config'); return alert('Destaque removido.'); }
+            const p = itens[n - 1]; if (!p) return alert('Número inválido.');
+            const destaque = { titulo: String(p.titulo || '').slice(0, 100), preco: p.preco || '', imagem: p.imagem || '', link: p.link || '', loja: String(nome).slice(0, 60), uid: uidUser, t: Date.now() };
+            await setDoc(doc(db, "config", "app"), { destaque }, { merge: true });
+            localStorage.removeItem('zl_config');
+            mostrarDestaque(destaque);
+            alert('🏆 Produto colocado no Destaque!');
+        } catch (e) { alert('Erro: ' + e.message); }
+    };
+    function mostrarDestaque(d) {
+        const el = document.getElementById('banner-destaque');
+        if (!d || !d.titulo) { el.style.display = 'none'; return; }
+        const im = urlSegura(d.imagem, true);
+        document.getElementById('bd-img').style.display = im ? 'block' : 'none'; if (im) document.getElementById('bd-img').src = im;
+        document.getElementById('bd-titulo').innerText = d.titulo;
+        document.getElementById('bd-preco').innerText = d.preco ? ' R$ ' + fmtPreco(d.preco) : '';
+        document.getElementById('bd-loja').innerText = d.loja ? '🏪 ' + d.loja : '';
+        const lk = linkPermitido(d.link) ? urlSegura(d.link) : '';
+        const a = document.getElementById('bd-link'); if (lk) a.href = lk; else a.removeAttribute('href');
+        el.style.display = 'block';
+    }
+    window.mostrarDestaque = mostrarDestaque;
     window.atualizarPlanoUsuario = async (uidUser, plano) => {
         try { await updateDoc(doc(db, "usuarios", uidUser), { plano }); alert(plano === 'pro' ? 'Plano Pro liberado!' : 'Voltou para o plano grátis.'); } catch (e) { alert('Erro: ' + e.message); }
     };
@@ -1811,9 +1922,11 @@
                         <div style="display:flex; flex-direction:column; gap:4px; margin-top:auto;">
                             ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
                             ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
+                            ${dono ? `<button class="btn-alt" style="${btn} width:100%; background:#0b5ed7;" onclick="editarProduto('${esc(prod.id)}')">✏️ Editar</button>` : ''}
+                            ${ver && usuarioAtual && modo !== 'ver' ? `<button class="btn-alt" style="${btn} width:100%; background:#d4a24c;" onclick="usarNaMinhaLoja('${esc(prod.id)}')">➕ Usar na minha loja</button>` : ''}
                             ${dono ? `<button class="btn-alt" style="${btn} width:100%; background:#6c4ab6;" onclick="trocarLinkProduto('${esc(prod.id)}')">🔗 Trocar link</button>` : ''}
                             ${Array.isArray(prod.bot) && prod.bot.length ? `<span onclick="abrirDetalheProduto('${esc(prod.id)}')" style="font-size:11px; text-align:center; cursor:pointer; color:#6c4ab6;">🤖 ${prod.bot.length} respostas</span>` : ''}
-                            ${dono ? `<button class="btn-danger" style="${btn} width:100%;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️ Apagar</button>` : ''}
+                            ${dono ? `<button class="btn-danger" style="${btn} width:100%;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️ Excluir</button>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -2255,6 +2368,7 @@
             const h = gerarHandle();
             await setDoc(doc(db, "usuarios", cred.user.uid), { email: email, nome: nomeInicial, bloqueado: false, limiteProdutos: 10, linkPessoal: "", fotoUrl: "", handle: h });
             try { await setDoc(doc(db, "perfis", h), { uid: cred.user.uid, n: nomeInicial.slice(0, 60), f: '', l: '' }); } catch (_) {}
+            localStorage.setItem('zl_conta_nova', '1');
             alert("Conta criada!");
         } catch (e) { erroLogin(e); }
     };
