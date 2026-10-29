@@ -418,10 +418,21 @@
             <div id="linha-endereco-loja" class="hidden" style="font-size:12px; background: var(--input-bg); padding:8px; border-radius:6px; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"></div>
             <div id="bloco-extrator" class="hidden">
                 <h4>🔍 Extrator Mercado Livre</h4>
-                <textarea id="admin-prod-link-ml" aria-label="Links do Mercado Livre" placeholder="Cole o link de um produto ou catálogo do Mercado Livre (um link por linha)" rows="3"></textarea>
-                <button class="btn-alt" id="btn-extrair-ml" onclick="extrairProdutoML()">🔍 Extrair produtos</button>
-                <div id="resultado-extrator" role="status"></div>
+                <textarea id="admin-prod-link-ml" aria-label="Links do Mercado Livre" placeholder="Cole sua lista de links do Mercado Livre, um por linha" rows="6"></textarea>
+                <fieldset id="opcoes-lista-ml" style="border:1px solid var(--border-color); border-radius:6px; margin:8px 0;">
+                    <legend>Destino dos produtos</legend>
+                    <label style="display:block;"><input type="radio" name="acao-lista-ml" value="csv" checked style="width:auto;"> Somente baixar CSV</label>
+                    <label style="display:block;"><input type="radio" name="acao-lista-ml" value="inserir" style="width:auto;"> Somente inserir no Zap Leve</label>
+                    <label style="display:block;"><input type="radio" name="acao-lista-ml" value="ambos" style="width:auto;"> Inserir e baixar CSV</label>
+                </fieldset>
+                <button class="btn-alt" id="btn-extrair-ml" onclick="extrairProdutoML()">▶ Processar lista</button>
+                <button class="btn-alt hidden" id="btn-parar-ml" onclick="pararExtracaoML()">⏹ Parar extração</button>
+                <div id="progresso-lista-ml" role="status" aria-live="polite"></div>
+                <div id="resumo-insercao-ml" role="status" aria-live="polite"></div>
+                <div id="resultado-extrator" role="status" style="max-height:24vh; overflow-y:auto; overflow-wrap:anywhere;"></div>
+                <button class="btn-alt hidden" id="btn-mais-extraidos" onclick="mostrarMaisExtraidosML()">Ver mais produtos extraídos</button>
                 <button class="btn-alt hidden" id="btn-csv-extraidos" onclick="baixarExtraidosCSV()">⬇️ Baixar produtos extraídos em CSV</button>
+                <button class="btn-alt hidden" id="btn-inserir-extraidos" onclick="inserirExtraidosML()">➕ Inserir produtos extraídos</button>
             </div>
             <button class="btn-alt" onclick="compartilharCatalogo()">📤 Compartilhar catálogo</button>
             <button class="btn-alt" onclick="baixarCatalogoCSV()">⬇️ Baixar catálogo em CSV</button>
@@ -1239,20 +1250,28 @@
         document.getElementById('admin-prod-img').value = p.imagem;
         document.getElementById('admin-prod-foto').value = '';
         const campoLink = document.getElementById('admin-prod-link');
-        if (!campoLink.value.trim()) campoLink.value = p.link;
+        campoLink.value = p.link;
         document.getElementById('admin-prod-titulo').focus();
     };
-    async function buscarProdutosML(link) {
+    async function buscarProdutosML(link, sinal) {
         const erros = [];
         // O extrator original aceita anúncios e listas; o Worker é a alternativa para anúncios.
         const fontes = [{ url: EXTRATOR_ML + '?url=' + encodeURIComponent(link) }];
         if (auth.currentUser) fontes.push({ url: EXTRATOR_WORKER + '/extrair?url=' + encodeURIComponent(link), worker: true });
         for (const fonte of fontes) {
+            if (sinal?.aborted) throw new Error('Extração interrompida.');
             try {
                 const headers = fonte.worker ? { Authorization: 'Bearer ' + await auth.currentUser.getIdToken() } : {};
-                const r = await fetch(fonte.url, { headers, signal: AbortSignal.timeout(25000) });
-                if (!r.ok) throw new Error('Serviço de extração indisponível (' + r.status + ')');
-                const d = await r.json();
+                const controller = new AbortController();
+                const parar = () => controller.abort();
+                sinal?.addEventListener('abort', parar, { once: true });
+                const timer = setTimeout(parar, 25000);
+                let d;
+                try {
+                    const r = await fetch(fonte.url, { headers, signal: controller.signal });
+                    if (!r.ok) throw new Error('Serviço de extração indisponível (' + r.status + ')');
+                    d = await r.json();
+                } finally { clearTimeout(timer); sinal?.removeEventListener('abort', parar); }
                 if (!Array.isArray(d.products) || !d.products.length) throw new Error(d.error || 'O Mercado Livre não liberou os dados deste link.');
                 const produtos = d.products.map((p) => normalizarProdutoML(p, link)).filter((p) => p.titulo);
                 if (!produtos.length) throw new Error('Nenhum produto com nome foi encontrado.');
@@ -1261,33 +1280,139 @@
         }
         throw new Error(erros.join(' / '));
     }
-    window.extrairProdutoML = async () => {
-        const links = document.getElementById('admin-prod-link-ml').value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-        if (!links.length || links.some((l) => !ehLinkML(l))) return alert('Cole links https do Mercado Livre ou meli.la, um por linha.');
-        const btn = document.getElementById('btn-extrair-ml');
-        if (btn.disabled) return;
-        const resultado = document.getElementById('resultado-extrator');
-        const download = document.getElementById('btn-csv-extraidos');
-        btn.disabled = true; btn.innerText = '⏳ Extraindo...';
-        produtosExtraidosML = []; download.classList.add('hidden'); resultado.textContent = 'Buscando produtos...';
+    // Helpers puros: listas grandes não dependem do limite de inserção da loja.
+    const prepararLinksML = (texto) => {
+        const linhas = String(texto || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        const unicos = [...new Set(linhas)];
+        return { links: unicos.filter(ehLinkML), invalidos: unicos.filter((l) => !ehLinkML(l)), repetidos: linhas.length - unicos.length };
+    };
+    const selecionarInsercaoML = (produtos, existentes, limite) => {
+        const links = new Set(existentes.map((p) => p.link).filter(Boolean));
+        const nomes = new Set(existentes.map((p) => String(p.titulo || '').trim().toLocaleLowerCase('pt-BR')));
+        const novos = []; let repetidos = 0, invalidos = 0;
+        for (const p of produtos) {
+            if (!p.titulo || !ehLinkML(p.link) || p.link.length > 500 || p.imagem.length > 500) { invalidos++; continue; }
+            const nome = p.titulo.trim().toLocaleLowerCase('pt-BR');
+            if (links.has(p.link) || nomes.has(nome)) { repetidos++; continue; }
+            links.add(p.link); nomes.add(nome); novos.push(p);
+        }
+        const vagas = Math.max(0, limite - existentes.length);
+        return { inserir: novos.slice(0, vagas), excedentes: Math.max(0, novos.length - vagas), repetidos, invalidos };
+    };
+    const executarDestinoML = async (modo, produtos, baixar, inserir) => {
+        if (!['csv', 'inserir', 'ambos'].includes(modo)) throw new Error('Escolha o destino dos produtos.');
+        if (!produtos.length) return;
+        if (modo === 'csv' || modo === 'ambos') baixar(produtos);
+        if (modo === 'inserir' || modo === 'ambos') return await inserir(produtos);
+    };
+    async function processarLinksML(links, buscar, receber, progresso, sinal) {
+        let proximo = 0, concluidos = 0;
         const erros = [];
-        try {
-            for (const link of links) {
-                try { produtosExtraidosML.push(...await buscarProdutosML(link)); }
-                catch (e) { erros.push(link + ': ' + e.message); }
+        async function fila() {
+            while (proximo < links.length && !sinal.aborted) {
+                const indice = proximo++; const link = links[indice];
+                try { receber(await buscar(link, sinal), indice); }
+                catch (e) { if (!sinal.aborted) erros.push({ link, erro: e.message || 'Falha na extração' }); }
+                finally { concluidos++; progresso(concluidos, links.length); }
             }
-            resultado.replaceChildren();
-            const resumo = document.createElement('p'); resumo.textContent = produtosExtraidosML.length + ' produto(s) extraído(s).'; resultado.appendChild(resumo);
-            produtosExtraidosML.forEach((p, indice) => {
-                const linha = document.createElement('div');
-                const nome = document.createElement('p'); nome.textContent = p.titulo + (p.preco ? ' — R$ ' + fmtPreco(p.preco) : ''); linha.appendChild(nome);
-                const usar = document.createElement('button'); usar.className = 'btn-alt'; usar.textContent = '➕ Usar na minha loja'; usar.onclick = () => usarProdutoExtraido(indice); linha.appendChild(usar);
-                resultado.appendChild(linha);
-            });
-            if (erros.length) { const aviso = document.createElement('p'); aviso.textContent = 'Não foi possível extrair: ' + erros.join(' | ') + ' Você pode preencher o produto manualmente.'; resultado.appendChild(aviso); }
-            download.classList.toggle('hidden', !produtosExtraidosML.length);
-            if (produtosExtraidosML.length === 1) usarProdutoExtraido(0);
-        } finally { btn.disabled = false; btn.innerText = '🔍 Extrair produtos'; }
+        }
+        await Promise.all(Array.from({ length: Math.min(3, links.length) }, fila));
+        return { erros, concluidos, interrompido: sinal.aborted };
+    }
+    let controleExtracaoML = null, extraidosVisiveisML = 0, inserindoListaML = false;
+    window.pararExtracaoML = () => controleExtracaoML?.abort();
+    window.mostrarMaisExtraidosML = () => {
+        const resultado = document.getElementById('resultado-extrator');
+        const fim = Math.min(extraidosVisiveisML + 20, produtosExtraidosML.length);
+        for (let indice = extraidosVisiveisML; indice < fim; indice++) {
+            const p = produtosExtraidosML[indice];
+            const linha = document.createElement('div');
+            const nome = document.createElement('p'); nome.textContent = p.titulo + (p.preco ? ' — R$ ' + fmtPreco(p.preco) : ''); linha.appendChild(nome);
+            const usar = document.createElement('button'); usar.className = 'btn-alt'; usar.textContent = '➕ Editar antes de inserir'; usar.onclick = () => usarProdutoExtraido(indice); linha.appendChild(usar);
+            resultado.appendChild(linha);
+        }
+        extraidosVisiveisML = fim;
+        document.getElementById('btn-mais-extraidos').classList.toggle('hidden', fim >= produtosExtraidosML.length);
+    };
+    async function inserirListaML(produtos, destino) {
+        if (!usuarioAtual || usuarioAtual.uid !== destino.uid || !['minha', 'admin'].includes(destino.modo) || (destino.modo === 'admin' && !ehAdminApp())) throw new Error('Entre na sua conta e abra sua própria loja para inserir.');
+        const ref = destino.modo === 'minha' ? doc(db, 'lojas', destino.uid) : doc(db, 'vitrine', 'produtos');
+        const refPerfil = doc(db, 'usuarios', destino.uid);
+        const [snap, perfil] = await Promise.all([getDoc(ref), getDoc(refPerfil)]);
+        if (destino.modo === 'minha' && !snap.exists()) throw new Error('Crie sua loja antes de inserir produtos. O CSV continua disponível.');
+        const limiteDoPerfil = (dados) => destino.modo === 'admin' ? MAX_PRODUTOS : Math.min(Math.max(0, Number(dados.limiteProdutos) || 20), MAX_PRODUTOS);
+        const plano = selecionarInsercaoML(produtos, snap.exists() ? (snap.data().itens || []) : [], limiteDoPerfil(perfil.exists() ? perfil.data() : {}));
+        const resumo = document.getElementById('resumo-insercao-ml');
+        if (!plano.inserir.length) {
+            resumo.textContent = `Nenhum produto inserido: ${plano.repetidos} repetido(s), ${plano.invalidos} inválido(s) e ${plano.excedentes} sem vaga. O CSV contém todos os produtos extraídos.`;
+            return;
+        }
+        if (!confirm(`Inserir ${plano.inserir.length} produto(s) em ${destino.modo === 'admin' ? 'Ofertas do Zap Leve' : 'sua loja'}?\n${plano.repetidos} repetido(s), ${plano.invalidos} inválido(s) e ${plano.excedentes} sem vaga não serão inseridos. Todos os extraídos continuam disponíveis em CSV.`)) { resumo.textContent = 'Inserção cancelada. Os produtos extraídos continuam disponíveis.'; return; }
+        const itens = plano.inserir.map((p) => ({ id: crypto.randomUUID().replace(/-/g, '').slice(0, 12), titulo: p.titulo.slice(0, 100), preco: p.preco.slice(0, 20), imagem: p.imagem, link: p.link, criadoEm: Date.now() }));
+        const salvo = await runTransaction(db, async (tx) => {
+            const atual = await tx.get(ref); const perfilAtual = await tx.get(refPerfil);
+            if (destino.modo === 'minha' && !atual.exists()) throw new Error('A loja não existe mais. Crie sua loja antes de inserir.');
+            if (!usuarioAtual || usuarioAtual.uid !== destino.uid) throw new Error('Sua conta mudou. Abra sua loja novamente.');
+            const existentes = atual.exists() ? (atual.data().itens || []) : [];
+            const novoPlano = selecionarInsercaoML(itens, existentes, limiteDoPerfil(perfilAtual.exists() ? perfilAtual.data() : {}));
+            if (novoPlano.excedentes) throw new Error('As vagas da loja mudaram. Clique em inserir novamente para revisar.');
+            const lista = [...novoPlano.inserir, ...existentes];
+            if (novoPlano.inserir.length) tx.set(ref, { itens: lista }, { merge: true });
+            return { lista, quantidade: novoPlano.inserir.length, repetidos: plano.repetidos + novoPlano.repetidos };
+        });
+        const chave = destino.modo === 'minha' ? 'zl_loja_' + destino.uid : 'zl_vitrine';
+        localStorage.removeItem(chave);
+        if (usuarioAtual?.uid === destino.uid && lojaCtx.modo === destino.modo) { cacheProdutosVitrine = salvo.lista; renderizarProdutosVitrine(salvo.lista); }
+        resumo.textContent = `${salvo.quantidade} produto(s) inserido(s); ${salvo.repetidos} repetido(s), ${plano.invalidos} inválido(s) e ${plano.excedentes} sem vaga. O CSV contém todos os extraídos, mesmo os não inseridos.`;
+    }
+    window.inserirExtraidosML = async () => {
+        if (controleExtracaoML || inserindoListaML || salvandoProduto) return;
+        inserindoListaML = true;
+        const btn = document.getElementById('btn-inserir-extraidos'); btn.disabled = true;
+        try { await inserirListaML(produtosExtraidosML, { modo: lojaCtx.modo, uid: usuarioAtual?.uid }); }
+        catch (e) { document.getElementById('resumo-insercao-ml').textContent = 'Não foi possível inserir: ' + e.message + ' Os produtos continuam disponíveis para baixar CSV.'; }
+        finally { inserindoListaML = false; btn.disabled = false; }
+    };
+    window.extrairProdutoML = async () => {
+        if (controleExtracaoML || inserindoListaML || salvandoProduto) return;
+        const entrada = prepararLinksML(document.getElementById('admin-prod-link-ml').value);
+        if (!entrada.links.length) return alert('Cole links https do Mercado Livre ou meli.la, um por linha.');
+        const modo = document.querySelector('input[name="acao-lista-ml"]:checked')?.value || 'csv';
+        const destino = { modo: lojaCtx.modo, uid: usuarioAtual?.uid };
+        const controller = new AbortController(); controleExtracaoML = controller;
+        const btn = document.getElementById('btn-extrair-ml'); const parar = document.getElementById('btn-parar-ml');
+        const resultado = document.getElementById('resultado-extrator'); const progresso = document.getElementById('progresso-lista-ml');
+        const download = document.getElementById('btn-csv-extraidos'); const inserir = document.getElementById('btn-inserir-extraidos');
+        btn.disabled = true; btn.innerText = '⏳ Processando lista...'; parar.classList.remove('hidden');
+        document.getElementById('opcoes-lista-ml').disabled = true;
+        download.classList.add('hidden'); inserir.classList.add('hidden'); document.getElementById('btn-mais-extraidos').classList.add('hidden');
+        produtosExtraidosML = []; extraidosVisiveisML = 0; resultado.replaceChildren(); document.getElementById('resumo-insercao-ml').textContent = '';
+        const vistos = new Set(); const resultados = new Map();
+        try {
+            progresso.textContent = `0 de ${entrada.links.length} links; ${entrada.invalidos.length} inválido(s) e ${entrada.repetidos} repetido(s) ignorado(s).`;
+            const estado = await processarLinksML(entrada.links, buscarProdutosML, (produtos, indice) => { resultados.set(indice, produtos); }, (n, total) => {
+                progresso.textContent = `${n} de ${total} links processados.`;
+            }, controller.signal);
+            // Mantém a ordem da lista mesmo quando as respostas chegam fora de ordem.
+            for (let indice = 0; indice < entrada.links.length; indice++) {
+                for (const p of resultados.get(indice) || []) {
+                    const chave = JSON.stringify([p.link, p.titulo]);
+                    if (!vistos.has(chave)) { vistos.add(chave); produtosExtraidosML.push(p); }
+                }
+            }
+            progresso.textContent = `${estado.interrompido ? 'Extração interrompida. ' : ''}${estado.concluidos} de ${entrada.links.length} links processados; ${produtosExtraidosML.length} produto(s) extraído(s); ${estado.erros.length} falha(s), ${entrada.invalidos.length} link(s) inválido(s) e ${entrada.repetidos} repetido(s).`;
+            if (estado.erros.length || entrada.invalidos.length) {
+                const detalhes = document.createElement('details'); const titulo = document.createElement('summary'); titulo.textContent = 'Links com falha ou inválidos'; detalhes.appendChild(titulo);
+                const lista = document.createElement('textarea'); lista.readOnly = true; lista.rows = 4; lista.setAttribute('aria-label', 'Links com falha');
+                lista.value = [...entrada.invalidos.map((link) => link + ' — link inválido'), ...estado.erros.map((e) => e.link + ' — ' + e.erro)].join('\n'); detalhes.appendChild(lista); resultado.appendChild(detalhes);
+            }
+            mostrarMaisExtraidosML(); download.classList.toggle('hidden', !produtosExtraidosML.length); inserir.classList.toggle('hidden', !produtosExtraidosML.length);
+            // Parar nunca grava nem dispara download automático; preserva os resultados parciais.
+            if (!estado.interrompido) await executarDestinoML(modo, produtosExtraidosML, (produtos) => baixarProdutosCSV(produtos, 'mercado-livre-zapleve.csv'), (produtos) => inserirListaML(produtos, destino));
+        } catch (e) { document.getElementById('resumo-insercao-ml').textContent = 'Não foi possível concluir: ' + e.message + ' Os resultados extraídos continuam disponíveis em CSV.'; }
+        finally {
+            controleExtracaoML = null; btn.disabled = false; btn.innerText = '▶ Processar lista'; parar.classList.add('hidden'); document.getElementById('opcoes-lista-ml').disabled = false;
+        }
     };
 
     async function obterConfig(forcar = false) {
