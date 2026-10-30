@@ -236,6 +236,7 @@
             <span id="mp-preco" style="font-size:20px; font-weight:bold; color:#7be0b8;"></span>
         </div>
         <div style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin-top:16px;">
+            <a id="mp-btn-comprar" href="#" target="_blank" rel="noopener noreferrer" style="display:none; background:#ff7a00; color:#fff; text-align:center; padding:13px; border-radius:24px; font-size:15px; font-weight:bold; text-decoration:none;">Comprar 🛒</a>
             <button id="mp-btn-falar" style="background:#00a884; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="falarSobreProduto()">💬 Falar com o vendedor</button>
             <button style="background:#5f6b73; margin:0; padding:13px; border-radius:24px; font-size:15px;" onclick="fecharDetalheProduto()">↩ Voltar para o catálogo</button>
         </div>
@@ -319,10 +320,11 @@
                 <button style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="testarAviso()">🧪 Testar aviso neste celular</button>
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%;" onclick="copiarMeuLink()">🔗 Copiar meu link de atendimento</button>
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #d4a24c;" onclick="abrirMinhaLoja()">🏪 Criar / gerenciar minha loja</button>
+                <button id="btn-ofertas-admin" class="btn-alt hidden" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #6c4ab6;" onclick="abrirMinhaLoja(true)">🛍️ Gerenciar Ofertas do Zap Leve (admin)</button>
                 <button class="btn-alt" style="padding: 6px; font-size: 12px; margin: 6px 0 0 0; width: 100%; background: #0b5ed7;" onclick="abrirNegocios()">🏢 Zap Leve Negócios (atendentes)</button>
             </div>
 
-            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 06/10c · Negócios</p>
+            <p style="font-size:10px; opacity:0.5; margin:6px 0 0 0;">Versão 30/10 · v11</p>
             <div class="close-modal" onclick="fecharPerfilUsuario()" style="width: 100%; margin-top: 10px;">Fechar</div>
         </div>
     </div>
@@ -771,7 +773,7 @@
                         <div style="padding:8px; display:flex; flex-direction:column; gap:4px; flex:1;">
                             <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
                             ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
-                            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="margin-top:auto; display:block; text-align:center; background:#00a884; color:white; padding:8px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:12px;">Ver mais 🔗</a>` : ''}
+                            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="margin-top:auto; display:block; text-align:center; background:#ff7a00; color:white; padding:8px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:12px;">Comprar 🛒</a>` : ''}
                         </div>
                     </div>`;
             });
@@ -798,6 +800,8 @@
         const meuProprio = origem === 'publica' && usuarioAtual && lojaPublica && lojaPublica.uid === usuarioAtual.uid;
         document.getElementById('mp-btn-falar').innerText = (origem === 'publica' && lojaPublica && lojaPublica.e) ? '💬 Falar com o atendimento' : '💬 Falar com o vendedor';
         document.getElementById('mp-btn-falar').style.display = ((origem === 'chat' || origem === 'publica') && !meuProprio) ? 'block' : 'none';
+        const lk = urlSegura(prod.link); const bc = document.getElementById('mp-btn-comprar');
+        bc.href = lk || '#'; bc.style.display = lk ? 'block' : 'none';
         document.getElementById('modal-produto').style.display = 'flex';
     };
 
@@ -1093,6 +1097,7 @@
         document.getElementById('meu-painel-edicao-link').classList.remove('hidden');
         
         atualizarVisibilidadeBotaoInstalacao();
+        const bOf2 = document.getElementById('btn-ofertas-admin'); if (bOf2) bOf2.classList.toggle('hidden', !ehAdminApp());
         document.getElementById('modal-perfil-usuario').style.display = 'flex';
     };
 
@@ -1215,10 +1220,18 @@
 
     const EXTRATOR_WORKER = 'https://zapleve-uploader-novoa.bmlimp8.workers.dev';
     let produtosExtraidosML = [];
+    const imagemML = (p) => {
+        const pega = (v) => { if (!v) return ''; if (Array.isArray(v)) return pega(v[0]); if (typeof v === 'object') return pega(v.secure_url || v.url || v.src || v.link); return String(v); };
+        let u = pega(p.linkImagem || p.imagem || p.image || p.img || p.foto || p.secure_thumbnail || p.thumbnail || p.imageUrl || p.image_url || p.imagens || p.images || p.pictures || p.fotos).trim();
+        if (u.startsWith('//')) u = 'https:' + u;
+        if (/^http:\/\//i.test(u)) u = 'https://' + u.slice(7);
+        u = u.replace(/-[A-Z](\.(jpg|jpeg|webp|png))$/i, '-O$1');
+        return /^https:\/\//i.test(u) ? u : '';
+    };
     const normalizarProdutoML = (p, origem = '') => ({
         titulo: String(p.nome || p.titulo || p.title || p.name || '').trim().slice(0, 100),
         preco: String(p.preco ?? p.price ?? ''),
-        imagem: String(p.linkImagem || p.imagem || p.image || p.thumbnail || ''),
+        imagem: imagemML(p),
         link: String(p.link || p.url || p.permalink || origem),
     });
     const campoCSV = (valor) => {
@@ -1455,6 +1468,7 @@
         document.getElementById('titulo-loja').innerText = ctx.titulo;
         const admin = ctx.modo === 'admin' && ehAdminApp();
         document.getElementById('btn-abrir-admin').classList.toggle('hidden', !admin);
+        const bOf = document.getElementById('btn-ofertas-admin'); if (bOf) bOf.classList.toggle('hidden', !ehAdminApp());
         document.getElementById('painel-admin-geral').classList.toggle('hidden', ctx.modo !== 'minha');
         document.getElementById('abas-admin').classList.toggle('hidden', ctx.modo === 'minha');
         document.getElementById('linha-endereco-loja').classList.add('hidden');
@@ -1559,10 +1573,10 @@
         }
     }
 
-    window.abrirMinhaLoja = async () => {
+    window.abrirMinhaLoja = async (ofertas) => {
         if (!usuarioAtual) return;
         fecharPerfilUsuario();
-        if (ehAdminApp()) { configurarModalLoja({ modo: 'admin', titulo: '🛍️ Minha loja (Ofertas do Zap Leve)' }); return carregarVitrineSegregada(); }
+        if (ofertas === true && ehAdminApp()) { configurarModalLoja({ modo: 'admin', titulo: '🛍️ Minha loja (Ofertas do Zap Leve)' }); return carregarVitrineSegregada(); }
         configurarModalLoja({ modo: 'minha', titulo: '🏪 Minha loja' });
         await carregarMinhaLoja(false);
     };
@@ -1849,7 +1863,7 @@
                         <b style="font-size:13px; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(prod.titulo || 'Produto')}</b>
                         ${prod.preco ? `<span style="font-size:14px; font-weight:bold; color: var(--header-bg);">R$ ${esc(fmtPreco(prod.preco))}</span>` : ''}
                         <div style="display:flex; flex-direction:column; gap:4px; margin-top:auto;">
-                            ${ver && link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#00a884; color:white;">Ver mais 🔗</a>` : ''}
+                            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="${btn} background:#ff7a00; color:#fff;">Comprar 🛒</a>` : ''}
                             ${enviar ? `<button class="btn-alt" style="${btn} width:100%;" onclick="enviarProdutoPorId('${esc(prod.id)}')">Enviar 🛒</button>` : ''}
                             ${dono ? `<button class="btn-danger" style="${btn} width:100%;" onclick="apagarProdutoFirebase('${esc(prod.id)}')">🗑️ Apagar</button>` : ''}
                         </div>
@@ -2887,7 +2901,7 @@
             if (data.tipo === 'produto') {
                 let cartaoHtml = `<div style="font-size: 14px; margin-bottom: 6px;">${formatarTextoComMidia(data.texto)}</div>`;
                 if (urlSegura(data.imagemUrlProduto, true)) cartaoHtml += `<img src="${esc(urlSegura(data.imagemUrlProduto, true))}" style="width:100%; max-height:220px; object-fit:cover; border-radius:6px; margin-bottom:6px; cursor:pointer;" onclick="ampliarImagem(this.src)">`;
-                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#00a884; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Comprar 🛒</a>`;
+                if (urlSegura(data.linkAfiliado)) cartaoHtml += `<a href="${esc(urlSegura(data.linkAfiliado))}" target="_blank" rel="noopener noreferrer" style="display:block; background:#ff7a00; color:white; text-align:center; padding:6px; border-radius:4px; text-decoration:none; font-size:12px; font-weight:bold;">Comprar 🛒</a>`;
                 conteudoHtml = `<div class="msg-product-body">${cartaoHtml}</div>`;
             } else if (data.tipo === 'imagem') {
                 let imgSrc = esc(urlSegura(data.imagemUrlLocal || data.imagemBase64, true));
