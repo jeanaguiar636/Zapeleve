@@ -1232,6 +1232,7 @@
         let u = pega(p.linkImagem || p.imagem || p.image || p.img || p.foto || p.secure_thumbnail || p.thumbnail || p.imageUrl || p.image_url || p.imagens || p.images || p.pictures || p.fotos).trim();
         if (u.startsWith('//')) u = 'https:' + u;
         if (/^http:\/\//i.test(u)) u = 'https://' + u.slice(7);
+        if (/frontend-assets|logo__|\/static\/|placeholder/i.test(u)) return '';
         return /^https:\/\//i.test(u) ? u : '';
     };
     const normalizarProdutoML = (p, origem = '') => ({
@@ -1347,6 +1348,14 @@
             const p = produtosExtraidosML[indice];
             const linha = document.createElement('div');
             const nome = document.createElement('p'); nome.textContent = p.titulo + (p.preco ? ' — R$ ' + fmtPreco(p.preco) : ''); linha.appendChild(nome);
+            const foto = document.createElement('img'); foto.style.cssText = 'width:90px;height:90px;object-fit:contain;background:#fff;border-radius:6px;display:' + (p.imagem ? 'block' : 'none');
+            if (p.imagem) foto.src = p.imagem; linha.appendChild(foto);
+            const campoFoto = document.createElement('input'); campoFoto.type = 'url'; campoFoto.value = p.imagem || '';
+            campoFoto.placeholder = p.imagem ? 'Link da foto' : '⚠️ Sem foto: cole aqui o link da imagem do produto';
+            campoFoto.style.cssText = 'width:100%;margin:4px 0;';
+            campoFoto.onchange = () => { let u = campoFoto.value.trim(); if (u.startsWith('//')) u = 'https:' + u; if (u && !/^https:\/\//i.test(u)) { alert('Cole um link de imagem começando com https://'); return; } p.imagem = u.slice(0, 500); foto.src = p.imagem; foto.style.display = p.imagem ? 'block' : 'none'; };
+            linha.appendChild(campoFoto);
+            if (!p.imagem) { const ver = document.createElement('a'); ver.href = p.link; ver.target = '_blank'; ver.rel = 'noopener'; ver.textContent = '🔎 Abrir produto para copiar a foto (toque e segure na foto → Copiar endereço da imagem)'; ver.style.cssText = 'display:block;font-size:12px;margin-bottom:4px;'; linha.appendChild(ver); }
             const usar = document.createElement('button'); usar.className = 'btn-alt'; usar.textContent = '➕ Editar antes de inserir'; usar.onclick = () => usarProdutoExtraido(indice); linha.appendChild(usar);
             resultado.appendChild(linha);
         }
