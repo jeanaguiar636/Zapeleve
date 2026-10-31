@@ -604,6 +604,13 @@
 
     // Segurança: escape de HTML e validação de URLs
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    // Fotos externas (Mercado Livre) que falham: tenta de novo sem referência e depois versão .jpg.
+    document.addEventListener('error', (e) => {
+        const i = e.target; if (!i || i.tagName !== 'IMG' || !i.src || i.src.startsWith('data:')) return;
+        const t = Number(i.dataset.tent || 0); if (t >= 2) return; i.dataset.tent = t + 1;
+        i.referrerPolicy = 'no-referrer';
+        i.src = t === 0 ? i.src : i.src.replace(/\.webp(\?.*)?$/i, '.jpg');
+    }, true);
     const urlSegura = (u, midia = false) => {
         u = String(u || '').trim();
         if (/^https?:\/\//i.test(u)) return u;
@@ -1225,7 +1232,6 @@
         let u = pega(p.linkImagem || p.imagem || p.image || p.img || p.foto || p.secure_thumbnail || p.thumbnail || p.imageUrl || p.image_url || p.imagens || p.images || p.pictures || p.fotos).trim();
         if (u.startsWith('//')) u = 'https:' + u;
         if (/^http:\/\//i.test(u)) u = 'https://' + u.slice(7);
-        u = u.replace(/-[A-Z](\.(jpg|jpeg|webp|png))$/i, '-O$1');
         return /^https:\/\//i.test(u) ? u : '';
     };
     const normalizarProdutoML = (p, origem = '') => ({
@@ -2980,7 +2986,7 @@
         inputEl.value = "";
     };
 
-    const R2_WORKER = 'https://zapleve-uploader.bmlimp8.workers.dev'; // troque pela URL do seu Worker
+    const R2_WORKER = 'https://zapleve-uploader-novoa.bmlimp8.workers.dev'; // troque pela URL do seu Worker
     const MAX_VIDEO_MB = 15;
 
     async function subirParaR2(blob, ext) {
